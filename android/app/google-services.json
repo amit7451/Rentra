@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "360291447254",
+    "project_id": "rentra-64f73",
+    "storage_bucket": "rentra-64f73.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:360291447254:android:d9f4e222a06d94373c3477",
+        "android_client_info": {
+          "package_name": "com.rentra.app.rentra"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCM97B4mRKh2JXRtyiXhgnBAWs7pRAE24"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
