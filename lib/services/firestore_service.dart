@@ -55,6 +55,35 @@ class FirestoreService {
 
   // ==================== HOSTEL OPERATIONS ====================
 
+  // Add new hostel (for admin)
+  Future<void> addHostel(HostelModel hostel) async {
+    try {
+      final docRef = _firestore.collection(_hostelsCollection).doc();
+
+      // Create hostel data with auto-generated ID and active status
+      final hostelData = {
+        'id': docRef.id,
+        'name': hostel.name,
+        'description': hostel.description,
+        'address': hostel.address,
+        'city': hostel.city,
+        'country': hostel.country,
+        'pricePerNight': hostel.pricePerNight,
+        'availableRooms': hostel.availableRooms,
+        'rating': hostel.rating,
+        'totalReviews': hostel.totalReviews,
+        'images': hostel.images,
+        'amenities': hostel.amenities,
+        'isActive': true, // Default active status
+        'createdAt': FieldValue.serverTimestamp(),
+      };
+
+      await docRef.set(hostelData);
+    } catch (e) {
+      throw 'Failed to add hostel: $e';
+    }
+  }
+
   // Get all hostels
   Stream<List<HostelModel>> getHostels() {
     return _firestore
@@ -64,16 +93,16 @@ class FirestoreService {
         .limit(20)
         .snapshots()
         .map((snapshot) => snapshot.docs
-        .map((doc) => HostelModel.fromMap(doc.data()))
+        .map((doc) => HostelModel.fromMap(doc.data())) // This calls fromMap
         .toList());
   }
 
-  // Get hostel by ID
+// In getHostel method:
   Future<HostelModel?> getHostel(String hostelId) async {
     try {
       final doc = await _firestore.collection(_hostelsCollection).doc(hostelId).get();
       if (doc.exists) {
-        return HostelModel.fromMap(doc.data()!);
+        return HostelModel.fromMap(doc.data()!); // This calls fromMap
       }
       return null;
     } catch (e) {
