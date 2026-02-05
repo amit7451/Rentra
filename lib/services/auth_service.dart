@@ -17,6 +17,8 @@ class AuthService {
     required String email,
     required String password,
     required String name,
+    required String phoneNumber,
+    bool isAdmin = false,
   }) async {
     try {
       final UserCredential result = await _auth.createUserWithEmailAndPassword(
@@ -31,7 +33,9 @@ class AuthService {
           uid: user.uid,
           email: email,
           name: name,
+          phoneNumber: phoneNumber,
           createdAt: DateTime.now(),
+          isAdmin: isAdmin,
         );
 
         // Save user data to Firestore
