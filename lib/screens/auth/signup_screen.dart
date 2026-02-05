@@ -17,6 +17,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _phoneNumberController = TextEditingController();
   final _authService = AuthService();
 
   bool _isLoading = false;
@@ -42,6 +43,8 @@ class _SignupScreenState extends State<SignupScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
         name: _nameController.text.trim(),
+        phoneNumber: _phoneNumberController.text.trim(),
+        isAdmin: false
       );
 
       if (!mounted) return;
@@ -140,6 +143,22 @@ class _SignupScreenState extends State<SignupScreen> {
                     }
                     if (!value.contains('@')) {
                       return 'Please enter a valid email';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _phoneNumberController,
+                  decoration: const InputDecoration(
+                    labelText: 'Mobile Number',
+                    prefixIcon: Icon(Icons.person_outlined),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your number';
                     }
                     return null;
                   },
