@@ -26,34 +26,36 @@ class HotelCard extends StatelessWidget {
           children: [
             // Image
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
               child: hostel.images.isNotEmpty
                   ? Image.network(
-                hostel.images.first,
-                height: 200,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 200,
-                    color: AppTheme.lightGrey,
-                    child: const Icon(
-                      Icons.hotel,
-                      size: 64,
-                      color: AppTheme.grey,
-                    ),
-                  );
-                },
-              )
+                      hostel.images.first,
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 200,
+                          color: AppTheme.lightGrey,
+                          child: const Icon(
+                            Icons.hotel,
+                            size: 64,
+                            color: AppTheme.grey,
+                          ),
+                        );
+                      },
+                    )
                   : Container(
-                height: 200,
-                color: AppTheme.lightGrey,
-                child: const Icon(
-                  Icons.hotel,
-                  size: 64,
-                  color: AppTheme.grey,
-                ),
-              ),
+                      height: 200,
+                      color: AppTheme.lightGrey,
+                      child: const Icon(
+                        Icons.hotel,
+                        size: 64,
+                        color: AppTheme.grey,
+                      ),
+                    ),
             ),
 
             // Details
@@ -76,7 +78,10 @@ class HotelCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.primaryRed,
                           borderRadius: BorderRadius.circular(8),
@@ -134,11 +139,12 @@ class HotelCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${hostel.pricePerNight.toStringAsFixed(0)}',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              color: AppTheme.primaryRed,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            hostel.pricePerNight.toStringAsFixed(0),
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
+                                  color: AppTheme.primaryRed,
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           Text(
                             'Yearly',
@@ -147,7 +153,10 @@ class HotelCard extends StatelessWidget {
                         ],
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: hostel.availableRooms > 0
                               ? AppTheme.primaryRed.withValues(alpha: 0.1)

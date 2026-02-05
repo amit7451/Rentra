@@ -42,16 +42,12 @@ class BookingsScreen extends StatelessWidget {
 
     if (user == null) {
       return const Scaffold(
-        body: Center(
-          child: Text('Please sign in to view bookings'),
-        ),
+        body: Center(child: Text('Please sign in to view bookings')),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Bookings'),
-      ),
+      appBar: AppBar(title: const Text('My Bookings')),
       body: StreamBuilder<List<BookingModel>>(
         stream: firestoreService.getUserBookings(user.uid),
         builder: (context, snapshot) {
@@ -130,8 +126,9 @@ class BookingsScreen extends StatelessWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: _getStatusColor(booking.status)
-                                    .withOpacity(0.1),
+                                color: _getStatusColor(
+                                  booking.status,
+                                ).withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
@@ -156,8 +153,10 @@ class BookingsScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Check-in',
-                                    style: Theme.of(context).textTheme.bodySmall,
+                                    'Start date',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                   ),
                                   const SizedBox(height: 4),
                                   Row(
@@ -174,8 +173,8 @@ class BookingsScreen extends StatelessWidget {
                                             .textTheme
                                             .bodyMedium
                                             ?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                       ),
                                     ],
                                   ),
@@ -187,8 +186,10 @@ class BookingsScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Check-out',
-                                    style: Theme.of(context).textTheme.bodySmall,
+                                    'End date',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                   ),
                                   const SizedBox(height: 4),
                                   Row(
@@ -205,8 +206,8 @@ class BookingsScreen extends StatelessWidget {
                                             .textTheme
                                             .bodyMedium
                                             ?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                       ),
                                     ],
                                   ),
@@ -221,25 +222,10 @@ class BookingsScreen extends StatelessWidget {
                         // Guests and nights
                         Row(
                           children: [
-                            Icon(
-                              Icons.people,
-                              size: 16,
-                              color: AppTheme.grey,
-                            ),
+                            Icon(Icons.people, size: 16, color: AppTheme.grey),
                             const SizedBox(width: 4),
                             Text(
                               '${booking.numberOfGuests} ${booking.numberOfGuests == 1 ? 'Guest' : 'Guests'}',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            const SizedBox(width: 16),
-                            Icon(
-                              Icons.nightlight_round,
-                              size: 16,
-                              color: AppTheme.grey,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${booking.numberOfNights} ${booking.numberOfNights == 1 ? 'Night' : 'Nights'}',
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ],
@@ -256,14 +242,12 @@ class BookingsScreen extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                             Text(
-                              '\$${booking.totalPrice.toStringAsFixed(2)}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
+                              '${booking.totalPrice.toStringAsFixed(2)}',
+                              style: Theme.of(context).textTheme.headlineSmall
                                   ?.copyWith(
-                                color: AppTheme.primaryRed,
-                                fontWeight: FontWeight.bold,
-                              ),
+                                    color: AppTheme.primaryRed,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ],
                         ),
@@ -297,13 +281,11 @@ class BookingsScreen extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text(
                             'Reason: ${booking.cancellationReason}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
+                            style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
-                              color: AppTheme.grey,
-                              fontStyle: FontStyle.italic,
-                            ),
+                                  color: AppTheme.grey,
+                                  fontStyle: FontStyle.italic,
+                                ),
                           ),
                         ],
                       ],
@@ -319,10 +301,10 @@ class BookingsScreen extends StatelessWidget {
   }
 
   void _showCancelDialog(
-      BuildContext context,
-      String bookingId,
-      FirestoreService firestoreService,
-      ) {
+    BuildContext context,
+    String bookingId,
+    FirestoreService firestoreService,
+  ) {
     final reasonController = TextEditingController();
 
     showDialog(

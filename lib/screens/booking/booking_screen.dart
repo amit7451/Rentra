@@ -8,13 +8,12 @@ import '../../widgets/primary_button.dart';
 class BookingScreen extends StatefulWidget {
   final String hostelId;
   final String hostelName;
-  final double pricePerNight;
+  static const double yearlyFee = 75000;
 
   const BookingScreen({
     super.key,
     required this.hostelId,
     required this.hostelName,
-    required this.pricePerNight,
   });
 
   @override
@@ -37,13 +36,15 @@ class _BookingScreenState extends State<BookingScreen> {
     super.dispose();
   }
 
-  int get _numberOfNights {
+  int get _numberOfYears {
     if (_checkInDate == null || _checkOutDate == null) return 0;
-    return _checkOutDate!.difference(_checkInDate!).inDays;
+
+    final days = _checkOutDate!.difference(_checkInDate!).inDays;
+    return (days / 365).ceil();
   }
 
   double get _totalPrice {
-    return _numberOfNights * widget.pricePerNight;
+    return _numberOfYears * BookingScreen.yearlyFee;
   }
 
   Future<void> _selectCheckInDate() async {
@@ -51,7 +52,7 @@ class _BookingScreenState extends State<BookingScreen> {
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 4)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -65,7 +66,7 @@ class _BookingScreenState extends State<BookingScreen> {
     if (date != null) {
       setState(() {
         _checkInDate = date;
-        // Reset checkout if it's before check-in
+
         if (_checkOutDate != null && _checkOutDate!.isBefore(date)) {
           _checkOutDate = null;
         }
@@ -77,7 +78,7 @@ class _BookingScreenState extends State<BookingScreen> {
     if (_checkInDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select check-in date first'),
+          content: Text('Please select Start first'),
           backgroundColor: AppTheme.darkRed,
         ),
       );
@@ -88,7 +89,7 @@ class _BookingScreenState extends State<BookingScreen> {
       context: context,
       initialDate: _checkInDate!.add(const Duration(days: 1)),
       firstDate: _checkInDate!.add(const Duration(days: 1)),
-      lastDate: _checkInDate!.add(const Duration(days: 365)),
+      lastDate: _checkInDate!.add(const Duration(days: 365 * 4)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -110,7 +111,7 @@ class _BookingScreenState extends State<BookingScreen> {
     if (_checkInDate == null || _checkOutDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select check-in and check-out dates'),
+          content: Text('Please select dates'),
           backgroundColor: AppTheme.darkRed,
         ),
       );
@@ -156,7 +157,6 @@ class _BookingScreenState extends State<BookingScreen> {
       // Navigate to bookings tab
       // DefaultTabController.of(context).animateTo(2);
       Navigator.pop(context);
-
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -175,9 +175,7 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Book Hostel'),
-      ),
+      appBar: AppBar(title: const Text('Book Hostel')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -198,7 +196,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '\$${widget.pricePerNight.toStringAsFixed(0)} per night',
+                        '${BookingScreen.yearlyFee.toStringAsFixed(0)} per Year',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: AppTheme.primaryRed,
                           fontWeight: FontWeight.bold,
@@ -212,10 +210,7 @@ class _BookingScreenState extends State<BookingScreen> {
               const SizedBox(height: 24),
 
               // Check-in date
-              Text(
-                'Check-in Date',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              Text('Start Date', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),
               InkWell(
                 onTap: _selectCheckInDate,
@@ -228,12 +223,15 @@ class _BookingScreenState extends State<BookingScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.calendar_today, color: AppTheme.primaryRed),
+                      const Icon(
+                        Icons.calendar_today,
+                        color: AppTheme.primaryRed,
+                      ),
                       const SizedBox(width: 12),
                       Text(
                         _checkInDate != null
                             ? '${_checkInDate!.day}/${_checkInDate!.month}/${_checkInDate!.year}'
-                            : 'Select check-in date',
+                            : 'Starting date',
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ],
@@ -244,10 +242,7 @@ class _BookingScreenState extends State<BookingScreen> {
               const SizedBox(height: 16),
 
               // Check-out date
-              Text(
-                'Check-out Date',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              Text('Till', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),
               InkWell(
                 onTap: _selectCheckOutDate,
@@ -260,12 +255,15 @@ class _BookingScreenState extends State<BookingScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.calendar_today, color: AppTheme.primaryRed),
+                      const Icon(
+                        Icons.calendar_today,
+                        color: AppTheme.primaryRed,
+                      ),
                       const SizedBox(width: 12),
                       Text(
                         _checkOutDate != null
                             ? '${_checkOutDate!.day}/${_checkOutDate!.month}/${_checkOutDate!.year}'
-                            : 'Select check-out date',
+                            : 'Till',
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ],
@@ -277,7 +275,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
               // Number of guests
               Text(
-                'Number of Guests',
+                'Number of Person',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 8),
@@ -291,7 +289,10 @@ class _BookingScreenState extends State<BookingScreen> {
                     color: AppTheme.primaryRed,
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       border: Border.all(color: AppTheme.lightGrey),
                       borderRadius: BorderRadius.circular(8),
@@ -311,7 +312,6 @@ class _BookingScreenState extends State<BookingScreen> {
 
               const SizedBox(height: 24),
 
-              // Special requests
               Text(
                 'Special Requests (Optional)',
                 style: Theme.of(context).textTheme.titleLarge,
@@ -321,14 +321,13 @@ class _BookingScreenState extends State<BookingScreen> {
                 controller: _specialRequestsController,
                 maxLines: 4,
                 decoration: const InputDecoration(
-                  hintText: 'Any special requirements or requests...',
+                  hintText: 'Any special requirements',
                 ),
               ),
 
               const SizedBox(height: 32),
 
-              // Price summary
-              if (_numberOfNights > 0)
+              if (_numberOfYears > 0)
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -348,11 +347,11 @@ class _BookingScreenState extends State<BookingScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              '\$${widget.pricePerNight.toStringAsFixed(0)} x $_numberOfNights nights',
+                              '${BookingScreen.yearlyFee.toStringAsFixed(0)} x $_numberOfYears years',
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                             Text(
-                              '\$${_totalPrice.toStringAsFixed(2)}',
+                              '${_totalPrice.toStringAsFixed(2)}',
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                           ],
@@ -363,20 +362,16 @@ class _BookingScreenState extends State<BookingScreen> {
                           children: [
                             Text(
                               'Total',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineMedium
+                              style: Theme.of(context).textTheme.headlineMedium
                                   ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             Text(
-                              '\$${_totalPrice.toStringAsFixed(2)}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineMedium
+                              '${_totalPrice.toStringAsFixed(2)}',
+                              style: Theme.of(context).textTheme.headlineMedium
                                   ?.copyWith(
-                                color: AppTheme.primaryRed,
-                                fontWeight: FontWeight.bold,
-                              ),
+                                    color: AppTheme.primaryRed,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ],
                         ),
@@ -387,7 +382,6 @@ class _BookingScreenState extends State<BookingScreen> {
 
               const SizedBox(height: 24),
 
-              // Book button
               PrimaryButton(
                 text: 'Confirm Booking',
                 onPressed: _handleBooking,

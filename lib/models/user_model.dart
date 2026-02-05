@@ -15,7 +15,6 @@ class UserModel {
     required this.createdAt,
   });
 
-  // Convert UserModel to Map for Firestore
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,
@@ -27,7 +26,6 @@ class UserModel {
     };
   }
 
-  // Create UserModel from Firestore document
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
       uid: map['uid'] ?? '',
@@ -39,7 +37,6 @@ class UserModel {
     );
   }
 
-  // Copy with method for updating fields
   UserModel copyWith({
     String? uid,
     String? email,

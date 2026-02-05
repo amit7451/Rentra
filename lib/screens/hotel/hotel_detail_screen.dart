@@ -56,32 +56,32 @@ class HotelDetailScreen extends StatelessWidget {
                 flexibleSpace: FlexibleSpaceBar(
                   background: hostel.images.isNotEmpty
                       ? PageView.builder(
-                    itemCount: hostel.images.length,
-                    itemBuilder: (context, index) {
-                      return Image.network(
-                        hostel.images[index],
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: AppTheme.lightGrey,
-                            child: const Icon(
-                              Icons.hotel,
-                              size: 64,
-                              color: AppTheme.grey,
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  )
+                          itemCount: hostel.images.length,
+                          itemBuilder: (context, index) {
+                            return Image.network(
+                              hostel.images[index],
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: AppTheme.lightGrey,
+                                  child: const Icon(
+                                    Icons.hotel,
+                                    size: 64,
+                                    color: AppTheme.grey,
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        )
                       : Container(
-                    color: AppTheme.lightGrey,
-                    child: const Icon(
-                      Icons.hotel,
-                      size: 64,
-                      color: AppTheme.grey,
-                    ),
-                  ),
+                          color: AppTheme.lightGrey,
+                          child: const Icon(
+                            Icons.hotel,
+                            size: 64,
+                            color: AppTheme.grey,
+                          ),
+                        ),
                 ),
               ),
 
@@ -179,27 +179,28 @@ class HotelDetailScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '\$${hostel.pricePerNight.toStringAsFixed(0)}',
+                                  '${hostel.pricePerNight.toStringAsFixed(0)}',
                                   style: Theme.of(context)
                                       .textTheme
                                       .displaySmall
                                       ?.copyWith(
-                                    color: AppTheme.primaryRed,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                        color: AppTheme.primaryRed,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
                                 Text(
-                                  'per night',
+                                  'Yearly',
                                   style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                               ],
                             ),
                             Text(
                               '${hostel.availableRooms} rooms available',
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: AppTheme.primaryRed,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(
+                                    color: AppTheme.primaryRed,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                             ),
                           ],
                         ),
@@ -267,16 +268,16 @@ class HotelDetailScreen extends StatelessWidget {
                 text: 'Book Now',
                 onPressed: hostel.availableRooms > 0
                     ? () {
-                  Navigator.pushNamed(
-                    context,
-                    AppRoutes.booking,
-                    arguments: {
-                      'hostelId': hostel.id,
-                      'hostelName': hostel.name,
-                      'pricePerNight': hostel.pricePerNight,
-                    },
-                  );
-                }
+                        Navigator.pushNamed(
+                          context,
+                          AppRoutes.booking,
+                          arguments: {
+                            'hostelId': hostel.id,
+                            'hostelName': hostel.name,
+                            'pricePerNight': hostel.pricePerNight,
+                          },
+                        );
+                      }
                     : () {},
                 icon: Icons.calendar_today,
               ),

@@ -5,8 +5,6 @@ class HostelModel {
   final String address;
   final String city;
   final String country;
-  final double latitude;
-  final double longitude;
   final double pricePerNight;
   final double rating;
   final int totalReviews;
@@ -24,8 +22,6 @@ class HostelModel {
     required this.address,
     required this.city,
     required this.country,
-    required this.latitude,
-    required this.longitude,
     required this.pricePerNight,
     this.rating = 0.0,
     this.totalReviews = 0,
@@ -45,8 +41,6 @@ class HostelModel {
       'address': address,
       'city': city,
       'country': country,
-      'latitude': latitude,
-      'longitude': longitude,
       'pricePerNight': pricePerNight,
       'rating': rating,
       'totalReviews': totalReviews,
@@ -67,8 +61,6 @@ class HostelModel {
       address: map['address'] ?? '',
       city: map['city'] ?? '',
       country: map['country'] ?? '',
-      latitude: (map['latitude'] ?? 0.0).toDouble(),
-      longitude: (map['longitude'] ?? 0.0).toDouble(),
       pricePerNight: (map['pricePerNight'] ?? 0.0).toDouble(),
       rating: (map['rating'] ?? 0.0).toDouble(),
       totalReviews: map['totalReviews'] ?? 0,
@@ -107,8 +99,6 @@ class HostelModel {
       address: address ?? this.address,
       city: city ?? this.city,
       country: country ?? this.country,
-      latitude: latitude ?? this.latitude,
-      longitude: longitude ?? this.longitude,
       pricePerNight: pricePerNight ?? this.pricePerNight,
       rating: rating ?? this.rating,
       totalReviews: totalReviews ?? this.totalReviews,

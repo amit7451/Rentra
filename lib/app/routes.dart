@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../screens/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/signup_screen.dart';
 import '../screens/main/main_bottom_nav.dart';
@@ -46,7 +45,7 @@ class AppRoutes {
           builder: (context) => BookingScreen(
             hostelId: args['hostelId'],
             hostelName: args['hostelName'],
-            pricePerNight: args['pricePerNight'],
+            // pricePerYear: args['pricePerYear'],
           ),
         );
       default:

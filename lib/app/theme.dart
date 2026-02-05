@@ -21,7 +21,6 @@ class AppTheme {
       primary: primaryRed,
       secondary: accentRed,
       surface: white,
-      background: backgroundColor,
       error: darkRed,
     ),
     scaffoldBackgroundColor: backgroundColor,
@@ -40,23 +39,15 @@ class AppTheme {
         foregroundColor: white,
         elevation: 2,
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        textStyle: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
       ),
     ),
 
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: primaryRed,
-        textStyle: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-        ),
+        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
       ),
     ),
 
@@ -85,9 +76,7 @@ class AppTheme {
     cardTheme: CardThemeData(
       color: white,
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     ),
 
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
@@ -99,10 +88,7 @@ class AppTheme {
       selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
     ),
 
-    iconTheme: const IconThemeData(
-      color: grey,
-      size: 24,
-    ),
+    iconTheme: const IconThemeData(color: grey, size: 24),
 
     chipTheme: ChipThemeData(
       backgroundColor: lightGrey,
@@ -110,21 +96,55 @@ class AppTheme {
       labelStyle: const TextStyle(color: black),
       secondaryLabelStyle: const TextStyle(color: white),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     ),
 
     textTheme: const TextTheme(
-      displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: black),
-      displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: black),
-      displaySmall: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: black),
-      headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: black),
-      headlineSmall: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: black),
-      titleLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: black),
-      bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: black),
-      bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: grey),
-      bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: grey),
+      displayLarge: TextStyle(
+        fontSize: 32,
+        fontWeight: FontWeight.bold,
+        color: black,
+      ),
+      displayMedium: TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.bold,
+        color: black,
+      ),
+      displaySmall: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: black,
+      ),
+      headlineMedium: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: black,
+      ),
+      headlineSmall: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: black,
+      ),
+      titleLarge: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: black,
+      ),
+      bodyLarge: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.normal,
+        color: black,
+      ),
+      bodyMedium: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.normal,
+        color: grey,
+      ),
+      bodySmall: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.normal,
+        color: grey,
+      ),
     ),
   );
 }
