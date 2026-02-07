@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class HostelModel {
   final String id;
   final String name;
@@ -48,12 +50,23 @@ class HostelModel {
       'amenities': amenities,
       'availableRooms': availableRooms,
       'ownerId': ownerId,
-      'createdAt': createdAt.millisecondsSinceEpoch,
+      'createdAt': Timestamp.fromDate(createdAt), // Convert to Timestamp
       'isActive': isActive,
     };
   }
 
   factory HostelModel.fromMap(Map<String, dynamic> map) {
+    DateTime parseCreatedAt(dynamic value) {
+      if (value is Timestamp) {
+        return value.toDate();
+      } else if (value is int) {
+        return DateTime.fromMillisecondsSinceEpoch(value);
+      } else if (value is String) {
+        return DateTime.parse(value);
+      }
+      return DateTime.now();
+    }
+
     return HostelModel(
       id: map['id'] ?? '',
       name: map['name'] ?? '',
@@ -68,7 +81,7 @@ class HostelModel {
       amenities: List<String>.from(map['amenities'] ?? []),
       availableRooms: map['availableRooms'] ?? 0,
       ownerId: map['ownerId'] ?? '',
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ?? 0),
+      createdAt: parseCreatedAt(map['createdAt']), // Use helper function
       isActive: map['isActive'] ?? true,
     );
   }
@@ -80,8 +93,6 @@ class HostelModel {
     String? address,
     String? city,
     String? country,
-    double? latitude,
-    double? longitude,
     double? pricePerNight,
     double? rating,
     int? totalReviews,
