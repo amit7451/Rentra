@@ -50,7 +50,6 @@ class HostelModel {
       'amenities': amenities,
       'availableRooms': availableRooms,
       'ownerId': ownerId,
-      'createdAt': Timestamp.fromDate(createdAt), // Convert to Timestamp
       'isActive': isActive,
     };
   }

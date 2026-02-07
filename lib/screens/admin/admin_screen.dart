@@ -18,14 +18,14 @@ class _AdminScreenState extends State<AdminScreen> {
   final FirestoreService _firestoreService = FirestoreService();
   String? uid = FirebaseAuth.instance.currentUser?.uid;
 
-  // Form controllers
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _countryController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _availableRoomsController = TextEditingController();
+  final TextEditingController _availableRoomsController =
+      TextEditingController();
   final TextEditingController _ratingController = TextEditingController();
   final TextEditingController _totalReviewsController = TextEditingController();
   final TextEditingController _imageUrlController = TextEditingController();
@@ -33,19 +33,17 @@ class _AdminScreenState extends State<AdminScreen> {
   final TextEditingController _ownerIdController = TextEditingController();
 
   // Form state
-  List<String> _imageUrls = [];
+  final List<String> _imageUrls = [];
   List<String> _amenities = ['WiFi', 'Laundry'];
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    // Set default values
     _ratingController.text = '4.5';
     _totalReviewsController.text = '0';
     _availableRoomsController.text = '10';
 
-    // Auto-fill ownerId with current user's UID
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       _ownerIdController.text = user.uid;
@@ -148,7 +146,6 @@ class _AdminScreenState extends State<AdminScreen> {
 
       // Clear form
       _resetForm();
-
     } catch (e) {
       _showError('Failed to add hostel: $e');
     } finally {
@@ -217,176 +214,137 @@ class _AdminScreenState extends State<AdminScreen> {
       body: _isLoading
           ? const LoadingIndicator(message: 'Submitting hostel details...')
           : SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Basic Information
-              _buildSectionTitle('Basic Information'),
-              const SizedBox(height: 16),
+              padding: const EdgeInsets.all(16),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Basic Information
+                    _buildSectionTitle('Basic Information'),
+                    const SizedBox(height: 16),
 
-              _buildTextField(
-                controller: _nameController,
-                label: 'Hostel Name',
-                hintText: 'Enter hostel name',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter hostel name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              _buildTextField(
-                controller: _descriptionController,
-                label: 'Description',
-                hintText: 'Describe your hostel',
-                maxLines: 4,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter description';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Owner ID Field (hidden from user if you get it from auth)
-              _buildTextField(
-                controller: _ownerIdController,
-                label: 'Owner ID',
-                hintText: 'Enter owner/admin ID',
-                readOnly: true, // Add this to make it read-only
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter owner ID';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Location
-              _buildSectionTitle('Location'),
-              const SizedBox(height: 16),
-
-              _buildTextField(
-                controller: _addressController,
-                label: 'Address',
-                hintText: 'Full address',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter address';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _cityController,
-                      label: 'City',
-                      hintText: 'City',
+                    _buildTextField(
+                      controller: _nameController,
+                      label: 'Hostel Name',
+                      hintText: 'Enter hostel name',
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter city';
+                          return 'Please enter hostel name';
                         }
                         return null;
                       },
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _countryController,
-                      label: 'Country',
-                      hintText: 'Country',
+                    const SizedBox(height: 16),
+
+                    _buildTextField(
+                      controller: _descriptionController,
+                      label: 'Description',
+                      hintText: 'Describe your hostel',
+                      maxLines: 4,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter country';
+                          return 'Please enter description';
                         }
                         return null;
                       },
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+                    const SizedBox(height: 16),
 
-              // Pricing & Rooms
-              _buildSectionTitle('Pricing & Availability'),
-              const SizedBox(height: 16),
+                    // Owner ID Field (hidden from user if you get it from auth)
+                    _buildTextField(
+                      controller: _ownerIdController,
+                      label: 'Owner ID',
+                      hintText: 'Enter owner/admin ID',
+                      readOnly: true, // Add this to make it read-only
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter owner ID';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
 
-              _buildTextField(
-                controller: _priceController,
-                label: 'Price Per Year',
-                hintText: 'e.g., 50000',
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter price';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Please enter valid price';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
+                    // Location
+                    _buildSectionTitle('Location'),
+                    const SizedBox(height: 16),
 
-              _buildTextField(
-                controller: _availableRoomsController,
-                label: 'Available Rooms',
-                hintText: 'e.g., 10',
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter available rooms';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'Please enter valid number';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _addressController,
+                      label: 'Address',
+                      hintText: 'Full address',
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter address';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _ratingController,
-                      label: 'Rating (0-5)',
-                      hintText: 'e.g., 4.5',
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _cityController,
+                            label: 'City',
+                            hintText: 'City',
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter city';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _countryController,
+                            label: 'Country',
+                            hintText: 'Country',
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter country';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Pricing & Rooms
+                    _buildSectionTitle('Pricing & Availability'),
+                    const SizedBox(height: 16),
+
+                    _buildTextField(
+                      controller: _priceController,
+                      label: 'Price Per Year',
+                      hintText: 'e.g., 50000',
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter rating';
+                          return 'Please enter price';
                         }
-                        final rating = double.tryParse(value);
-                        if (rating == null || rating < 0 || rating > 5) {
-                          return 'Rating must be between 0 and 5';
+                        if (double.tryParse(value) == null) {
+                          return 'Please enter valid price';
                         }
                         return null;
                       },
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildTextField(
-                      controller: _totalReviewsController,
-                      label: 'Total Reviews',
-                      hintText: 'e.g., 120',
+                    const SizedBox(height: 16),
+
+                    _buildTextField(
+                      controller: _availableRoomsController,
+                      label: 'Available Rooms',
+                      hintText: 'e.g., 10',
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter total reviews';
+                          return 'Please enter available rooms';
                         }
                         if (int.tryParse(value) == null) {
                           return 'Please enter valid number';
@@ -394,177 +352,213 @@ class _AdminScreenState extends State<AdminScreen> {
                         return null;
                       },
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+                    const SizedBox(height: 16),
 
-              // Images
-              _buildSectionTitle('Hostel Images'),
-              const SizedBox(height: 16),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _imageUrlController,
-                      decoration: InputDecoration(
-                        labelText: 'Image URL',
-                        hintText: 'https://example.com/image.jpg',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _ratingController,
+                            label: 'Rating (0-5)',
+                            hintText: 'e.g., 4.5',
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter rating';
+                              }
+                              final rating = double.tryParse(value);
+                              if (rating == null || rating < 0 || rating > 5) {
+                                return 'Rating must be between 0 and 5';
+                              }
+                              return null;
+                            },
+                          ),
                         ),
-                        contentPadding: const EdgeInsets.all(16),
-                      ),
-                      keyboardType: TextInputType.url,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildTextField(
+                            controller: _totalReviewsController,
+                            label: 'Total Reviews',
+                            hintText: 'e.g., 120',
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter total reviews';
+                              }
+                              if (int.tryParse(value) == null) {
+                                return 'Please enter valid number';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  ElevatedButton(
-                    onPressed: _addImageUrl,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                    const SizedBox(height: 24),
+
+                    // Images
+                    _buildSectionTitle('Hostel Images'),
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _imageUrlController,
+                            decoration: InputDecoration(
+                              labelText: 'Image URL',
+                              hintText: 'https://example.com/image.jpg',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              contentPadding: const EdgeInsets.all(16),
+                            ),
+                            keyboardType: TextInputType.url,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        ElevatedButton(
+                          onPressed: _addImageUrl,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 16,
+                            ),
+                          ),
+                          child: const Text(
+                            'Add',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Add at least one image URL',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Image URLs list
+                    if (_imageUrls.isNotEmpty)
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: List.generate(_imageUrls.length, (index) {
+                          return Chip(
+                            label: Text('Image ${index + 1}'),
+                            deleteIcon: const Icon(Icons.close, size: 16),
+                            onDeleted: () => _removeImageUrl(index),
+                            backgroundColor: Colors.grey[200],
+                          );
+                        }),
                       ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 16,
+                    const SizedBox(height: 24),
+
+                    // Amenities
+                    _buildSectionTitle('Amenities'),
+                    const SizedBox(height: 16),
+
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _amenities.map((amenity) {
+                        return Chip(
+                          label: Text(amenity),
+                          deleteIcon: const Icon(Icons.close, size: 16),
+                          onDeleted: () => _removeAmenity(amenity),
+                          backgroundColor: Colors.grey[200],
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _amenityController,
+                            decoration: InputDecoration(
+                              labelText: 'Add Amenity',
+                              hintText: 'e.g., Swimming Pool',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              contentPadding: const EdgeInsets.all(16),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        ElevatedButton(
+                          onPressed: _addAmenity,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 16,
+                            ),
+                          ),
+                          child: const Text(
+                            'Add',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _submitForm,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 16,
+                          ),
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Icon(Icons.cloud_upload, color: Colors.white),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Submit Hostel Details',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
                       ),
                     ),
-                    child: const Text(
-                      'Add',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Add at least one image URL',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14,
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-
-              // Image URLs list
-              if (_imageUrls.isNotEmpty)
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: List.generate(_imageUrls.length, (index) {
-                    return Chip(
-                      label: Text('Image ${index + 1}'),
-                      deleteIcon: const Icon(Icons.close, size: 16),
-                      onDeleted: () => _removeImageUrl(index),
-                      backgroundColor: Colors.grey[200],
-                    );
-                  }),
-                ),
-              const SizedBox(height: 24),
-
-              // Amenities
-              _buildSectionTitle('Amenities'),
-              const SizedBox(height: 16),
-
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _amenities.map((amenity) {
-                  return Chip(
-                    label: Text(amenity),
-                    deleteIcon: const Icon(Icons.close, size: 16),
-                    onDeleted: () => _removeAmenity(amenity),
-                    backgroundColor: Colors.grey[200],
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _amenityController,
-                      decoration: InputDecoration(
-                        labelText: 'Add Amenity',
-                        hintText: 'e.g., Swimming Pool',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        contentPadding: const EdgeInsets.all(16),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  ElevatedButton(
-                    onPressed: _addAmenity,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 16,
-                      ),
-                    ),
-                    child: const Text(
-                      'Add',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _submitForm,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                      : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.cloud_upload, color: Colors.white),
-                      SizedBox(width: 8),
-                      Text(
-                        'Submit Hostel Details',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
@@ -593,10 +587,7 @@ class _AdminScreenState extends State<AdminScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 16,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
         ),
         const SizedBox(height: 8),
         TextFormField(

@@ -8,6 +8,8 @@ import '../screens/hotel/hotel_detail_screen.dart';
 import '../screens/booking/booking_screen.dart';
 import '../screens/booking/bookings_screen.dart';
 import '../screens/profile/profile_screen.dart';
+import '../screens/notifications/notifications.dart';
+import '../screens/wishlist/wishlist.dart';
 
 class AppRoutes {
   // static const String splash = '/';
@@ -20,6 +22,8 @@ class AppRoutes {
   static const String booking = '/booking';
   static const String bookings = '/bookings';
   static const String profile = '/profile';
+  static const String wishlist = '/wishlist';
+  static const String notifications = '/notifications';
 
   static Map<String, WidgetBuilder> routes = {
     // splash: (context) => const SplashScreen(),
@@ -30,6 +34,8 @@ class AppRoutes {
     search: (context) => const SearchScreen(),
     bookings: (context) => const BookingsScreen(),
     profile: (context) => const ProfileScreen(),
+    wishlist: (context) => const WishlistScreen(),
+    notifications: (context) => const NotificationsScreen(),
   };
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
@@ -45,7 +51,7 @@ class AppRoutes {
           builder: (context) => BookingScreen(
             hostelId: args['hostelId'],
             hostelName: args['hostelName'],
-            // pricePerYear: args['pricePerYear'],
+            yearlyFee: (args['pricePerNight'] as num).toDouble(),
           ),
         );
       default:

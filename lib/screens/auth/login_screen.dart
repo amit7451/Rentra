@@ -54,6 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
+
   void _showForgotPasswordDialog(BuildContext context) {
     final TextEditingController emailController = TextEditingController();
     final AuthService authService = AuthService();
@@ -94,16 +95,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text(
-                      'Password reset email sent. Please check your inbox.',
+                      'Password reset email sent. Please check your inbox.(Check Spam folder)',
                     ),
                   ),
                 );
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(e.toString()),
-                  ),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(e.toString())));
               }
             },
             child: const Text('Send'),
@@ -112,7 +111,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -158,9 +156,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 Text(
                   'Sign in to continue',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppTheme.grey,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: AppTheme.grey),
                 ),
 
                 const SizedBox(height: 40),
@@ -193,7 +191,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                       ),
                       onPressed: () {
                         setState(() => _obscurePassword = !_obscurePassword);
@@ -216,12 +216,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Forgot password
                 Align(
                   alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        _showForgotPasswordDialog(context);
-                      },
-                      child: const Text('Forgot Password?'),
-                    ),
+                  child: TextButton(
+                    onPressed: () {
+                      _showForgotPasswordDialog(context);
+                    },
+                    child: const Text('Forgot Password?'),
+                  ),
                 ),
 
                 const SizedBox(height: 24),
@@ -245,7 +245,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).pushReplacementNamed(AppRoutes.signup);
+                        Navigator.of(
+                          context,
+                        ).pushReplacementNamed(AppRoutes.signup);
                       },
                       child: const Text('Sign Up'),
                     ),

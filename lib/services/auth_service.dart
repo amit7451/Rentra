@@ -72,7 +72,7 @@ class AuthService {
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     } catch (e) {
-      throw 'An unexpected error occurred. Please try again.';
+      rethrow;
     }
   }
 
@@ -97,10 +97,7 @@ class AuthService {
   }
 
   // Update user profile
-  Future<void> updateProfile({
-    String? displayName,
-    String? photoURL,
-  }) async {
+  Future<void> updateProfile({String? displayName, String? photoURL}) async {
     try {
       final user = _auth.currentUser;
       if (user != null) {

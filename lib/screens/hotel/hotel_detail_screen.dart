@@ -179,7 +179,7 @@ class HotelDetailScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '${hostel.pricePerNight.toStringAsFixed(0)}',
+                                  hostel.pricePerNight.toStringAsFixed(0),
                                   style: Theme.of(context)
                                       .textTheme
                                       .displaySmall

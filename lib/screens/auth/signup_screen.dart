@@ -30,6 +30,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _phoneNumberController.dispose();
     super.dispose();
   }
 
@@ -44,7 +45,7 @@ class _SignupScreenState extends State<SignupScreen> {
         password: _passwordController.text,
         name: _nameController.text.trim(),
         phoneNumber: _phoneNumberController.text.trim(),
-        isAdmin: false
+        isAdmin: false,
       );
 
       if (!mounted) return;

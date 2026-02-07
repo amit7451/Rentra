@@ -242,7 +242,7 @@ class BookingsScreen extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                             Text(
-                              '${booking.totalPrice.toStringAsFixed(2)}',
+                              booking.totalPrice.toStringAsFixed(2),
                               style: Theme.of(context).textTheme.headlineSmall
                                   ?.copyWith(
                                     color: AppTheme.primaryRed,

@@ -6,13 +6,19 @@ import '../../models/user_model.dart';
 import '../../app/theme.dart';
 import '../../app/routes.dart';
 import '../../widgets/loading_indicator.dart';
+import 'package:rentra/services/user_cache.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
-
-  void _editProfile(BuildContext context, UserModel userModel, FirestoreService firestoreService) {
+  void _editProfile(
+    BuildContext context,
+    UserModel userModel,
+    FirestoreService firestoreService,
+  ) {
     final nameController = TextEditingController(text: userModel.name);
-    final photoController = TextEditingController(text: userModel.photoUrl ?? '');
+    final photoController = TextEditingController(
+      text: userModel.photoUrl ?? '',
+    );
 
     showDialog(
       context: context,
@@ -35,19 +41,16 @@ class ProfileScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () async {
-              await firestoreService.updateUser(
-                userModel.uid,
-                {
-                  'name': nameController.text.trim(),
-                  'photoUrl': photoController.text.trim().isEmpty
-                      ? null
-                      : photoController.text.trim(),
-                },
-              );
+              await firestoreService.updateUser(userModel.uid, {
+                'name': nameController.text.trim(),
+                'photoUrl': photoController.text.trim().isEmpty
+                    ? null
+                    : photoController.text.trim(),
+              });
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Profile updated')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Profile updated')));
             },
             child: const Text('Save'),
           ),
@@ -61,18 +64,12 @@ class ProfileScreen extends StatelessWidget {
 
     if (user == null || user.email == null) return;
 
-    await FirebaseAuth.instance.sendPasswordResetEmail(
-      email: user.email!,
-    );
+    await FirebaseAuth.instance.sendPasswordResetEmail(email: user.email!);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Password reset email sent'),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Password reset email sent')));
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -82,9 +79,7 @@ class ProfileScreen extends StatelessWidget {
 
     if (user == null) {
       return const Scaffold(
-        body: Center(
-          child: Text('Please sign in to view profile'),
-        ),
+        body: Center(child: Text('Please sign in to view profile')),
       );
     }
 
@@ -101,7 +96,7 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
       body: FutureBuilder<UserModel?>(
-        future: firestoreService.getUser(user.uid),
+        future: UserCache.getUser(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const LoadingIndicator(message: 'Loading profile...');
@@ -121,25 +116,25 @@ class ProfileScreen extends StatelessWidget {
                   backgroundColor: AppTheme.primaryRed,
                   child: userModel?.photoUrl != null
                       ? ClipOval(
-                    child: Image.network(
-                      userModel!.photoUrl!,
-                      width: 120,
-                      height: 120,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
+                          child: Image.network(
+                            userModel!.photoUrl!,
+                            width: 120,
+                            height: 120,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(
+                                Icons.person,
+                                size: 60,
+                                color: AppTheme.white,
+                              );
+                            },
+                          ),
+                        )
+                      : const Icon(
                           Icons.person,
                           size: 60,
                           color: AppTheme.white,
-                        );
-                      },
-                    ),
-                  )
-                      : const Icon(
-                    Icons.person,
-                    size: 60,
-                    color: AppTheme.white,
-                  ),
+                        ),
                 ),
 
                 const SizedBox(height: 16),
@@ -155,9 +150,9 @@ class ProfileScreen extends StatelessWidget {
                 // Email
                 Text(
                   user.email ?? '',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppTheme.grey,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: AppTheme.grey),
                 ),
 
                 const SizedBox(height: 32),
@@ -167,48 +162,63 @@ class ProfileScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       ListTile(
-                        leading: const Icon(Icons.person_outline, color: AppTheme.primaryRed),
+                        leading: const Icon(
+                          Icons.person_outline,
+                          color: AppTheme.primaryRed,
+                        ),
                         title: const Text('Edit Profile'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
+                          if (userModel == null) return;
                           _editProfile(context, userModel!, firestoreService);
-
                         },
                       ),
                       const Divider(height: 1),
                       ListTile(
-                        leading: const Icon(Icons.lock_outline, color: AppTheme.primaryRed),
+                        leading: const Icon(
+                          Icons.lock_outline,
+                          color: AppTheme.primaryRed,
+                        ),
                         title: const Text('Change Password'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
                           _changePassword(context);
-
                         },
                       ),
                       const Divider(height: 1),
                       ListTile(
-                        leading: const Icon(Icons.notifications_outlined, color: AppTheme.primaryRed),
+                        leading: const Icon(
+                          Icons.notifications_outlined,
+                          color: AppTheme.primaryRed,
+                        ),
                         title: const Text('Notifications'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
                           // TODO: Navigate to notifications
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Notification settings coming soon'),
+                              content: Text(
+                                'Notification settings coming soon',
+                              ),
                             ),
                           );
                         },
                       ),
                       const Divider(height: 1),
                       ListTile(
-                        leading: const Icon(Icons.payment_outlined, color: AppTheme.primaryRed),
+                        leading: const Icon(
+                          Icons.payment_outlined,
+                          color: AppTheme.primaryRed,
+                        ),
                         title: const Text('Payment Methods'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
                           // TODO: Navigate to payment methods
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Payment methods feature coming soon'),
+                              content: Text(
+                                'Payment methods feature coming soon',
+                              ),
                             ),
                           );
                         },
@@ -224,16 +234,18 @@ class ProfileScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       ListTile(
-                        leading: const Icon(Icons.language_outlined, color: AppTheme.primaryRed),
+                        leading: const Icon(
+                          Icons.language_outlined,
+                          color: AppTheme.primaryRed,
+                        ),
                         title: const Text('Language'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               'English',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppTheme.grey,
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(color: AppTheme.grey),
                             ),
                             const SizedBox(width: 8),
                             const Icon(Icons.chevron_right),
@@ -249,33 +261,46 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       const Divider(height: 1),
                       ListTile(
-                        leading: const Icon(Icons.help_outline, color: AppTheme.primaryRed),
+                        leading: const Icon(
+                          Icons.help_outline,
+                          color: AppTheme.primaryRed,
+                        ),
                         title: const Text('Help & Support'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Help & support feature coming soon'),
+                              content: Text(
+                                'Help & support feature coming soon',
+                              ),
                             ),
                           );
                         },
                       ),
                       const Divider(height: 1),
                       ListTile(
-                        leading: const Icon(Icons.privacy_tip_outlined, color: AppTheme.primaryRed),
+                        leading: const Icon(
+                          Icons.privacy_tip_outlined,
+                          color: AppTheme.primaryRed,
+                        ),
                         title: const Text('Privacy Policy'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Privacy policy feature coming soon'),
+                              content: Text(
+                                'Privacy policy feature coming soon',
+                              ),
                             ),
                           );
                         },
                       ),
                       const Divider(height: 1),
                       ListTile(
-                        leading: const Icon(Icons.info_outline, color: AppTheme.primaryRed),
+                        leading: const Icon(
+                          Icons.info_outline,
+                          color: AppTheme.primaryRed,
+                        ),
                         title: const Text('About'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
@@ -310,9 +335,9 @@ class ProfileScreen extends StatelessWidget {
                 // Version info
                 Text(
                   'Version 1.0.0',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.grey,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppTheme.grey),
                 ),
 
                 const SizedBox(height: 32),
@@ -339,11 +364,11 @@ class ProfileScreen extends StatelessWidget {
             onPressed: () async {
               try {
                 await authService.signOut();
+                UserCache.clear();
                 if (context.mounted) {
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    AppRoutes.login,
-                        (route) => false,
-                  );
+                  Navigator.of(
+                    context,
+                  ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
                 }
               } catch (e) {
                 if (context.mounted) {
@@ -376,9 +401,9 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Version 1.0.0',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppTheme.grey,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppTheme.grey),
             ),
             const SizedBox(height: 16),
             const Text(

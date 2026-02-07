@@ -6,82 +6,127 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/error_text.dart';
 import 'hotel_card.dart';
 import '../search/search_screen.dart';
+import '/widgets/app_drawer.dart';
 
-class HomeScreen extends StatelessWidget {
+import 'package:rentra/app/routes.dart';
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final firestoreService = FirestoreService();
 
     return Scaffold(
+      drawer: AppDrawer(),
       appBar: AppBar(
-        title: const Text('Rentra',style: TextStyle(fontSize: 30),),
-        elevation: 5,
+        elevation: 2,
+        backgroundColor: AppTheme.primaryRed,
+        centerTitle: true,
+
+        // LEFT: Menu
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.white),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          ),
+        ),
+
+        // CENTER: LOGO
+        title: Image.asset(
+          'assets/icons/app_icon.png',
+          height: 36,
+          fit: BoxFit.contain,
+          color: Colors.white,
+          colorBlendMode: BlendMode.srcIn,
+        ),
+
+        // RIGHT: Icons
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.favorite_border, color: AppTheme.white),
+            onPressed: () {
+              Navigator.pushNamed(context, AppRoutes.wishlist);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.notifications_none, color: AppTheme.white),
+            onPressed: () {
+              Navigator.pushNamed(context, AppRoutes.notifications);
+            },
+          ),
+        ],
       ),
+
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header section
+          // 🔴 Red search container (ONLY search + nearby stays)
           Container(
-            color: AppTheme.primaryRed,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: AppTheme.primaryRed,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
+              ),
+            ),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Find Your Perfect Home',
-                  style: TextStyle(
-                    color: AppTheme.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Discover amazing hostels and flats around you',
-                  style: TextStyle(
-                    color: AppTheme.white,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Search bar (decorative, actual search in search screen)
+                // Search bar
                 Container(
                   decoration: BoxDecoration(
                     color: AppTheme.white,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   child: TextField(
                     readOnly: true,
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => const SearchScreen(),
-                        ),
+                        MaterialPageRoute(builder: (_) => const SearchScreen()),
                       );
-                      DefaultTabController.of(context).animateTo(1);
                     },
                     decoration: InputDecoration(
-                      hintText: 'Search for hostels...',
-                      prefixIcon: const Icon(Icons.search, color: AppTheme.grey),
+                      hintText: 'Search hostels, flats...',
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: AppTheme.grey,
+                      ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
                       fillColor: AppTheme.white,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
                     ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Nearby stays text
+                const Text(
+                  'Nearby stays',
+                  style: TextStyle(
+                    color: AppTheme.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
           ),
-
-          // Text("Login Successful.\nWelcome to DashBoard",style: TextStyle(color: Colors.black,fontSize: 40),)
 
           // Hostels list
           Expanded(
@@ -96,7 +141,7 @@ class HomeScreen extends StatelessWidget {
                   return ErrorText(
                     message: 'Error loading hostels: ${snapshot.error}',
                     onRetry: () {
-                      // Trigger rebuild
+                      setState(() {});
                     },
                   );
                 }
