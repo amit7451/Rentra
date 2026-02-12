@@ -120,7 +120,9 @@ class CloudinaryService {
 
     if (errors.isNotEmpty) {
       print('⚠️ Some images failed to upload:');
-      errors.forEach((e) => print('   $e'));
+      for (var e in errors) {
+        print('   $e');
+      }
     }
 
     return uploadedUrls;
@@ -144,7 +146,9 @@ class CloudinaryService {
 
       String fullPublicId = publicId;
       if (pathSegments.length > 1) {
-        final folderPath = pathSegments.sublist(0, pathSegments.length - 1).join('/');
+        final folderPath = pathSegments
+            .sublist(0, pathSegments.length - 1)
+            .join('/');
         fullPublicId = '$folderPath/$publicId';
       }
 
@@ -152,9 +156,7 @@ class CloudinaryService {
       final signature = _generateSignature(fullPublicId, timestamp, _apiSecret);
 
       final response = await http.post(
-        Uri.parse(
-          'https://api.cloudinary.com/v1_1/$_cloudName/image/destroy',
-        ),
+        Uri.parse('https://api.cloudinary.com/v1_1/$_cloudName/image/destroy'),
         body: {
           'public_id': fullPublicId,
           'api_key': _apiKey,

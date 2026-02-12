@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/firestore_service.dart';
 import '../../models/booking_model.dart';
 import '../../models/hostel_model.dart';
@@ -38,6 +39,13 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
       backgroundColor: const Color(0xFFF5F5F7),
       appBar: AppBar(
         title: const Text('Manage Bookings'),
+        actions: [
+          IconButton(
+            tooltip: 'Clear cancelled bookings',
+            icon: const Icon(Icons.delete_sweep_outlined),
+            onPressed: () => _confirmAndClearCancelled(context),
+          ),
+        ],
         centerTitle: true,
         backgroundColor: AppTheme.primaryRed,
         foregroundColor: Colors.white,
@@ -119,6 +127,72 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
         },
       ),
     );
+  }
+
+  Future<void> _confirmAndClearCancelled(BuildContext context) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Clear Cancelled Bookings'),
+        content: const Text(
+          'This will permanently delete all cancelled bookings for your hostels. Continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          ),
+        ],
+      ),
+    );
+
+    if (ok != true) return;
+
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('bookings')
+          .where('adminId', isEqualTo: _uid)
+          .where('status', isEqualTo: BookingStatus.cancelled.name)
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No cancelled bookings to clear.')),
+          );
+        }
+        return;
+      }
+
+      final batchCount = snapshot.docs.length;
+
+      for (final doc in snapshot.docs) {
+        await _firestoreService.deleteBooking(doc.id);
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Deleted $batchCount cancelled booking(s).'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to clear cancelled bookings: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _emptyState({

@@ -32,7 +32,6 @@ class ProfileScreen extends StatelessWidget {
               controller: nameController,
               decoration: const InputDecoration(labelText: 'Name'),
             ),
-            ///////////////
           ],
         ),
         actions: [
@@ -126,7 +125,7 @@ class ProfileScreen extends StatelessWidget {
                             width: 120,
                             height: 120,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(
+                            errorBuilder: (_, _, _) => const Icon(
                               Icons.person,
                               size: 60,
                               color: AppTheme.white,
@@ -210,6 +209,7 @@ class ProfileScreen extends StatelessWidget {
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
                           // TODO: Navigate to payment methods
+
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(

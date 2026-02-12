@@ -80,7 +80,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
 
   Future<void> _pickImages() async {
     try {
-      final List<XFile>? pickedFiles = await _picker.pickMultiImage(
+      final List<XFile> pickedFiles = await _picker.pickMultiImage(
         maxWidth: 1200,
         maxHeight: 1200,
         imageQuality: 85,
@@ -225,7 +225,9 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
 
     try {
       // Upload all images to Cloudinary
-      final uploadedUrls = await _cloudinaryService.uploadMultipleImages(_selectedImages);
+      final uploadedUrls = await _cloudinaryService.uploadMultipleImages(
+        _selectedImages,
+      );
 
       if (uploadedUrls.isEmpty) {
         throw Exception('Failed to upload images');
@@ -262,8 +264,10 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
       }
     } catch (e) {
       if (mounted) {
-        _showSnack('Failed: ${e.toString().replaceAll('Exception:', '')}',
-            isError: true);
+        _showSnack(
+          'Failed: ${e.toString().replaceAll('Exception:', '')}',
+          isError: true,
+        );
       }
     } finally {
       if (mounted) {
@@ -317,402 +321,429 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
       ),
       body: _isLoading || _isUploading
           ? LoadingIndicator(
-        message: _isUploading
-            ? 'Submitting hostel details...'
-            : 'Submitting hostel details...',
-      )
+              message: _isUploading
+                  ? 'Submitting hostel details...'
+                  : 'Submitting hostel details...',
+            )
           : SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _sectionTitle('Basic Information'),
-              const SizedBox(height: 16),
-              _field(
-                _nameController,
-                'Hostel Name',
-                'e.g. Sharma Flat',
-                validator: _required('hostel name'),
-              ),
-              const SizedBox(height: 16),
-              _field(
-                _descriptionController,
-                'Description',
-                'Describe your hostel',
-                maxLines: 4,
-                validator: _required('description'),
-              ),
-              const SizedBox(height: 24),
-
-              _sectionTitle('Location'),
-              const SizedBox(height: 16),
-              _field(
-                _addressController,
-                'Full Address',
-                'Street address',
-                validator: _required('address'),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _field(
-                      _cityController,
-                      'City',
-                      'City',
-                      validator: _required('city'),
+              padding: const EdgeInsets.all(16),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _sectionTitle('Basic Information'),
+                    const SizedBox(height: 16),
+                    _field(
+                      _nameController,
+                      'Hostel Name',
+                      'e.g. Sharma Flat',
+                      validator: _required('hostel name'),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _field(
-                      _countryController,
-                      'Country',
-                      'Country',
-                      validator: _required('country'),
+                    const SizedBox(height: 16),
+                    _field(
+                      _descriptionController,
+                      'Description',
+                      'Describe your hostel',
+                      maxLines: 4,
+                      validator: _required('description'),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-              _sectionTitle('Pricing & Availability'),
-              const SizedBox(height: 16),
-              _field(
-                _priceController,
-                'Price Per Year (₹)',
-                'e.g. 50000',
-                keyboardType: TextInputType.number,
-                validator: _numericValidator('price'),
-              ),
-              const SizedBox(height: 16),
-              _field(
-                _availableRoomsController,
-                'Available Rooms',
-                'e.g. 10',
-                keyboardType: TextInputType.number,
-                validator: _intValidator('available rooms'),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _field(
-                      _ratingController,
-                      'Rating (0-5)',
-                      'e.g. 4.5',
+                    _sectionTitle('Location'),
+                    const SizedBox(height: 16),
+                    _field(
+                      _addressController,
+                      'Full Address',
+                      'Street address',
+                      validator: _required('address'),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _field(
+                            _cityController,
+                            'City',
+                            'City',
+                            validator: _required('city'),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _field(
+                            _countryController,
+                            'Country',
+                            'Country',
+                            validator: _required('country'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    _sectionTitle('Pricing & Availability'),
+                    const SizedBox(height: 16),
+                    _field(
+                      _priceController,
+                      'Price Per Year (₹)',
+                      'e.g. 50000',
                       keyboardType: TextInputType.number,
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return 'Required';
-                        final r = double.tryParse(v);
-                        if (r == null || r < 0 || r > 5) {
-                          return 'Must be 0-5';
-                        }
-                        return null;
-                      },
+                      validator: _numericValidator('price'),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _field(
-                      _totalReviewsController,
-                      'Total Reviews',
-                      'e.g. 0',
+                    const SizedBox(height: 16),
+                    _field(
+                      _availableRoomsController,
+                      'Available Rooms',
+                      'e.g. 10',
                       keyboardType: TextInputType.number,
-                      validator: _intValidator('total reviews'),
+                      validator: _intValidator('available rooms'),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _field(
+                            _ratingController,
+                            'Rating (0-5)',
+                            'e.g. 4.5',
+                            keyboardType: TextInputType.number,
+                            validator: (v) {
+                              if (v == null || v.isEmpty) return 'Required';
+                              final r = double.tryParse(v);
+                              if (r == null || r < 0 || r > 5) {
+                                return 'Must be 0-5';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _field(
+                            _totalReviewsController,
+                            'Total Reviews',
+                            'e.g. 0',
+                            keyboardType: TextInputType.number,
+                            validator: _intValidator('total reviews'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
 
-              _sectionTitle('Hostel Images'),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Select images (Max 10 images)',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                    ),
-                  ),
-                  Text(
-                    '${_selectedImages.length}/10',
-                    style: TextStyle(
-                      color: _selectedImages.length >= 10 ? Colors.red : Colors.grey[600],
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (_selectedImages.isNotEmpty) ...[
-                        Row(
-                          children: [
-                            Text(
-                              'Selected Images:',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey[800],
-                              ),
+                    _sectionTitle('Hostel Images'),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Select images (Max 10 images)',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 13,
                             ),
-                            const Spacer(),
-                            Text(
-                              '${_selectedImages.length}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.primaryRed,
+                          ),
+                        ),
+                        Text(
+                          '${_selectedImages.length}/10',
+                          style: TextStyle(
+                            color: _selectedImages.length >= 10
+                                ? Colors.red
+                                : Colors.grey[600],
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (_selectedImages.isNotEmpty) ...[
+                              Row(
+                                children: [
+                                  Text(
+                                    'Selected Images:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey[800],
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    '${_selectedImages.length}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryRed,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                height: 100,
+                                child: ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: _selectedImages.length,
+                                  separatorBuilder: (_, _) =>
+                                      const SizedBox(width: 8),
+                                  itemBuilder: (context, index) {
+                                    return Stack(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          child: Image.file(
+                                            _selectedImages[index],
+                                            width: 100,
+                                            height: 100,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, _, _) =>
+                                                Container(
+                                                  width: 100,
+                                                  height: 100,
+                                                  color: Colors.grey[200],
+                                                  child: const Icon(
+                                                    Icons.broken_image,
+                                                  ),
+                                                ),
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 4,
+                                          right: 4,
+                                          child: GestureDetector(
+                                            onTap: () => _removeImage(index),
+                                            child: Container(
+                                              decoration: const BoxDecoration(
+                                                color: Colors.red,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              padding: const EdgeInsets.all(4),
+                                              child: const Icon(
+                                                Icons.close,
+                                                color: Colors.white,
+                                                size: 16,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+
+                            if (_selectedImages.isEmpty) ...[
+                              Center(
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(20),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[50],
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.add_photo_alternate_outlined,
+                                        size: 48,
+                                        color: Colors.grey[400],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'No images selected',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Images will be uploaded when you submit',
+                                      style: TextStyle(
+                                        color: Colors.grey[500],
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: _selectedImages.length >= 10
+                                    ? null
+                                    : _showImageSourceActionSheet,
+                                icon: const Icon(Icons.add_a_photo),
+                                label: Text(
+                                  _selectedImages.length >= 10
+                                      ? 'Maximum images reached'
+                                      : 'Add Images',
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
+                                  side: BorderSide(
+                                    color: _selectedImages.length >= 10
+                                        ? Colors.grey
+                                        : AppTheme.primaryRed,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          height: 100,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: _selectedImages.length,
-                            separatorBuilder: (_, __) => const SizedBox(width: 8),
-                            itemBuilder: (context, index) {
-                              return Stack(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.file(
-                                      _selectedImages[index],
-                                      width: 100,
-                                      height: 100,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
-                                        width: 100,
-                                        height: 100,
-                                        color: Colors.grey[200],
-                                        child: const Icon(Icons.broken_image),
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 4,
-                                    right: 4,
-                                    child: GestureDetector(
-                                      onTap: () => _removeImage(index),
-                                      child: Container(
-                                        decoration: const BoxDecoration(
-                                          color: Colors.red,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        padding: const EdgeInsets.all(4),
-                                        child: const Icon(
-                                          Icons.close,
-                                          color: Colors.white,
-                                          size: 16,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    _sectionTitle('Amenities'),
+                    const SizedBox(height: 12),
+                    _amenities.isEmpty
+                        ? Text(
+                            'No amenities added',
+                            style: TextStyle(color: Colors.grey[600]),
+                          )
+                        : Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _amenities.map((a) {
+                              return Chip(
+                                label: Text(a),
+                                deleteIcon: const Icon(Icons.close, size: 16),
+                                onDeleted: () =>
+                                    setState(() => _amenities.remove(a)),
+                                backgroundColor: AppTheme.primaryRed.withAlpha(
+                                  10,
+                                ),
+                                labelStyle: const TextStyle(
+                                  color: AppTheme.primaryRed,
+                                ),
+                                side: BorderSide.none,
                               );
-                            },
+                            }).toList(),
+                          ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _amenityController,
+                            decoration: InputDecoration(
+                              hintText: 'e.g. Swimming Pool',
+                              hintStyle: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 14,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(
+                                  color: AppTheme.primaryRed,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                            onFieldSubmitted: (_) => _addAmenity(),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                      ],
-
-                      if (_selectedImages.isEmpty) ...[
-                        Center(
-                          child: Column(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[50],
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.add_photo_alternate_outlined,
-                                  size: 48,
-                                  color: Colors.grey[400],
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No images selected',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Images will be uploaded when you submit',
-                                style: TextStyle(
-                                  color: Colors.grey[500],
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: _selectedImages.length >= 10
-                              ? null
-                              : _showImageSourceActionSheet,
-                          icon: const Icon(Icons.add_a_photo),
-                          label: Text(
-                            _selectedImages.length >= 10
-                                ? 'Maximum images reached'
-                                : 'Add Images',
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            side: BorderSide(
-                              color: _selectedImages.length >= 10
-                                  ? Colors.grey
-                                  : AppTheme.primaryRed,
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          onPressed: _addAmenity,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryRed,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 14,
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              _sectionTitle('Amenities'),
-              const SizedBox(height: 12),
-              _amenities.isEmpty
-                  ? Text(
-                'No amenities added',
-                style: TextStyle(color: Colors.grey[600]),
-              )
-                  : Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _amenities.map((a) {
-                  return Chip(
-                    label: Text(a),
-                    deleteIcon: const Icon(Icons.close, size: 16),
-                    onDeleted: () => setState(() => _amenities.remove(a)),
-                    backgroundColor: AppTheme.primaryRed.withAlpha(10),
-                    labelStyle: const TextStyle(
-                      color: AppTheme.primaryRed,
-                    ),
-                    side: BorderSide.none,
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _amenityController,
-                      decoration: InputDecoration(
-                        hintText: 'e.g. Swimming Pool',
-                        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 12,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: AppTheme.primaryRed,
-                            width: 2,
+                          child: const Text(
+                            'Add',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                      ),
-                      onFieldSubmitted: (_) => _addAmenity(),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: _addAmenity,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryRed,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Add',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
+                    const SizedBox(height: 32),
 
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: (_isLoading || _isUploading || _selectedImages.isEmpty)
-                      ? null
-                      : _submit,
-                  icon: const Icon(
-                    Icons.cloud_upload_outlined,
-                    color: Colors.white,
-                  ),
-                  label: Text(
-                    _selectedImages.isEmpty
-                        ? 'Add Images First'
-                        : 'Submit Hostel',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed:
+                            (_isLoading ||
+                                _isUploading ||
+                                _selectedImages.isEmpty)
+                            ? null
+                            : _submit,
+                        icon: const Icon(
+                          Icons.cloud_upload_outlined,
+                          color: Colors.white,
+                        ),
+                        label: Text(
+                          _selectedImages.isEmpty
+                              ? 'Add Images First'
+                              : 'Submit Hostel',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryRed,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          disabledBackgroundColor: Colors.grey[400],
+                        ),
+                      ),
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryRed,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    disabledBackgroundColor: Colors.grey[400],
-                  ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
@@ -729,14 +760,14 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
   );
 
   Widget _field(
-      TextEditingController controller,
-      String label,
-      String hint, {
-        int maxLines = 1,
-        TextInputType keyboardType = TextInputType.text,
-        bool readOnly = false,
-        String? Function(String?)? validator,
-      }) {
+    TextEditingController controller,
+    String label,
+    String hint, {
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+    bool readOnly = false,
+    String? Function(String?)? validator,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -780,7 +811,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
   }
 
   String? Function(String?) _required(String fieldName) =>
-          (v) => (v == null || v.trim().isEmpty) ? 'Please enter $fieldName' : null;
+      (v) => (v == null || v.trim().isEmpty) ? 'Please enter $fieldName' : null;
 
   String? Function(String?) _numericValidator(String fieldName) => (v) {
     if (v == null || v.isEmpty) return 'Please enter $fieldName';
