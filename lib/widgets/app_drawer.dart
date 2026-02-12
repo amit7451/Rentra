@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../app/theme.dart';
 import '../app/routes.dart';
 import '../screens/main/main_bottom_nav.dart';
-import '../../services/user_cache.dart';
-import 'package:rentra/models/user_model.dart';
+import '../models/user_model.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -12,21 +13,17 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      return const Text('Not logged in');
-    }
+    if (user == null) return const SizedBox();
 
     return Drawer(
       backgroundColor: AppTheme.white,
       child: SafeArea(
         child: Column(
           children: [
-            // ================= PROFILE HEADER =================
+            // 🔥 STREAM BASED HEADER
             InkWell(
               onTap: () {
-                Navigator.pop(context); // close drawer
-
+                Navigator.pop(context);
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -34,75 +31,78 @@ class AppDrawer extends StatelessWidget {
                   ),
                 );
               },
+              child: StreamBuilder<DocumentSnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(user.uid)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: CircularProgressIndicator(),
+                    );
+                  }
 
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor: AppTheme.primaryRed,
-                      backgroundImage: user.photoURL != null
-                          ? NetworkImage(user.photoURL!)
-                          : null,
-                      child: user.photoURL == null
-                          ? const Icon(
-                              Icons.person,
-                              color: Colors.white,
-                              size: 30,
-                            )
-                          : null,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FutureBuilder<UserModel?>(
-                        future: UserCache.getUser(),
-                        builder: (context, snapshot) {
-                          final userModel = snapshot.data;
+                  final userModel = UserModel.fromMap(
+                    snapshot.data!.data() as Map<String, dynamic>,
+                  );
 
-                          final name = userModel?.name ?? 'User';
-                          final email = userModel?.email ?? user.email ?? '';
-
-                          return Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.black,
-                                  ),
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 28,
+                          backgroundColor: AppTheme.primaryRed,
+                          backgroundImage: userModel.photoUrl != null
+                              ? NetworkImage(userModel.photoUrl!)
+                              : null,
+                          child: userModel.photoUrl == null
+                              ? const Icon(
+                                  Icons.person,
+                                  color: Colors.white,
+                                  size: 30,
+                                )
+                              : null,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                userModel.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  email,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: AppTheme.grey,
-                                  ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                user.email ?? '',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppTheme.grey,
                                 ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right, color: AppTheme.grey),
+                      ],
                     ),
-
-                    const Icon(Icons.chevron_right, color: AppTheme.grey),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
 
             const Divider(),
 
-            // ================= MENU ITEMS =================
             _drawerItem(Icons.settings, 'Settings', () {}),
             _drawerItem(Icons.help_outline, 'Help & Support', () {}),
             _drawerItem(Icons.system_update, 'Update App', () {}),
@@ -111,20 +111,13 @@ class AppDrawer extends StatelessWidget {
             _drawerItem(Icons.card_giftcard, 'Invite & Earn', () {}),
 
             const Spacer(),
-
             const Divider(),
 
-            // ================= LOGOUT =================
             _drawerItem(Icons.logout, 'Log out', () async {
-              // 1️⃣ Sign out from Firebase
               await FirebaseAuth.instance.signOut();
-
               if (!context.mounted) return;
 
-              // 2️⃣ Close drawer
               Navigator.pop(context);
-
-              // 3️⃣ Navigate to Login & clear stack
               Navigator.pushNamedAndRemoveUntil(
                 context,
                 AppRoutes.login,
@@ -139,7 +132,6 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  // ================= DRAWER TILE =================
   Widget _drawerItem(
     IconData icon,
     String title,
@@ -157,7 +149,6 @@ class AppDrawer extends StatelessWidget {
         ),
       ),
       onTap: onTap,
-      horizontalTitleGap: 8,
     );
   }
 }

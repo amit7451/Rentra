@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/auth_service.dart';
 import '../../services/firestore_service.dart';
 import '../../models/user_model.dart';
@@ -97,14 +98,17 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: FutureBuilder<UserModel?>(
-        future: UserCache.getUser(),
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (!snapshot.hasData || snapshot.data!.data() == null) {
             return const LoadingIndicator(message: 'Loading profile...');
           }
 
-          final userModel = snapshot.data;
+          final userModel = UserModel.fromMap(snapshot.data!.data()!);
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -112,24 +116,21 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 const SizedBox(height: 20),
 
-                // Profile picture
                 CircleAvatar(
                   radius: 60,
                   backgroundColor: AppTheme.primaryRed,
-                  child: userModel?.photoUrl != null
+                  child: userModel.photoUrl != null
                       ? ClipOval(
                           child: Image.network(
-                            userModel!.photoUrl!,
+                            userModel.photoUrl!,
                             width: 120,
                             height: 120,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(
-                                Icons.person,
-                                size: 60,
-                                color: AppTheme.white,
-                              );
-                            },
+                            errorBuilder: (_, __, ___) => const Icon(
+                              Icons.person,
+                              size: 60,
+                              color: AppTheme.white,
+                            ),
                           ),
                         )
                       : const Icon(
@@ -141,15 +142,13 @@ class ProfileScreen extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // Name
                 Text(
-                  userModel?.name ?? 'User',
+                  userModel.name,
                   style: Theme.of(context).textTheme.displaySmall,
                 ),
 
                 const SizedBox(height: 8),
 
-                // Email
                 Text(
                   user.email ?? '',
                   style: Theme.of(
@@ -159,7 +158,6 @@ class ProfileScreen extends StatelessWidget {
 
                 const SizedBox(height: 32),
 
-                // Profile options
                 Card(
                   child: Column(
                     children: [
@@ -170,10 +168,8 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         title: const Text('Edit Profile'),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          if (userModel == null) return;
-                          _editProfile(context, userModel, firestoreService);
-                        },
+                        onTap: () =>
+                            _editProfile(context, userModel, firestoreService),
                       ),
                       const Divider(height: 1),
                       ListTile(
@@ -183,9 +179,7 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         title: const Text('Change Password'),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          _changePassword(context);
-                        },
+                        onTap: () => _changePassword(context),
                       ),
                       const Divider(height: 1),
                       ListTile(
