@@ -77,6 +77,7 @@ class FirestoreService {
         'totalReviews': hostel.totalReviews,
         'images': hostel.images,
         'amenities': hostel.amenities,
+        'ownerId': hostel.ownerId, // Critical: link hostel to owner
         'isActive': true, // Default active status
         'createdAt': FieldValue.serverTimestamp(),
       };
@@ -203,13 +204,15 @@ class FirestoreService {
     return _firestore
         .collection(_bookingsCollection)
         .where('userId', isEqualTo: userId)
-        .orderBy('bookingDate', descending: true)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          final bookings = snapshot.docs
               .map((doc) => BookingModel.fromMap({...doc.data(), 'id': doc.id}))
-              .toList(),
-        );
+              .toList();
+          // Sort by bookingDate descending in dart instead of relying on index
+          bookings.sort((a, b) => b.bookingDate.compareTo(a.bookingDate));
+          return bookings;
+        });
   }
 
   // Get booking by ID
@@ -263,19 +266,31 @@ class FirestoreService {
     }
   }
 
-  // Get bookings for owner (by hostel IDs)
-  Stream<List<BookingModel>> getBookingsForOwner(List<String> hostelIds) {
-    if (hostelIds.isEmpty) {
-      return Stream.value([]);
-    }
+  // Get bookings for owner (by admin ID - SECURE and EFFICIENT)
+  Stream<List<BookingModel>> getBookingsForOwner(String adminId) {
     return _firestore
         .collection(_bookingsCollection)
-        .where('hostelId', whereIn: hostelIds)
-        .orderBy('bookingDate', descending: true)
+        .where('adminId', isEqualTo: adminId)
+        .snapshots()
+        .map((snapshot) {
+          final bookings = snapshot.docs
+              .map((doc) => BookingModel.fromMap({...doc.data(), 'id': doc.id}))
+              .toList();
+          // Sort by bookingDate descending in dart instead of relying on index
+          bookings.sort((a, b) => b.bookingDate.compareTo(a.bookingDate));
+          return bookings;
+        });
+  }
+
+  // Get all active hostels (for fallback queries)
+  Stream<List<HostelModel>> getAllActiveHostels() {
+    return _firestore
+        .collection(_hostelsCollection)
+        .where('isActive', isEqualTo: true)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
-              .map((doc) => BookingModel.fromMap({...doc.data(), 'id': doc.id}))
+              .map((doc) => HostelModel.fromMap(doc.data()))
               .toList(),
         );
   }

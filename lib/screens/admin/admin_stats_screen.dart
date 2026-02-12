@@ -31,9 +31,8 @@ class AdminStatsScreen extends StatelessWidget {
           }
 
           final hostels = hostelSnap.data ?? [];
-          final hostelIds = hostels.map((h) => h.id).toList();
 
-          if (hostelIds.isEmpty) {
+          if (hostels.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -54,7 +53,7 @@ class AdminStatsScreen extends StatelessWidget {
           }
 
           return StreamBuilder<List<BookingModel>>(
-            stream: firestoreService.getBookingsForOwner(hostelIds),
+            stream: firestoreService.getBookingsForOwner(uid),
             builder: (context, bookingSnap) {
               if (bookingSnap.connectionState == ConnectionState.waiting) {
                 return const LoadingIndicator(message: 'Computing stats...');
@@ -78,9 +77,15 @@ class _StatsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final confirmed = bookings.where((b) => b.status == 'confirmed').toList();
-    final pending = bookings.where((b) => b.status == 'pending').toList();
-    final cancelled = bookings.where((b) => b.status == 'cancelled').toList();
+    final confirmed = bookings
+        .where((b) => b.status == BookingStatus.confirmed)
+        .toList();
+    final pending = bookings
+        .where((b) => b.status == BookingStatus.pending)
+        .toList();
+    final cancelled = bookings
+        .where((b) => b.status == BookingStatus.cancelled)
+        .toList();
     final revenue = confirmed.fold<double>(0, (s, b) => s + b.totalPrice);
     final guests = confirmed.fold<int>(0, (s, b) => s + b.numberOfGuests);
     final occupancyRate = hostels.isEmpty
@@ -100,7 +105,7 @@ class _StatsBody extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -196,7 +201,7 @@ class _StatsBody extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -271,7 +276,7 @@ class _StatsBody extends StatelessWidget {
                 .where((b) => b.hostelId == h.id)
                 .toList();
             final hRevenue = hBookings
-                .where((b) => b.status == 'confirmed')
+                .where((b) => b.status == BookingStatus.confirmed)
                 .fold<double>(0, (s, b) => s + b.totalPrice);
             return _HostelPerfCard(
               hostel: h,
@@ -320,7 +325,7 @@ class _StatCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -415,7 +420,7 @@ class _BookingBreakdown extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -492,7 +497,7 @@ class _HostelPerfCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -508,7 +513,7 @@ class _HostelPerfCard extends StatelessWidget {
                     width: 56,
                     height: 56,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _placeholder(),
+                    errorBuilder: (_, _, _) => _placeholder(),
                   )
                 : _placeholder(),
           ),

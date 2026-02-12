@@ -81,7 +81,7 @@ class AdminDashboard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -104,13 +104,8 @@ class AdminDashboard extends StatelessWidget {
             StreamBuilder<List<HostelModel>>(
               stream: firestoreService.getHostelsByOwner(uid),
               builder: (context, hostelSnap) {
-                final hostels = hostelSnap.data ?? [];
-                final hostelIds = hostels.map((h) => h.id).toList();
-
                 return StreamBuilder<List<BookingModel>>(
-                  stream: hostelIds.isEmpty
-                      ? Stream.value([])
-                      : firestoreService.getBookingsForOwner(hostelIds),
+                  stream: firestoreService.getBookingsForOwner(uid),
                   builder: (context, bookingSnap) {
                     final bookings = bookingSnap.data ?? [];
                     final confirmed = bookings
@@ -337,7 +332,7 @@ class _MetricCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -510,7 +505,7 @@ class _FeatureCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 14,
               offset: const Offset(0, 4),
             ),

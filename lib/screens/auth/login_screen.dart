@@ -90,6 +90,8 @@ class _LoginScreenState extends State<LoginScreen> {
               try {
                 await authService.resetPassword(email);
 
+                if (!mounted) return;
+
                 Navigator.pop(context);
 
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -100,6 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 );
               } catch (e) {
+                if (!mounted) return;
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(SnackBar(content: Text(e.toString())));

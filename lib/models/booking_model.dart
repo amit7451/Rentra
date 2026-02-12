@@ -1,15 +1,11 @@
-enum BookingStatus {
-  pending,
-  confirmed,
-  cancelled,
-  completed,
-}
+enum BookingStatus { pending, confirmed, cancelled, completed }
 
 class BookingModel {
   final String id;
   final String userId;
   final String hostelId;
   final String hostelName;
+  final String adminId; // Admin who owns this hostel
   final DateTime checkInDate;
   final DateTime checkOutDate;
   final int numberOfGuests;
@@ -24,6 +20,7 @@ class BookingModel {
     required this.userId,
     required this.hostelId,
     required this.hostelName,
+    required this.adminId,
     required this.checkInDate,
     required this.checkOutDate,
     required this.numberOfGuests,
@@ -44,6 +41,7 @@ class BookingModel {
       'userId': userId,
       'hostelId': hostelId,
       'hostelName': hostelName,
+      'adminId': adminId,
       'checkInDate': checkInDate.millisecondsSinceEpoch,
       'checkOutDate': checkOutDate.millisecondsSinceEpoch,
       'numberOfGuests': numberOfGuests,
@@ -61,12 +59,15 @@ class BookingModel {
       userId: map['userId'] ?? '',
       hostelId: map['hostelId'] ?? '',
       hostelName: map['hostelName'] ?? '',
+      adminId: map['adminId'] ?? '',
       checkInDate: DateTime.fromMillisecondsSinceEpoch(map['checkInDate'] ?? 0),
-      checkOutDate: DateTime.fromMillisecondsSinceEpoch(map['checkOutDate'] ?? 0),
+      checkOutDate: DateTime.fromMillisecondsSinceEpoch(
+        map['checkOutDate'] ?? 0,
+      ),
       numberOfGuests: map['numberOfGuests'] ?? 1,
       totalPrice: (map['totalPrice'] ?? 0.0).toDouble(),
       status: BookingStatus.values.firstWhere(
-            (e) => e.name == map['status'],
+        (e) => e.name == map['status'],
         orElse: () => BookingStatus.pending,
       ),
       bookingDate: DateTime.fromMillisecondsSinceEpoch(map['bookingDate'] ?? 0),
@@ -80,6 +81,7 @@ class BookingModel {
     String? userId,
     String? hostelId,
     String? hostelName,
+    String? adminId,
     DateTime? checkInDate,
     DateTime? checkOutDate,
     int? numberOfGuests,
@@ -94,6 +96,7 @@ class BookingModel {
       userId: userId ?? this.userId,
       hostelId: hostelId ?? this.hostelId,
       hostelName: hostelName ?? this.hostelName,
+      adminId: adminId ?? this.adminId,
       checkInDate: checkInDate ?? this.checkInDate,
       checkOutDate: checkOutDate ?? this.checkOutDate,
       numberOfGuests: numberOfGuests ?? this.numberOfGuests,

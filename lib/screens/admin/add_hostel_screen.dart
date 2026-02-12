@@ -291,8 +291,8 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
                             deleteIcon: const Icon(Icons.close, size: 16),
                             onDeleted: () =>
                                 setState(() => _imageUrls.removeAt(i)),
-                            backgroundColor: AppTheme.primaryRed.withOpacity(
-                              0.08,
+                            backgroundColor: AppTheme.primaryRed.withValues(
+                              alpha: 0.06,
                             ),
                             labelStyle: const TextStyle(
                               color: AppTheme.primaryRed,
@@ -313,8 +313,8 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
                           label: Text(a),
                           deleteIcon: const Icon(Icons.close, size: 16),
                           onDeleted: () => setState(() => _amenities.remove(a)),
-                          backgroundColor: AppTheme.primaryRed.withOpacity(
-                            0.08,
+                          backgroundColor: AppTheme.primaryRed.withValues(
+                            alpha: 0.04,
                           ),
                           labelStyle: const TextStyle(
                             color: AppTheme.primaryRed,

@@ -99,11 +99,16 @@ class _BookingScreenState extends State<BookingScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw 'User not authenticated';
 
+      // Get hostel to find admin ID
+      final hostel = await _firestoreService.getHostel(widget.hostelId);
+      if (hostel == null) throw 'Hostel not found';
+
       final booking = BookingModel(
         id: '',
         userId: user.uid,
         hostelId: widget.hostelId,
         hostelName: widget.hostelName,
+        adminId: hostel.ownerId, // CRITICAL: Get admin from hostel owner
         checkInDate: _checkInDate!,
         checkOutDate: _checkOutDate!,
         numberOfGuests: _numberOfGuests,

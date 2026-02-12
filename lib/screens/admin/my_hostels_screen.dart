@@ -55,7 +55,7 @@ class MyHostelsScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryRed.withOpacity(0.08),
+                      color: AppTheme.primaryRed.withValues(alpha: 0.08),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -110,7 +110,7 @@ class _HostelCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.07),
+            color: Colors.black.withValues(alpha: 0.07),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -130,7 +130,7 @@ class _HostelCard extends StatelessWidget {
                         height: 170,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _placeholder(),
+                        errorBuilder: (_, _, _) => _placeholder(),
                       )
                     : _placeholder(),
                 // Status badge overlay
@@ -144,8 +144,8 @@ class _HostelCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: hostel.isActive
-                          ? Colors.green.withOpacity(0.9)
-                          : Colors.grey.withOpacity(0.9),
+                          ? Colors.green.withValues(alpha: 0.9)
+                          : Colors.grey.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -211,21 +211,21 @@ class _HostelCard extends StatelessWidget {
                     _infoChip(
                       '₹${hostel.pricePerNight.toStringAsFixed(0)}/yr',
                       Icons.currency_rupee,
-                      AppTheme.primaryRed.withOpacity(0.1),
+                      AppTheme.primaryRed.withValues(alpha: 0.1),
                       AppTheme.primaryRed,
                     ),
                     const SizedBox(width: 10),
                     _infoChip(
                       '${hostel.availableRooms} rooms',
                       Icons.bed_outlined,
-                      Colors.blue.withOpacity(0.1),
+                      Colors.blue.withValues(alpha: 0.1),
                       Colors.blue[700]!,
                     ),
                     const SizedBox(width: 10),
                     _infoChip(
                       '${hostel.rating}★',
                       Icons.star_outline,
-                      Colors.amber.withOpacity(0.1),
+                      Colors.amber.withValues(alpha: 0.1),
                       Colors.amber[700]!,
                     ),
                   ],

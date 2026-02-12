@@ -6,7 +6,6 @@ import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../services/firestore_service_additions.dart';
-import '../../services/wishlist_service.dart';
 
 class AdminBookingsScreen extends StatefulWidget {
   const AdminBookingsScreen({super.key});
@@ -65,9 +64,8 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
           }
 
           final hostels = hostelSnap.data ?? [];
-          final hostelIds = hostels.map((h) => h.id).toList();
 
-          if (hostelIds.isEmpty) {
+          if (hostels.isEmpty) {
             return _emptyState(
               icon: Icons.home_work_outlined,
               message: 'No hostels found.',
@@ -76,7 +74,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
           }
 
           return StreamBuilder<List<BookingModel>>(
-            stream: _firestoreService.getBookingsForOwner(hostelIds),
+            stream: _firestoreService.getBookingsForOwner(_uid),
             builder: (context, bookingSnap) {
               if (bookingSnap.connectionState == ConnectionState.waiting) {
                 return const LoadingIndicator(message: 'Loading bookings...');
@@ -236,7 +234,7 @@ class _BookingCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.07),
+            color: Colors.black.withValues(alpha: 0.07),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -256,7 +254,7 @@ class _BookingCard extends StatelessWidget {
                 height: 120,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const SizedBox(),
+                errorBuilder: (_, _, _) => const SizedBox(),
               ),
             ),
 
@@ -454,7 +452,7 @@ class _BookingCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.08),
+                  color: Colors.green.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -483,7 +481,7 @@ class _BookingCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.08),
+                  color: Colors.red.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Row(
@@ -576,17 +574,17 @@ class _StatusPill extends StatelessWidget {
     switch (status) {
       case BookingStatus.confirmed:
         fg = Colors.green[700]!;
-        bg = Colors.green.withOpacity(0.1);
+        bg = Colors.green.withValues(alpha: 0.1);
         icon = Icons.check_circle;
         break;
       case BookingStatus.cancelled:
         fg = Colors.red[700]!;
-        bg = Colors.red.withOpacity(0.1);
+        bg = Colors.red.withValues(alpha: 0.1);
         icon = Icons.cancel;
         break;
       default:
         fg = Colors.orange[700]!;
-        bg = Colors.orange.withOpacity(0.1);
+        bg = Colors.orange.withValues(alpha: 0.1);
         icon = Icons.hourglass_empty;
     }
 

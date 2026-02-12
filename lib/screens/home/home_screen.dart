@@ -337,7 +337,7 @@ class _WishlistableCardState extends State<_WishlistableCard>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
+                      color: Colors.black.withValues(alpha: 0.15),
                       blurRadius: 6,
                     ),
                   ],

@@ -156,13 +156,13 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
                       ),
                       decoration: BoxDecoration(
                         color: _isActive
-                            ? Colors.green.withOpacity(0.08)
-                            : Colors.grey.withOpacity(0.08),
+                            ? Colors.green.withValues(alpha: 0.08)
+                            : Colors.grey.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: _isActive
-                              ? Colors.green.withOpacity(0.3)
-                              : Colors.grey.withOpacity(0.3),
+                              ? Colors.green.withValues(alpha: 0.3)
+                              : Colors.grey.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Row(
@@ -197,7 +197,7 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
                           Switch(
                             value: _isActive,
                             onChanged: (v) => setState(() => _isActive = v),
-                            activeColor: Colors.green,
+                            activeThumbColor: Colors.green,
                           ),
                         ],
                       ),
@@ -334,8 +334,8 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
                           label: Text(a),
                           deleteIcon: const Icon(Icons.close, size: 16),
                           onDeleted: () => setState(() => _amenities.remove(a)),
-                          backgroundColor: AppTheme.primaryRed.withOpacity(
-                            0.08,
+                          backgroundColor: AppTheme.primaryRed.withValues(
+                            alpha: 0.08,
                           ),
                           labelStyle: const TextStyle(
                             color: AppTheme.primaryRed,
@@ -415,7 +415,7 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
                 image: DecorationImage(
                   image: NetworkImage(_imageUrls[i]),
                   fit: BoxFit.cover,
-                  onError: (_, __) {},
+                  onError: (_, _) {},
                 ),
                 color: Colors.grey[200],
               ),

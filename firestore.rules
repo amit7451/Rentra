@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ==================== USERS ====================
+    // Users can only read/write their own document
+    match /users/{userId} {
+      allow read: if request.auth.uid == userId;
+      allow write: if request.auth.uid == userId;
+      allow create: if request.auth.uid != null;
+    }
+
+    // ==================== HOSTELS ====================
+    // Anyone can read active hostels
+    // Only owners can write to their hostels
+    match /hostels/{hostelId} {
+      allow read: if resource.data.isActive == true;
+      allow create: if request.auth.uid != null && request.auth.uid == request.resource.data.ownerId;
+      allow update: if request.auth.uid == resource.data.ownerId;
+      allow delete: if request.auth.uid == resource.data.ownerId;
+    }
+
+    // ==================== BOOKINGS ====================
+    // Users can read their own bookings
+    // Admins can read bookings for their hostels
+    // Anyone authenticated can create a booking
+    match /bookings/{bookingId} {
+      allow read: if request.auth.uid == resource.data.userId || 
+                     request.auth.uid == resource.data.adminId;
+      allow create: if request.auth.uid != null && 
+                       request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth.uid == resource.data.adminId;
+      allow delete: if request.auth.uid == resource.data.userId || 
+                       request.auth.uid == resource.data.adminId;
+    }
+
+    // ==================== WISHLIST ====================
+    match /wishlist/{userId} {
+      allow read: if request.auth.uid == userId;
+      allow write: if request.auth.uid == userId;
+    }
+  }
+}

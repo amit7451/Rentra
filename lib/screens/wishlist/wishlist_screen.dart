@@ -87,7 +87,7 @@ class WishlistScreen extends StatelessWidget {
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryRed.withOpacity(0.07),
+                      color: AppTheme.primaryRed.withValues(alpha: 0.07),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -143,7 +143,7 @@ class _EmptyWishlist extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
-              color: AppTheme.primaryRed.withOpacity(0.07),
+              color: AppTheme.primaryRed.withValues(alpha: 0.07),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -248,7 +248,7 @@ class _WishlistCardState extends State<_WishlistCard> {
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.07),
+              color: Colors.black.withValues(alpha: 0.07),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -270,7 +270,7 @@ class _WishlistCardState extends State<_WishlistCard> {
                           height: 180,
                           width: double.infinity,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _placeholder(),
+                          errorBuilder: (_, _, _) => _placeholder(),
                         )
                       : _placeholder(),
 
@@ -317,7 +317,7 @@ class _WishlistCardState extends State<_WishlistCard> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.7),
+                        color: Colors.black.withValues(alpha: 0.7),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -422,7 +422,7 @@ class _WishlistCardState extends State<_WishlistCard> {
   Widget _pill(String label, IconData icon, Color color) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
     decoration: BoxDecoration(
-      color: color.withOpacity(0.1),
+      color: color.withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(20),
     ),
     child: Row(
