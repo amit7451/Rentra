@@ -49,6 +49,13 @@ jobs:
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //g' | cut -d'+' -f1)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Create Git Tag
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a v${{ steps.version.outputs.version }} -m "Release v${{ steps.version.outputs.version }}" || true
+          git push origin v${{ steps.version.outputs.version }} || true
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
