@@ -1,3 +1,9 @@
+# Environment variables - ADD THIS SECTION
+.env
+*.env
+.env.*
+!.env.example
+
 # Miscellaneous
 *.class
 *.log
