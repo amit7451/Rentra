@@ -22,14 +22,25 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.3'
+          flutter-version: '3.24.0'
           channel: 'stable'
+
+      - name: Disable Flutter analytics
+        run: flutter config --no-analytics
 
       - name: Get Flutter dependencies
         run: flutter pub get
 
       - name: Build release APK
         run: flutter build apk --release
+
+      - name: Verify APK was created
+        run: |
+          if [ ! -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
+            echo "APK build failed - file not found"
+            exit 1
+          fi
+          ls -lh build/app/outputs/flutter-apk/app-release.apk
 
       - name: Extract version from pubspec.yaml
         id: version
