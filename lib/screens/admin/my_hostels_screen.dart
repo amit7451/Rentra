@@ -79,15 +79,20 @@ class MyHostelsScreen extends StatelessWidget {
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: hostels.length,
-            itemBuilder: (context, index) {
-              return _HostelCard(
-                hostel: hostels[index],
-                firestoreService: firestoreService,
-              );
-            },
+          return RefreshIndicator(
+            color: AppTheme.primaryRed,
+            onRefresh: () async =>
+                await Future.delayed(const Duration(seconds: 1)),
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: hostels.length,
+              itemBuilder: (context, index) {
+                return _HostelCard(
+                  hostel: hostels[index],
+                  firestoreService: firestoreService,
+                );
+              },
+            ),
           );
         },
       ),

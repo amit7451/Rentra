@@ -111,13 +111,18 @@ class WishlistScreen extends StatelessWidget {
 
                   // ── Hostel list ─────────────────────────────────
                   Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                      itemCount: wishlisted.length,
-                      itemBuilder: (context, i) => _WishlistCard(
-                        hostel: wishlisted[i],
-                        uid: uid,
-                        wishlistService: wishlistService,
+                    child: RefreshIndicator(
+                      color: AppTheme.primaryRed,
+                      onRefresh: () async =>
+                          await Future.delayed(const Duration(seconds: 1)),
+                      child: ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                        itemCount: wishlisted.length,
+                        itemBuilder: (context, i) => _WishlistCard(
+                          hostel: wishlisted[i],
+                          uid: uid,
+                          wishlistService: wishlistService,
+                        ),
                       ),
                     ),
                   ),
@@ -322,6 +327,7 @@ class _WishlistCardState extends State<_WishlistCard> {
                       ),
                       child: Text(
                         '₹${h.pricePerNight.toStringAsFixed(0)}/yr',
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -345,6 +351,8 @@ class _WishlistCardState extends State<_WishlistCard> {
                       Expanded(
                         child: Text(
                           h.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

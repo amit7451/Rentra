@@ -92,199 +92,203 @@ class _StatsBody extends StatelessWidget {
         ? 0.0
         : (confirmed.length / (hostels.length * 10)).clamp(0.0, 1.0);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Period selector ───────────────────────────────
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+    return RefreshIndicator(
+      color: AppTheme.primaryRed,
+      onRefresh: () async => await Future.delayed(const Duration(seconds: 1)),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Period selector ───────────────────────────────
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'All Time',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
+                ],
+              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            const SizedBox(height: 20),
+
+            // ── Header ────────────────────────────────────────
+            const Text(
+              'Overview',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.3,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ── Stats grid ────────────────────────────────────
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 14,
+              mainAxisSpacing: 14,
+              childAspectRatio: 1.2,
               children: [
-                const Text(
-                  'All Time',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                _StatCard(
+                  title: 'Revenue',
+                  value: _fmt(revenue.toInt()),
+                  prefix: '₹',
+                  icon: Icons.trending_up,
+                  bgColor: const Color(0xFFE8F5E9),
+                  iconColor: Colors.green[700]!,
+                  trendLabel: '+12%',
+                  trendUp: true,
                 ),
-                Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // ── Header ────────────────────────────────────────
-          const Text(
-            'Overview',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.3,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // ── Stats grid ────────────────────────────────────
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            crossAxisSpacing: 14,
-            mainAxisSpacing: 14,
-            childAspectRatio: 1.2,
-            children: [
-              _StatCard(
-                title: 'Revenue',
-                value: _fmt(revenue.toInt()),
-                prefix: '₹',
-                icon: Icons.trending_up,
-                bgColor: const Color(0xFFE8F5E9),
-                iconColor: Colors.green[700]!,
-                trendLabel: '+12%',
-                trendUp: true,
-              ),
-              _StatCard(
-                title: 'Total Bookings',
-                value: '${bookings.length}',
-                prefix: '',
-                icon: Icons.receipt_long_outlined,
-                bgColor: const Color(0xFFE3F2FD),
-                iconColor: Colors.blue[700]!,
-                trendLabel: '${confirmed.length} confirmed',
-                trendUp: null,
-              ),
-              _StatCard(
-                title: 'Pending',
-                value: '${pending.length}',
-                prefix: '',
-                icon: Icons.hourglass_empty,
-                bgColor: const Color(0xFFFFF3E0),
-                iconColor: Colors.orange[700]!,
-                trendLabel: 'Needs action',
-                trendUp: null,
-              ),
-              _StatCard(
-                title: 'Total Guests',
-                value: '$guests',
-                prefix: '',
-                icon: Icons.people_alt_outlined,
-                bgColor: const Color(0xFFF3E5F5),
-                iconColor: Colors.purple[700]!,
-                trendLabel: '+8%',
-                trendUp: true,
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // ── Occupancy bar ─────────────────────────────────
-          const Text(
-            'Occupancy Rate',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                _StatCard(
+                  title: 'Total Bookings',
+                  value: '${bookings.length}',
+                  prefix: '',
+                  icon: Icons.receipt_long_outlined,
+                  bgColor: const Color(0xFFE3F2FD),
+                  iconColor: Colors.blue[700]!,
+                  trendLabel: '${confirmed.length} confirmed',
+                  trendUp: null,
+                ),
+                _StatCard(
+                  title: 'Pending',
+                  value: '${pending.length}',
+                  prefix: '',
+                  icon: Icons.hourglass_empty,
+                  bgColor: const Color(0xFFFFF3E0),
+                  iconColor: Colors.orange[700]!,
+                  trendLabel: 'Needs action',
+                  trendUp: null,
+                ),
+                _StatCard(
+                  title: 'Total Guests',
+                  value: '$guests',
+                  prefix: '',
+                  icon: Icons.people_alt_outlined,
+                  bgColor: const Color(0xFFF3E5F5),
+                  iconColor: Colors.purple[700]!,
+                  trendLabel: '+8%',
+                  trendUp: true,
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${(occupancyRate * 100).toStringAsFixed(1)}%',
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
+            const SizedBox(height: 24),
+
+            // ── Occupancy bar ─────────────────────────────────
+            const Text(
+              'Occupancy Rate',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${(occupancyRate * 100).toStringAsFixed(1)}%',
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      Text(
+                        '${confirmed.length} / ${hostels.length * 10}',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: occupancyRate,
+                      minHeight: 10,
+                      backgroundColor: Colors.grey[200],
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        occupancyRate > 0.7
+                            ? Colors.green
+                            : occupancyRate > 0.4
+                            ? Colors.orange
+                            : AppTheme.primaryRed,
                       ),
                     ),
-                    Text(
-                      '${confirmed.length} / ${hostels.length * 10}',
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: occupancyRate,
-                    minHeight: 10,
-                    backgroundColor: Colors.grey[200],
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      occupancyRate > 0.7
-                          ? Colors.green
-                          : occupancyRate > 0.4
-                          ? Colors.orange
-                          : AppTheme.primaryRed,
-                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Based on confirmed bookings vs estimated capacity',
-                  style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Text(
+                    'Based on confirmed bookings vs estimated capacity',
+                    style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-          // ── Booking breakdown ─────────────────────────────
-          const Text(
-            'Booking Breakdown',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          _BookingBreakdown(
-            confirmed: confirmed.length,
-            pending: pending.length,
-            cancelled: cancelled.length,
-          ),
-          const SizedBox(height: 24),
+            // ── Booking breakdown ─────────────────────────────
+            const Text(
+              'Booking Breakdown',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            _BookingBreakdown(
+              confirmed: confirmed.length,
+              pending: pending.length,
+              cancelled: cancelled.length,
+            ),
+            const SizedBox(height: 24),
 
-          // ── Per-hostel performance ────────────────────────
-          const Text(
-            'Hostel Performance',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          ...hostels.map((h) {
-            final hBookings = bookings
-                .where((b) => b.hostelId == h.id)
-                .toList();
-            final hRevenue = hBookings
-                .where((b) => b.status == BookingStatus.confirmed)
-                .fold<double>(0, (s, b) => s + b.totalPrice);
-            return _HostelPerfCard(
-              hostel: h,
-              bookingCount: hBookings.length,
-              revenue: hRevenue,
-            );
-          }),
-        ],
+            // ── Per-hostel performance ────────────────────────
+            const Text(
+              'Hostel Performance',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            ...hostels.map((h) {
+              final hBookings = bookings
+                  .where((b) => b.hostelId == h.id)
+                  .toList();
+              final hRevenue = hBookings
+                  .where((b) => b.status == BookingStatus.confirmed)
+                  .fold<double>(0, (s, b) => s + b.totalPrice);
+              return _HostelPerfCard(
+                hostel: h,
+                bookingCount: hBookings.length,
+                revenue: hRevenue,
+              );
+            }),
+          ],
+        ),
       ),
     );
   }
@@ -358,6 +362,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             '$prefix$value',
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w800,
@@ -524,6 +529,7 @@ class _HostelPerfCard extends StatelessWidget {
               children: [
                 Text(
                   hostel.name,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -531,6 +537,7 @@ class _HostelPerfCard extends StatelessWidget {
                 ),
                 Text(
                   '${hostel.city} · ${hostel.availableRooms} rooms left',
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: Colors.grey[600], fontSize: 12),
                 ),
               ],
@@ -541,6 +548,7 @@ class _HostelPerfCard extends StatelessWidget {
             children: [
               Text(
                 '₹${_fmt(revenue.toInt())}',
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontWeight: FontWeight.w800,
                   color: Colors.green,
@@ -549,6 +557,7 @@ class _HostelPerfCard extends StatelessWidget {
               ),
               Text(
                 '$bookingCount bookings',
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: Colors.grey[600], fontSize: 12),
               ),
             ],

@@ -90,37 +90,42 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
 
               final all = bookingSnap.data ?? [];
 
-              return TabBarView(
-                controller: _tabs,
-                children: [
-                  _BookingList(
-                    bookings: all
-                        .where((b) => b.status == BookingStatus.pending)
-                        .toList(),
-                    hostels: hostels,
-                    firestoreService: _firestoreService,
-                    emptyIcon: Icons.hourglass_empty,
-                    emptyMessage: 'No pending bookings',
-                  ),
-                  _BookingList(
-                    bookings: all
-                        .where((b) => b.status == BookingStatus.confirmed)
-                        .toList(),
-                    hostels: hostels,
-                    firestoreService: _firestoreService,
-                    emptyIcon: Icons.check_circle_outline,
-                    emptyMessage: 'No confirmed bookings',
-                  ),
-                  _BookingList(
-                    bookings: all
-                        .where((b) => b.status == BookingStatus.cancelled)
-                        .toList(),
-                    hostels: hostels,
-                    firestoreService: _firestoreService,
-                    emptyIcon: Icons.cancel_outlined,
-                    emptyMessage: 'No cancelled bookings',
-                  ),
-                ],
+              return RefreshIndicator(
+                color: AppTheme.primaryRed,
+                onRefresh: () async =>
+                    await Future.delayed(const Duration(seconds: 1)),
+                child: TabBarView(
+                  controller: _tabs,
+                  children: [
+                    _BookingList(
+                      bookings: all
+                          .where((b) => b.status == BookingStatus.pending)
+                          .toList(),
+                      hostels: hostels,
+                      firestoreService: _firestoreService,
+                      emptyIcon: Icons.hourglass_empty,
+                      emptyMessage: 'No pending bookings',
+                    ),
+                    _BookingList(
+                      bookings: all
+                          .where((b) => b.status == BookingStatus.confirmed)
+                          .toList(),
+                      hostels: hostels,
+                      firestoreService: _firestoreService,
+                      emptyIcon: Icons.check_circle_outline,
+                      emptyMessage: 'No confirmed bookings',
+                    ),
+                    _BookingList(
+                      bookings: all
+                          .where((b) => b.status == BookingStatus.cancelled)
+                          .toList(),
+                      hostels: hostels,
+                      firestoreService: _firestoreService,
+                      emptyIcon: Icons.cancel_outlined,
+                      emptyMessage: 'No cancelled bookings',
+                    ),
+                  ],
+                ),
               );
             },
           );

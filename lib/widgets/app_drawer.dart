@@ -6,6 +6,7 @@ import '../app/theme.dart';
 import '../app/routes.dart';
 import '../screens/main/main_bottom_nav.dart';
 import '../models/user_model.dart';
+import '../services/update_service.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -105,7 +106,16 @@ class AppDrawer extends StatelessWidget {
 
             _drawerItem(Icons.settings, 'Settings', () {}),
             _drawerItem(Icons.help_outline, 'Help & Support', () {}),
-            _drawerItem(Icons.system_update, 'Update App', () {}),
+            _drawerItem(Icons.system_update, 'Update App', () async {
+              final updateInfo = await UpdateService.checkForUpdate();
+              if (context.mounted && updateInfo?['needs_update'] == true) {
+                UpdateService.showUpdateDialog(
+                  context,
+                  updateInfo!['apk_url'],
+                  updateInfo['force_update'],
+                );
+              }
+            }),
             _drawerItem(Icons.language, 'Change Language', () {}),
             _drawerItem(Icons.privacy_tip_outlined, 'Privacy Policy', () {}),
             _drawerItem(Icons.card_giftcard, 'Invite & Earn', () {}),
