@@ -12,3 +12,17 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+
+# Environment variables - ADD THIS SECTION
+.env
+*.env
+.env.*
+!.env.example
+
+# Firebase configuration - ADD THIS
+google-services.json
+GoogleService-Info.plist
+firebase_app_id_file.json
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
