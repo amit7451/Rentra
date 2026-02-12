@@ -170,7 +170,7 @@ class ProfileScreen extends StatelessWidget {
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
                           if (userModel == null) return;
-                          _editProfile(context, userModel!, firestoreService);
+                          _editProfile(context, userModel, firestoreService);
                         },
                       ),
                       const Divider(height: 1),

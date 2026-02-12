@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../app/theme.dart';
-import 'package:rentra/screens/profile/profile_screen.dart';
 import '../app/routes.dart';
 import '../screens/main/main_bottom_nav.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/user_cache.dart';
 import 'package:rentra/models/user_model.dart';
 

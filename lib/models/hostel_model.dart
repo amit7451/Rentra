@@ -54,6 +54,23 @@ class HostelModel {
     };
   }
 
+  factory HostelModel.empty() {
+    return HostelModel(
+      id: '',
+      name: '',
+      description: '',
+      address: '',
+      city: '',
+      country: '',
+      pricePerNight: 0.0,
+      images: [],
+      amenities: [],
+      availableRooms: 0,
+      ownerId: '',
+      createdAt: DateTime.now(),
+    );
+  }
+
   factory HostelModel.fromMap(Map<String, dynamic> map) {
     DateTime parseCreatedAt(dynamic value) {
       if (value is Timestamp) {

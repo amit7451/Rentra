@@ -16,7 +16,10 @@ class FirestoreService {
   // Create user
   Future<void> createUser(UserModel user) async {
     try {
-      await _firestore.collection(_usersCollection).doc(user.uid).set(user.toMap());
+      await _firestore
+          .collection(_usersCollection)
+          .doc(user.uid)
+          .set(user.toMap());
     } catch (e) {
       throw 'Failed to create user: $e';
     }
@@ -92,15 +95,22 @@ class FirestoreService {
         .orderBy('rating', descending: true)
         .limit(20)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => HostelModel.fromMap(doc.data())) // This calls fromMap
-        .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => HostelModel.fromMap(doc.data()),
+              ) // This calls fromMap
+              .toList(),
+        );
   }
 
-// In getHostel method:
+  // In getHostel method:
   Future<HostelModel?> getHostel(String hostelId) async {
     try {
-      final doc = await _firestore.collection(_hostelsCollection).doc(hostelId).get();
+      final doc = await _firestore
+          .collection(_hostelsCollection)
+          .doc(hostelId)
+          .get();
       if (doc.exists) {
         return HostelModel.fromMap(doc.data()!); // This calls fromMap
       }
@@ -117,18 +127,18 @@ class FirestoreService {
         .where('isActive', isEqualTo: true)
         .snapshots()
         .map((snapshot) {
-      final hostels = snapshot.docs
-          .map((doc) => HostelModel.fromMap(doc.data()))
-          .toList();
+          final hostels = snapshot.docs
+              .map((doc) => HostelModel.fromMap(doc.data()))
+              .toList();
 
-      // Filter by query (search in name, city, country)
-      return hostels.where((hostel) {
-        final searchQuery = query.toLowerCase();
-        return hostel.name.toLowerCase().contains(searchQuery) ||
-            hostel.city.toLowerCase().contains(searchQuery) ||
-            hostel.country.toLowerCase().contains(searchQuery);
-      }).toList();
-    });
+          // Filter by query (search in name, city, country)
+          return hostels.where((hostel) {
+            final searchQuery = query.toLowerCase();
+            return hostel.name.toLowerCase().contains(searchQuery) ||
+                hostel.city.toLowerCase().contains(searchQuery) ||
+                hostel.country.toLowerCase().contains(searchQuery);
+          }).toList();
+        });
   }
 
   // Filter hostels by price range
@@ -142,9 +152,36 @@ class FirestoreService {
         .where('pricePerNight', isGreaterThanOrEqualTo: minPrice)
         .where('pricePerNight', isLessThanOrEqualTo: maxPrice)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => HostelModel.fromMap(doc.data()))
-        .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => HostelModel.fromMap(doc.data()))
+              .toList(),
+        );
+  }
+
+  // Get hostels by owner
+  Stream<List<HostelModel>> getHostelsByOwner(String ownerId) {
+    return _firestore
+        .collection(_hostelsCollection)
+        .where('ownerId', isEqualTo: ownerId)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => HostelModel.fromMap(doc.data()))
+              .toList(),
+        );
+  }
+
+  // Update hostel
+  Future<void> updateHostel(HostelModel hostel) async {
+    try {
+      await _firestore
+          .collection(_hostelsCollection)
+          .doc(hostel.id)
+          .update(hostel.toMap());
+    } catch (e) {
+      throw 'Failed to update hostel: $e';
+    }
   }
 
   // ==================== BOOKING OPERATIONS ====================
@@ -152,7 +189,9 @@ class FirestoreService {
   // Create booking
   Future<String> createBooking(BookingModel booking) async {
     try {
-      final docRef = await _firestore.collection(_bookingsCollection).add(booking.toMap());
+      final docRef = await _firestore
+          .collection(_bookingsCollection)
+          .add(booking.toMap());
       return docRef.id;
     } catch (e) {
       throw 'Failed to create booking: $e';
@@ -166,15 +205,20 @@ class FirestoreService {
         .where('userId', isEqualTo: userId)
         .orderBy('bookingDate', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => BookingModel.fromMap({...doc.data(), 'id': doc.id}))
-        .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => BookingModel.fromMap({...doc.data(), 'id': doc.id}))
+              .toList(),
+        );
   }
 
   // Get booking by ID
   Future<BookingModel?> getBooking(String bookingId) async {
     try {
-      final doc = await _firestore.collection(_bookingsCollection).doc(bookingId).get();
+      final doc = await _firestore
+          .collection(_bookingsCollection)
+          .doc(bookingId)
+          .get();
       if (doc.exists) {
         return BookingModel.fromMap({...doc.data()!, 'id': doc.id});
       }
@@ -185,7 +229,10 @@ class FirestoreService {
   }
 
   // Update booking status
-  Future<void> updateBookingStatus(String bookingId, BookingStatus status) async {
+  Future<void> updateBookingStatus(
+    String bookingId,
+    BookingStatus status,
+  ) async {
     try {
       await _firestore.collection(_bookingsCollection).doc(bookingId).update({
         'status': status.name,
@@ -214,5 +261,22 @@ class FirestoreService {
     } catch (e) {
       throw 'Failed to delete booking: $e';
     }
+  }
+
+  // Get bookings for owner (by hostel IDs)
+  Stream<List<BookingModel>> getBookingsForOwner(List<String> hostelIds) {
+    if (hostelIds.isEmpty) {
+      return Stream.value([]);
+    }
+    return _firestore
+        .collection(_bookingsCollection)
+        .where('hostelId', whereIn: hostelIds)
+        .orderBy('bookingDate', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => BookingModel.fromMap({...doc.data(), 'id': doc.id}))
+              .toList(),
+        );
   }
 }

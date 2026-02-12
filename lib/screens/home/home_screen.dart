@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/firestore_service.dart';
+import '../../services/wishlist_service.dart';
 import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/error_text.dart';
-import 'hotel_card.dart';
 import '../search/search_screen.dart';
 import '/widgets/app_drawer.dart';
+import 'hotel_card.dart';
 
 import 'package:rentra/app/routes.dart';
 
@@ -18,28 +20,24 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final _firestoreService = FirestoreService();
+  final _wishlistService = WishlistService();
+  final _uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+
   @override
   Widget build(BuildContext context) {
-    final firestoreService = FirestoreService();
-
     return Scaffold(
       drawer: AppDrawer(),
       appBar: AppBar(
         elevation: 2,
         backgroundColor: AppTheme.primaryRed,
         centerTitle: true,
-
-        // LEFT: Menu
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu, color: Colors.white),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
+            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-
-        // CENTER: LOGO
         title: Image.asset(
           'assets/icons/app_icon.png',
           height: 36,
@@ -47,28 +45,61 @@ class _HomeScreenState extends State<HomeScreen> {
           color: Colors.white,
           colorBlendMode: BlendMode.srcIn,
         ),
-
-        // RIGHT: Icons
         actions: [
-          IconButton(
-            icon: const Icon(Icons.favorite_border, color: AppTheme.white),
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.wishlist);
+          // Wishlist icon with live badge count
+          StreamBuilder<List<String>>(
+            stream: _wishlistService.watchWishlist(_uid),
+            builder: (context, snap) {
+              final count = snap.data?.length ?? 0;
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.favorite_border,
+                      color: AppTheme.white,
+                    ),
+                    onPressed: () =>
+                        Navigator.pushNamed(context, AppRoutes.wishlist),
+                  ),
+                  if (count > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppTheme.primaryRed,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Text(
+                          '$count',
+                          style: const TextStyle(
+                            color: AppTheme.primaryRed,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
             },
           ),
           IconButton(
             icon: const Icon(Icons.notifications_none, color: AppTheme.white),
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.notifications);
-            },
+            onPressed: () =>
+                Navigator.pushNamed(context, AppRoutes.notifications),
           ),
         ],
       ),
-
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🔴 Red search container (ONLY search + nearby stays)
+          // ── Red search header ─────────────────────────────────
           Container(
             width: double.infinity,
             decoration: const BoxDecoration(
@@ -82,7 +113,6 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Search bar
                 Container(
                   decoration: BoxDecoration(
                     color: AppTheme.white,
@@ -90,12 +120,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   child: TextField(
                     readOnly: true,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const SearchScreen()),
-                      );
-                    },
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SearchScreen()),
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Search hostels, flats...',
                       prefixIcon: const Icon(
@@ -112,10 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // Nearby stays text
                 const Text(
                   'Nearby stays',
                   style: TextStyle(
@@ -128,10 +153,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Hostels list
+          // ── Hostel list ───────────────────────────────────────
           Expanded(
             child: StreamBuilder<List<HostelModel>>(
-              stream: firestoreService.getHostels(),
+              stream: _firestoreService.getHostels(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const LoadingIndicator(message: 'Loading hostels...');
@@ -139,10 +164,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 if (snapshot.hasError) {
                   return ErrorText(
-                    message: 'Error loading hostels: ${snapshot.error}',
-                    onRetry: () {
-                      setState(() {});
-                    },
+                    message: 'Error: ${snapshot.error}',
+                    onRetry: () => setState(() {}),
                   );
                 }
 
@@ -166,27 +189,169 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 }
 
-                final hostels = snapshot.data!;
+                // ── Stream wishlist IDs for heart state ────────────
+                return StreamBuilder<List<String>>(
+                  stream: _uid.isEmpty
+                      ? Stream.value([])
+                      : _wishlistService.watchWishlist(_uid),
+                  builder: (context, wishlistSnap) {
+                    final wishlistIds = wishlistSnap.data ?? [];
 
-                return RefreshIndicator(
-                  color: AppTheme.primaryRed,
-                  onRefresh: () async {
-                    // The stream automatically updates
-                    await Future.delayed(const Duration(seconds: 1));
+                    return RefreshIndicator(
+                      color: AppTheme.primaryRed,
+                      onRefresh: () async =>
+                          await Future.delayed(const Duration(seconds: 1)),
+                      child: ListView.builder(
+                        padding: const EdgeInsets.only(top: 16, bottom: 16),
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (context, index) {
+                          final hostel = snapshot.data![index];
+                          return _WishlistableCard(
+                            hostel: hostel,
+                            isWishlisted: wishlistIds.contains(hostel.id),
+                            uid: _uid,
+                            wishlistService: _wishlistService,
+                          );
+                        },
+                      ),
+                    );
                   },
-                  child: ListView.builder(
-                    padding: const EdgeInsets.only(top: 16, bottom: 16),
-                    itemCount: hostels.length,
-                    itemBuilder: (context, index) {
-                      return HotelCard(hostel: hostels[index]);
-                    },
-                  ),
                 );
               },
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── Wishlistable Card Wrapper ──────────────────────────────────────────────
+// Wraps the existing HotelCard and adds a wishlist button overlay.
+
+class _WishlistableCard extends StatefulWidget {
+  final HostelModel hostel;
+  final bool isWishlisted;
+  final String uid;
+  final WishlistService wishlistService;
+
+  const _WishlistableCard({
+    required this.hostel,
+    required this.isWishlisted,
+    required this.uid,
+    required this.wishlistService,
+  });
+
+  @override
+  State<_WishlistableCard> createState() => _WishlistableCardState();
+}
+
+class _WishlistableCardState extends State<_WishlistableCard>
+    with SingleTickerProviderStateMixin {
+  late bool _isWishlisted;
+  late AnimationController _animCtrl;
+  late Animation<double> _scaleAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _isWishlisted = widget.isWishlisted;
+    _animCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _scaleAnim = Tween<double>(
+      begin: 1.0,
+      end: 1.3,
+    ).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOut));
+  }
+
+  @override
+  void didUpdateWidget(_WishlistableCard old) {
+    super.didUpdateWidget(old);
+    if (old.isWishlisted != widget.isWishlisted) {
+      setState(() => _isWishlisted = widget.isWishlisted);
+    }
+  }
+
+  @override
+  void dispose() {
+    _animCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _toggle() async {
+    if (widget.uid.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sign in to save to wishlist')),
+      );
+      return;
+    }
+
+    // Optimistic UI update
+    setState(() => _isWishlisted = !_isWishlisted);
+    _animCtrl.forward().then((_) => _animCtrl.reverse());
+
+    try {
+      await widget.wishlistService.toggleWishlist(widget.uid, widget.hostel.id);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isWishlisted ? '❤ Added to wishlist' : 'Removed from wishlist',
+            ),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    } catch (_) {
+      // Revert on failure
+      if (mounted) setState(() => _isWishlisted = !_isWishlisted);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        HotelCard(hostel: widget.hostel),
+
+        // ── Floating wishlist button ─────────────────────────
+        Positioned(
+          top: 16,
+          right: 26,
+          child: GestureDetector(
+            onTap: _toggle,
+            child: ScaleTransition(
+              scale: _scaleAnim,
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  _isWishlisted ? Icons.favorite : Icons.favorite_border,
+                  color: _isWishlisted ? AppTheme.primaryRed : Colors.grey[500],
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

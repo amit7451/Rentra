@@ -9,7 +9,8 @@ import '../screens/booking/booking_screen.dart';
 import '../screens/booking/bookings_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/notifications/notifications.dart';
-import '../screens/wishlist/wishlist.dart';
+import '../screens/wishlist/wishlist_screen.dart';
+import '../screens/admin/admin_dashboard.dart';
 
 class AppRoutes {
   // static const String splash = '/';
@@ -22,8 +23,9 @@ class AppRoutes {
   static const String booking = '/booking';
   static const String bookings = '/bookings';
   static const String profile = '/profile';
-  static const String wishlist = '/wishlist';
   static const String notifications = '/notifications';
+  static const String wishlist = '/wishlist';
+  static const String adminDashboard = '/admin';
 
   static Map<String, WidgetBuilder> routes = {
     // splash: (context) => const SplashScreen(),
@@ -36,6 +38,7 @@ class AppRoutes {
     profile: (context) => const ProfileScreen(),
     wishlist: (context) => const WishlistScreen(),
     notifications: (context) => const NotificationsScreen(),
+    adminDashboard: (context) => const AdminDashboard(),
   };
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {

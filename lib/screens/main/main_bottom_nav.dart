@@ -9,7 +9,7 @@ import '../home/home_screen.dart';
 import '../search/search_screen.dart';
 import '../booking/bookings_screen.dart';
 import '../profile/profile_screen.dart';
-import '../admin/admin_screen.dart';
+import '../admin/admin_dashboard.dart';
 import '../../services/user_cache.dart';
 
 class MainBottomNav extends StatefulWidget {
@@ -103,7 +103,7 @@ class _MainBottomNavState extends State<MainBottomNav> {
     ];
 
     if (_isAdmin) {
-      screens.add(const AdminScreen());
+      screens.add(const AdminDashboard());
     }
 
     return screens;
