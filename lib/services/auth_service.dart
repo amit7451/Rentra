@@ -19,6 +19,7 @@ class AuthService {
     required String name,
     required String phoneNumber,
     bool isAdmin = false,
+    String? profileImage = ' '
   }) async {
     try {
       final UserCredential result = await _auth.createUserWithEmailAndPassword(
@@ -36,6 +37,7 @@ class AuthService {
           phoneNumber: phoneNumber,
           createdAt: DateTime.now(),
           isAdmin: isAdmin,
+          photoUrl: profileImage,
         );
 
         // Save user data to Firestore
