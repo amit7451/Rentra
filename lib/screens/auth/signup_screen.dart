@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../services/auth_service.dart';
 import '../../app/theme.dart';
 import '../../app/routes.dart';
+import '../../services/cloudinary_service.dart';
 import '../../widgets/primary_button.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -19,10 +23,23 @@ class _SignupScreenState extends State<SignupScreen> {
   final _confirmPasswordController = TextEditingController();
   final _phoneNumberController = TextEditingController();
   final _authService = AuthService();
+  //added cloudinary instance
+  final _cloudinaryService = CloudinaryService.instance;
+  //image picker initialisation
+  final _picker = ImagePicker();
+  File? _profileImage;
 
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isCloudinaryReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkCloudinaryStatus();
+  }
+
 
   @override
   void dispose() {
@@ -33,6 +50,127 @@ class _SignupScreenState extends State<SignupScreen> {
     _phoneNumberController.dispose();
     super.dispose();
   }
+
+  Future<void> _checkCloudinaryStatus() async {
+    if (!mounted) {
+      return;
+    }
+    setState(() => _isCloudinaryReady = CloudinaryService.isInitialized);
+
+    if (!_isCloudinaryReady) {
+      try {
+        await CloudinaryService.initialize();
+        if (mounted) setState(() => _isCloudinaryReady = true);
+      } catch (e) {
+        if (mounted) print('Upload service not available');
+      }
+    }
+  }
+
+  Future<void> _takePhotoGallery() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _profileImage = File(pickedFile.path); // Assign to the variable
+        });
+      }
+    } catch (e) {
+      print('Failed to pick image: $e');
+    }
+  }
+
+  Future<void> _takePhotoCamera() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _profileImage = File(pickedFile.path); // Assign to the variable
+        });
+      }
+    } catch (e) {
+      print('Failed to take photo: $e');
+    }
+  }
+
+
+  void _showImagePickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withAlpha(20),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.photo_library, color: Colors.blue),
+                ),
+                title: const Text(
+                  'Choose from Gallery',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _takePhotoGallery();
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withAlpha(20),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.camera_alt, color: Colors.green),
+                ),
+                title: const Text(
+                  'Take a Photo',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _takePhotoCamera();
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
 
   Future<void> _handleSignup() async {
     if (!_formKey.currentState!.validate()) return;
@@ -46,6 +184,7 @@ class _SignupScreenState extends State<SignupScreen> {
         name: _nameController.text.trim(),
         phoneNumber: _phoneNumberController.text.trim(),
         isAdmin: false,
+        profileImage: _profileImage != null ? await _cloudinaryService.uploadImage(_profileImage!) : '',
       );
 
       if (!mounted) {
@@ -115,6 +254,36 @@ class _SignupScreenState extends State<SignupScreen> {
                   style: Theme.of(
                     context,
                   ).textTheme.bodyLarge?.copyWith(color: AppTheme.grey),
+                ),
+
+                // Replace your Logo Container with this:
+                Center(
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,        backgroundColor: AppTheme.primaryRed.withOpacity(0.1),
+                        backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
+                        child: _profileImage == null
+                            ? const Icon(Icons.person, size: 50, color: AppTheme.primaryRed)
+                            : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: CircleAvatar(
+                          backgroundColor: AppTheme.primaryRed,
+                          radius: 18,
+                          child: IconButton(
+                            icon: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
+                            onPressed: () {
+                              // Show a bottom sheet or dialog to choose Camera or Gallery
+                              _showImagePickerOptions();
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
 
                 const SizedBox(height: 40),
