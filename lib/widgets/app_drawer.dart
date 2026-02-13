@@ -108,11 +108,19 @@ class AppDrawer extends StatelessWidget {
             _drawerItem(Icons.help_outline, 'Help & Support', () {}),
             _drawerItem(Icons.system_update, 'Update App', () async {
               final updateInfo = await UpdateService.checkForUpdate();
-              if (context.mounted && updateInfo?['needs_update'] == true) {
+              if (!context.mounted) {
+                return;
+              }
+
+              if (updateInfo?['needs_update'] == true) {
                 UpdateService.showUpdateDialog(
                   context,
                   updateInfo!['apk_url'],
                   updateInfo['force_update'],
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('App is already up to date')),
                 );
               }
             }),
@@ -125,7 +133,9 @@ class AppDrawer extends StatelessWidget {
 
             _drawerItem(Icons.logout, 'Log out', () async {
               await FirebaseAuth.instance.signOut();
-              if (!context.mounted) return;
+              if (!context.mounted) {
+                return;
+              }
 
               Navigator.pop(context);
               Navigator.pushNamedAndRemoveUntil(

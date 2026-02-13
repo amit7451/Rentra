@@ -38,10 +38,14 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       Navigator.of(context).pushReplacementNamed(AppRoutes.main);
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString()),
@@ -90,9 +94,9 @@ class _LoginScreenState extends State<LoginScreen> {
               try {
                 await authService.resetPassword(email);
 
-                if (!mounted) return;
-
-                Navigator.pop(context);
+                if (!mounted) {
+                  return;
+                }
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -101,8 +105,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 );
+
+                Navigator.pop(context);
               } catch (e) {
-                if (!mounted) return;
+                if (!mounted) {
+                  return;
+                }
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(SnackBar(content: Text(e.toString())));

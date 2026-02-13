@@ -23,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _firestoreService = FirestoreService();
   final _wishlistService = WishlistService();
   final _uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+  String _selectedUnitType = 'hostel'; // 'hostel' or 'flat'
 
   @override
   Widget build(BuildContext context) {
@@ -141,12 +142,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Nearby stays',
-                  style: TextStyle(
-                    color: AppTheme.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+                // const Text(
+                //   'Nearby stays',
+                //   style: TextStyle(
+                //     color: AppTheme.white,
+                //     fontSize: 18,
+                //     fontWeight: FontWeight.w600,
+                //   ),
+                // ),
+                // const SizedBox(height: 12),
+                // Unit selector (segmented control)
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(30),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _unitToggleButton('hostel', 'Hostel / PG'),
+                        _unitToggleButton('flat', 'Flat'),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -156,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // ── Hostel list ───────────────────────────────────────
           Expanded(
             child: StreamBuilder<List<HostelModel>>(
-              stream: _firestoreService.getHostels(),
+              stream: _firestoreService.getHostels(unitType: _selectedUnitType),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const LoadingIndicator(message: 'Loading hostels...');
@@ -221,6 +240,28 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _unitToggleButton(String key, String label) {
+    final selected = _selectedUnitType == key;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedUnitType = key),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? AppTheme.primaryRed : Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }

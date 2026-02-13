@@ -69,11 +69,38 @@ class HotelCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
-                        child: Text(
-                          hostel.name,
-                          style: Theme.of(context).textTheme.titleLarge,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                hostel.name,
+                                style: Theme.of(context).textTheme.titleLarge,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Unit type chip (Flat vs Hostel/PG)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.lightGrey,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                hostel.unitType.toLowerCase() == 'flat'
+                                    ? 'Flat'
+                                    : 'Hostel / PG',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -139,7 +166,7 @@ class HotelCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            hostel.pricePerNight.toStringAsFixed(0),
+                            '₹${hostel.pricePerNight.toStringAsFixed(0)}',
                             style: Theme.of(context).textTheme.headlineMedium
                                 ?.copyWith(
                                   color: AppTheme.primaryRed,
@@ -147,7 +174,9 @@ class HotelCard extends StatelessWidget {
                                 ),
                           ),
                           Text(
-                            'Yearly',
+                            hostel.rentPeriod == 'monthly'
+                                ? 'Monthly'
+                                : 'Yearly',
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -158,9 +187,19 @@ class HotelCard extends StatelessWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: hostel.availableRooms > 0
-                              ? AppTheme.primaryRed.withValues(alpha: 0.1)
-                              : AppTheme.grey.withValues(alpha: 0.1),
+                          color: (() {
+                            final rooms = hostel.availableRooms;
+                            if (rooms <= 0) {
+                              return AppTheme.grey.withValues(alpha: 0.1);
+                            }
+                            if (rooms <= 3) {
+                              return Colors.red.withValues(alpha: 0.08);
+                            }
+                            if (rooms <= 5) {
+                              return Colors.amber.withValues(alpha: 0.08);
+                            }
+                            return Colors.green.withValues(alpha: 0.08);
+                          })(),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -168,9 +207,19 @@ class HotelCard extends StatelessWidget {
                               ? '${hostel.availableRooms} rooms available'
                               : 'No rooms',
                           style: TextStyle(
-                            color: hostel.availableRooms > 0
-                                ? AppTheme.primaryRed
-                                : AppTheme.grey,
+                            color: (() {
+                              final rooms = hostel.availableRooms;
+                              if (rooms <= 0) {
+                                return AppTheme.grey;
+                              }
+                              if (rooms <= 3) {
+                                return AppTheme.primaryRed;
+                              }
+                              if (rooms <= 5) {
+                                return Colors.orange;
+                              }
+                              return Colors.green;
+                            })(),
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),

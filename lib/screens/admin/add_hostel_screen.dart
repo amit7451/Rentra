@@ -38,6 +38,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
   bool _isUploading = false;
   bool _isCloudinaryReady = false;
   String? _ownerId;
+  String _unitType = 'hostel'; // 'hostel' or 'flat'
 
   @override
   void initState() {
@@ -65,7 +66,9 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
   }
 
   Future<void> _checkCloudinaryStatus() async {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() => _isCloudinaryReady = CloudinaryService.isInitialized);
 
     if (!_isCloudinaryReady) {
@@ -86,7 +89,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
         imageQuality: 85,
       );
 
-      if (pickedFiles != null && pickedFiles.isNotEmpty) {
+      if (pickedFiles.isNotEmpty) {
         if (pickedFiles.length + _selectedImages.length > 10) {
           _showSnack('Maximum 10 images allowed', isError: true);
           return;
@@ -243,6 +246,8 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
         city: _cityController.text.trim(),
         country: _countryController.text.trim(),
         pricePerNight: double.parse(_priceController.text),
+        unitType: _unitType,
+        rentPeriod: _unitType == 'flat' ? 'monthly' : 'yearly',
         availableRooms: int.parse(_availableRoomsController.text),
         rating: double.parse(_ratingController.text),
         totalReviews: int.parse(_totalReviewsController.text),
@@ -297,7 +302,9 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
   }
 
   void _showSnack(String msg, {bool isError = false}) {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg),
@@ -348,7 +355,54 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
                       maxLines: 4,
                       validator: _required('description'),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
+
+                    // Unit type selector
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Property Type',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        DropdownButtonFormField<String>(
+                          initialValue: _unitType,
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'hostel',
+                              child: Text('Hostel / PG'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'flat',
+                              child: Text('Flat'),
+                            ),
+                          ],
+                          onChanged: (v) {
+                            if (v == null) {
+                              return;
+                            }
+                            setState(() {
+                              _unitType = v;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 14,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
 
                     _sectionTitle('Location'),
                     const SizedBox(height: 16),
@@ -386,8 +440,10 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
                     const SizedBox(height: 16),
                     _field(
                       _priceController,
-                      'Price Per Year (₹)',
-                      'e.g. 50000',
+                      _unitType == 'flat'
+                          ? 'Price Per Month (₹)'
+                          : 'Price Per Year (₹)',
+                      _unitType == 'flat' ? 'e.g. 5000' : 'e.g. 50000',
                       keyboardType: TextInputType.number,
                       validator: _numericValidator('price'),
                     ),

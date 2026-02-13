@@ -54,7 +54,8 @@ class AppRoutes {
           builder: (context) => BookingScreen(
             hostelId: args['hostelId'],
             hostelName: args['hostelName'],
-            yearlyFee: (args['pricePerNight'] as num).toDouble(),
+            baseFee: (args['pricePerNight'] as num).toDouble(),
+            rentPeriod: (args['rentPeriod'] as String?) ?? 'yearly',
           ),
         );
       default:

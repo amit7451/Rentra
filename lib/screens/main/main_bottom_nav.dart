@@ -39,7 +39,9 @@ class _MainBottomNavState extends State<MainBottomNav> {
     _currentIndex = widget.initialIndex;
 
     _authSub = FirebaseAuth.instance.authStateChanges().listen((user) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       if (user == null) {
         setState(() {
@@ -67,7 +69,9 @@ class _MainBottomNavState extends State<MainBottomNav> {
     try {
       final doc = await _firestore.collection('users').doc(uid).get();
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       final isAdmin = doc.data()?['isAdmin'] == true;
 
@@ -81,7 +85,9 @@ class _MainBottomNavState extends State<MainBottomNav> {
         }
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       debugPrint('Error checking admin status: $e');
       setState(() {

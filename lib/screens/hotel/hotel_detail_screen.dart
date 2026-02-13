@@ -98,9 +98,38 @@ class HotelDetailScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: Text(
-                              hostel.name,
-                              style: Theme.of(context).textTheme.displaySmall,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    hostel.name,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.displaySmall,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                // Unit type chip
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.lightGrey,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    hostel.unitType.toLowerCase() == 'flat'
+                                        ? 'Flat'
+                                        : 'Hostel / PG',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -179,7 +208,7 @@ class HotelDetailScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  hostel.pricePerNight.toStringAsFixed(0),
+                                  '₹${hostel.pricePerNight.toStringAsFixed(0)}',
                                   style: Theme.of(context)
                                       .textTheme
                                       .displaySmall
@@ -189,18 +218,56 @@ class HotelDetailScreen extends StatelessWidget {
                                       ),
                                 ),
                                 Text(
-                                  'Yearly',
+                                  hostel.rentPeriod == 'monthly'
+                                      ? 'Monthly'
+                                      : 'Yearly',
                                   style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                               ],
                             ),
-                            Text(
-                              '${hostel.availableRooms} rooms available',
-                              style: Theme.of(context).textTheme.bodyLarge
-                                  ?.copyWith(
-                                    color: AppTheme.primaryRed,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: (() {
+                                  final rooms = hostel.availableRooms;
+                                  if (rooms <= 0) {
+                                    return AppTheme.grey.withValues(alpha: 0.1);
+                                  }
+                                  if (rooms <= 3) {
+                                    return Colors.red.withValues(alpha: 0.08);
+                                  }
+                                  if (rooms <= 5) {
+                                    return Colors.amber.withValues(alpha: 0.08);
+                                  }
+                                  return Colors.green.withValues(alpha: 0.08);
+                                })(),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                hostel.availableRooms > 0
+                                    ? '${hostel.availableRooms} rooms available'
+                                    : 'No rooms',
+                                style: TextStyle(
+                                  color: (() {
+                                    final rooms = hostel.availableRooms;
+                                    if (rooms <= 0) {
+                                      return AppTheme.grey;
+                                    }
+                                    if (rooms <= 3) {
+                                      return AppTheme.primaryRed;
+                                    }
+                                    if (rooms <= 5) {
+                                      return Colors.orange;
+                                    }
+                                    return Colors.green;
+                                  })(),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -275,6 +342,7 @@ class HotelDetailScreen extends StatelessWidget {
                             'hostelId': hostel.id,
                             'hostelName': hostel.name,
                             'pricePerNight': hostel.pricePerNight,
+                            'rentPeriod': hostel.rentPeriod,
                           },
                         );
                       }

@@ -149,8 +149,8 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
           ),
         ],
       ),

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 
 class CloudinaryService {
   static final CloudinaryService _instance = CloudinaryService._internal();
@@ -33,11 +34,11 @@ class CloudinaryService {
       }
 
       _isInitialized = true;
-      print('✅ CloudinaryService initialized successfully');
-      print('   Cloud: $_cloudName');
-      print('   Preset: $_uploadPreset');
+      debugPrint('✅ CloudinaryService initialized successfully');
+      debugPrint('   Cloud: $_cloudName');
+      debugPrint('   Preset: $_uploadPreset');
     } catch (e) {
-      print('❌ Failed to initialize CloudinaryService: $e');
+      debugPrint('❌ Failed to initialize CloudinaryService: $e');
       _isInitialized = false;
       rethrow;
     }
@@ -88,7 +89,7 @@ class CloudinaryService {
       if (response.statusCode == 200) {
         final secureUrl = jsonData['secure_url'] as String?;
         if (secureUrl != null) {
-          print('✅ Image uploaded successfully: $secureUrl');
+          debugPrint('✅ Image uploaded successfully: $secureUrl');
           return secureUrl;
         } else {
           throw Exception('No secure_url in response');
@@ -98,7 +99,7 @@ class CloudinaryService {
         throw Exception('Upload failed (${response.statusCode}): $errorMsg');
       }
     } catch (e) {
-      print('❌ Error uploading to Cloudinary: $e');
+      debugPrint('❌ Error uploading to Cloudinary: $e');
       rethrow;
     }
   }
@@ -119,9 +120,9 @@ class CloudinaryService {
     }
 
     if (errors.isNotEmpty) {
-      print('⚠️ Some images failed to upload:');
+      debugPrint('⚠️ Some images failed to upload:');
       for (var e in errors) {
-        print('   $e');
+        debugPrint('   $e');
       }
     }
 
@@ -133,7 +134,7 @@ class CloudinaryService {
       try {
         await CloudinaryService.initialize();
       } catch (e) {
-        print('❌ Cannot delete image: Cloudinary not initialized');
+        debugPrint('❌ Cannot delete image: Cloudinary not initialized');
         return false;
       }
     }
@@ -172,7 +173,7 @@ class CloudinaryService {
 
       return false;
     } catch (e) {
-      print('❌ Error deleting from Cloudinary: $e');
+      debugPrint('❌ Error deleting from Cloudinary: $e');
       return false;
     }
   }

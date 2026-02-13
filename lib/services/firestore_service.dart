@@ -72,6 +72,8 @@ class FirestoreService {
         'city': hostel.city,
         'country': hostel.country,
         'pricePerNight': hostel.pricePerNight,
+        'unitType': hostel.unitType,
+        'rentPeriod': hostel.rentPeriod,
         'availableRooms': hostel.availableRooms,
         'rating': hostel.rating,
         'totalReviews': hostel.totalReviews,
@@ -89,20 +91,21 @@ class FirestoreService {
   }
 
   // Get all hostels
-  Stream<List<HostelModel>> getHostels() {
-    return _firestore
+  Stream<List<HostelModel>> getHostels({String? unitType}) {
+    var query = _firestore
         .collection(_hostelsCollection)
-        .where('isActive', isEqualTo: true)
-        .orderBy('rating', descending: true)
-        .limit(20)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map(
-                (doc) => HostelModel.fromMap(doc.data()),
-              ) // This calls fromMap
-              .toList(),
-        );
+        .where('isActive', isEqualTo: true);
+
+    if (unitType != null) {
+      query = query.where('unitType', isEqualTo: unitType);
+    }
+
+    query = query.orderBy('rating', descending: true).limit(20);
+
+    return query.snapshots().map(
+      (snapshot) =>
+          snapshot.docs.map((doc) => HostelModel.fromMap(doc.data())).toList(),
+    );
   }
 
   // In getHostel method:

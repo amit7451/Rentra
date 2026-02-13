@@ -48,10 +48,14 @@ class _SignupScreenState extends State<SignupScreen> {
         isAdmin: false,
       );
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       Navigator.of(context).pushReplacementNamed(AppRoutes.main);
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString()),

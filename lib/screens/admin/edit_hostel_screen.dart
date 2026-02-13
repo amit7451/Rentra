@@ -39,6 +39,7 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
   bool _isCloudinaryReady = false;
   late List<String> _amenities;
   late bool _isActive;
+  late String _unitType;
 
   @override
   void initState() {
@@ -62,6 +63,7 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
     _existingImageUrls = List.from(h.images);
     _amenities = List.from(h.amenities);
     _isActive = h.isActive;
+    _unitType = h.unitType;
   }
 
   @override
@@ -80,7 +82,9 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
   }
 
   Future<void> _checkCloudinaryStatus() async {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       _isCloudinaryReady = CloudinaryService.isInitialized;
@@ -106,7 +110,7 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
 
   Future<void> _pickImages() async {
     try {
-      final List<XFile> pickedFiles = await _picker.pickMultiImage(
+      final List<XFile>? pickedFiles = await _picker.pickMultiImage(
         maxWidth: 1200,
         maxHeight: 1200,
         imageQuality: 85,
@@ -271,6 +275,8 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
         city: _cityController.text.trim(),
         country: _countryController.text.trim(),
         pricePerNight: double.parse(_priceController.text),
+        unitType: _unitType,
+        rentPeriod: _unitType == 'flat' ? 'monthly' : 'yearly',
         availableRooms: int.parse(_availableRoomsController.text),
         rating: double.parse(_ratingController.text),
         totalReviews: int.parse(_totalReviewsController.text),
@@ -423,7 +429,54 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
                       maxLines: 4,
                       validator: _req('description'),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
+
+                    // Unit type selector
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Property Type',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        DropdownButtonFormField<String>(
+                          initialValue: _unitType,
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'hostel',
+                              child: Text('Hostel / PG'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'flat',
+                              child: Text('Flat'),
+                            ),
+                          ],
+                          onChanged: (v) {
+                            if (v == null) {
+                              return;
+                            }
+                            setState(() {
+                              _unitType = v;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 14,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
 
                     _sectionTitle('Location'),
                     const SizedBox(height: 14),
@@ -461,8 +514,10 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
                     const SizedBox(height: 14),
                     _field(
                       _priceController,
-                      'Price Per Year (₹)',
-                      'e.g. 50000',
+                      _unitType == 'flat'
+                          ? 'Price Per Month (₹)'
+                          : 'Price Per Year (₹)',
+                      _unitType == 'flat' ? 'e.g. 5000' : 'e.g. 50000',
                       keyboardType: TextInputType.number,
                       validator: _numVal('price'),
                     ),
@@ -590,8 +645,9 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
                                             height: 100,
                                             fit: BoxFit.cover,
                                             loadingBuilder: (_, child, progress) {
-                                              if (progress == null)
+                                              if (progress == null) {
                                                 return child;
+                                              }
                                               return Container(
                                                 width: 100,
                                                 height: 100,

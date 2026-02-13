@@ -10,7 +10,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -35,7 +36,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   Future<void> _checkAuthState() async {
     await Future.delayed(const Duration(seconds: 2));
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     final user = FirebaseAuth.instance.currentUser;
 
@@ -101,7 +104,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   fontWeight: FontWeight.w400,
                 ),
               ),
-
             ],
           ),
         ),

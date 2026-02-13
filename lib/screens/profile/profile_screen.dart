@@ -47,7 +47,9 @@ class ProfileScreen extends StatelessWidget {
                     ? null
                     : photoController.text.trim(),
               });
-              if (!context.mounted) return;
+              if (!context.mounted) {
+                return;
+              }
               Navigator.pop(context);
               ScaffoldMessenger.of(
                 context,
@@ -67,7 +69,9 @@ class ProfileScreen extends StatelessWidget {
 
     await FirebaseAuth.instance.sendPasswordResetEmail(email: user.email!);
 
-    if (!context.mounted) return;
+    if (!context.mounted) {
+      return;
+    }
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Password reset email sent')));

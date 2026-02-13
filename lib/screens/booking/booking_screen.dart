@@ -2,19 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/firestore_service.dart';
 import '../../models/booking_model.dart';
+import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
 import '../../widgets/primary_button.dart';
 
 class BookingScreen extends StatefulWidget {
   final String hostelId;
   final String hostelName;
-  final double yearlyFee; // ✅ fetched from DB earlier
+  final double baseFee; // base fee (monthly or yearly depending on rentPeriod)
+  final String rentPeriod; // 'monthly' or 'yearly'
 
   const BookingScreen({
     super.key,
     required this.hostelId,
     required this.hostelName,
-    required this.yearlyFee,
+    required this.baseFee,
+    required this.rentPeriod,
   });
 
   @override
@@ -25,6 +28,9 @@ class _BookingScreenState extends State<BookingScreen> {
   final _formKey = GlobalKey<FormState>();
   final _firestoreService = FirestoreService();
   final _specialRequestsController = TextEditingController();
+
+  HostelModel? _hostel;
+  bool _loadingHostel = true;
 
   DateTime? _checkInDate;
   DateTime? _checkOutDate;
@@ -37,14 +43,41 @@ class _BookingScreenState extends State<BookingScreen> {
     super.dispose();
   }
 
-  int get _numberOfYears {
+  @override
+  void initState() {
+    super.initState();
+    _loadHostel();
+  }
+
+  Future<void> _loadHostel() async {
+    try {
+      final h = await _firestoreService.getHostel(widget.hostelId);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _hostel = h;
+        _loadingHostel = false;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _loadingHostel = false);
+    }
+  }
+
+  int get _rentalUnits {
     if (_checkInDate == null || _checkOutDate == null) return 0;
     final days = _checkOutDate!.difference(_checkInDate!).inDays;
+    if (widget.rentPeriod == 'monthly') {
+      return (days / 30).ceil();
+    }
     return (days / 365).ceil();
   }
 
   double get _totalPrice {
-    return _numberOfYears * widget.yearlyFee;
+    return _rentalUnits * widget.baseFee;
   }
 
   Future<void> _selectCheckInDate() async {
@@ -122,7 +155,9 @@ class _BookingScreenState extends State<BookingScreen> {
 
       await _firestoreService.createBooking(booking);
 
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -133,7 +168,9 @@ class _BookingScreenState extends State<BookingScreen> {
 
       Navigator.pop(context);
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to create booking: $e'),
@@ -162,17 +199,119 @@ class _BookingScreenState extends State<BookingScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.hostelName,
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${widget.yearlyFee.toStringAsFixed(0)} per Year',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: AppTheme.primaryRed,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.hostelName,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.headlineMedium,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '${widget.baseFee.toStringAsFixed(0)} per ${widget.rentPeriod == 'monthly' ? 'Month' : 'Year'}',
+                                  style: Theme.of(context).textTheme.bodyLarge
+                                      ?.copyWith(
+                                        color: AppTheme.primaryRed,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Unit type & availability
+                          if (_loadingHostel)
+                            const SizedBox.shrink()
+                          else ...[
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                // Unit type chip
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.lightGrey,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    (_hostel?.unitType.toLowerCase() == 'flat')
+                                        ? 'Flat'
+                                        : 'Hostel / PG',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                // Availability badge
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: (() {
+                                      final rooms =
+                                          _hostel?.availableRooms ?? 0;
+                                      if (rooms <= 0) {
+                                        return AppTheme.grey.withValues(
+                                          alpha: 0.1,
+                                        );
+                                      }
+                                      if (rooms <= 3) {
+                                        return Colors.red.withValues(
+                                          alpha: 0.08,
+                                        );
+                                      }
+                                      if (rooms <= 5) {
+                                        return Colors.amber.withValues(
+                                          alpha: 0.08,
+                                        );
+                                      }
+                                      return Colors.green.withValues(
+                                        alpha: 0.08,
+                                      );
+                                    })(),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    (_hostel?.availableRooms ?? 0) > 0
+                                        ? '${_hostel!.availableRooms} rooms available'
+                                        : 'No rooms',
+                                    style: TextStyle(
+                                      color: (() {
+                                        final rooms =
+                                            _hostel?.availableRooms ?? 0;
+                                        if (rooms <= 0) {
+                                          return AppTheme.grey;
+                                        }
+                                        if (rooms <= 3) {
+                                          return AppTheme.primaryRed;
+                                        }
+                                        if (rooms <= 5) {
+                                          return Colors.orange;
+                                        }
+                                        return Colors.green;
+                                      })(),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
                       ),
                     ],
                   ),
@@ -300,7 +439,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
               const SizedBox(height: 32),
 
-              if (_numberOfYears > 0)
+              if (_rentalUnits > 0)
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -320,7 +459,7 @@ class _BookingScreenState extends State<BookingScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              '${widget.yearlyFee.toStringAsFixed(0)} x $_numberOfYears years',
+                              '${widget.baseFee.toStringAsFixed(0)} x $_rentalUnits ${widget.rentPeriod == 'monthly' ? 'months' : 'years'}',
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                             Text(
@@ -354,15 +493,32 @@ class _BookingScreenState extends State<BookingScreen> {
                 ),
 
               const SizedBox(height: 24),
-
-              const SizedBox(height: 24),
-              PrimaryButton(
-                text: 'Confirm Booking',
-                onPressed: _handleBooking,
-                isLoading: _isLoading,
-                icon: Icons.check_circle_outline,
-              ),
+              // extra bottom spacing to avoid content being hidden behind
+              // the fixed action button
+              const SizedBox(height: 100),
             ],
+          ),
+        ),
+      ),
+      // move confirm action to bottomNavigationBar so it stays visible
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: PrimaryButton(
+            text: 'Confirm Booking',
+            onPressed: _handleBooking,
+            isLoading: _isLoading,
+            icon: Icons.check_circle_outline,
           ),
         ),
       ),
