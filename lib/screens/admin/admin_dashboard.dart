@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/firestore_service.dart';
 import '../../models/hostel_model.dart';
 import '../../models/booking_model.dart';
@@ -78,7 +79,7 @@ class AdminDashboard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Welcome Header ──────────────────────────────────
-            _WelcomeHeader(user: user),
+            _WelcomeHeader(uid: uid),
             const SizedBox(height: 20),
 
             // ── Top 4 Containers (Revenue, Pending, Add, My Hostels) ──
@@ -249,62 +250,73 @@ class AdminDashboard extends StatelessWidget {
 // ── Welcome Header ──────────────────────────────────────────────────────────
 
 class _WelcomeHeader extends StatelessWidget {
-  final User? user;
-  const _WelcomeHeader({required this.user});
+  final String uid;
+  const _WelcomeHeader({super.key, required this.uid});
 
   @override
   Widget build(BuildContext context) {
-    final displayName =
-        user?.displayName ?? user?.email?.split('@')[0] ?? 'Admin';
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const SizedBox(height: 60); // Placeholder height
+        }
 
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'WELCOME BACK',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey[500],
-                  letterSpacing: 1.5,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                displayName,
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.black87,
-                  letterSpacing: -0.5,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-        CircleAvatar(
-          radius: 26,
-          backgroundColor: AppTheme.primaryRed,
-          backgroundImage: user?.photoURL != null
-              ? NetworkImage(user!.photoURL!)
-              : null,
-          child: user?.photoURL == null
-              ? Text(
-                  displayName.isNotEmpty ? displayName[0].toUpperCase() : 'A',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
+        final data = snapshot.data!.data() as Map<String, dynamic>?;
+        final name = data?['name'] ?? 'Admin';
+        final photoUrl = data?['photoUrl'];
+
+        return Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'WELCOME BACK',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey[500],
+                      letterSpacing: 1.5,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                )
-              : null,
-        ),
-      ],
+                  const SizedBox(height: 4),
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black87,
+                      letterSpacing: -0.5,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            CircleAvatar(
+              radius: 26,
+              backgroundColor: AppTheme.primaryRed,
+              backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+              child: photoUrl == null
+                  ? Text(
+                      name.isNotEmpty ? name[0].toUpperCase() : 'A',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    )
+                  : null,
+            ),
+          ],
+        );
+      },
     );
   }
 }

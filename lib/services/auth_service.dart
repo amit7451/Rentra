@@ -20,6 +20,8 @@ class AuthService {
     required String password,
     required String name,
     required String phoneNumber,
+    DateTime? dateOfBirth,
+    String? gender,
     bool isAdmin = false,
     String? profileImage = ' ',
   }) async {
@@ -37,6 +39,8 @@ class AuthService {
           email: email,
           name: name,
           phoneNumber: phoneNumber,
+          dateOfBirth: dateOfBirth,
+          gender: gender,
           createdAt: DateTime.now(),
           isAdmin: isAdmin,
           photoUrl: profileImage,

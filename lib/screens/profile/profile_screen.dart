@@ -2,62 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/auth_service.dart';
-import '../../services/firestore_service.dart';
 import '../../models/user_model.dart';
 import '../../app/theme.dart';
 import '../../app/routes.dart';
 import '../../widgets/loading_indicator.dart';
 import 'package:rentra/services/user_cache.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
-  void _editProfile(
-    BuildContext context,
-    UserModel userModel,
-    FirestoreService firestoreService,
-  ) {
-    final nameController = TextEditingController(text: userModel.name);
-    final photoController = TextEditingController(
-      text: userModel.photoUrl ?? '',
-    );
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Profile'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Name'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              await firestoreService.updateUser(userModel.uid, {
-                'name': nameController.text.trim(),
-                'photoUrl': photoController.text.trim().isEmpty
-                    ? null
-                    : photoController.text.trim(),
-              });
-              if (!context.mounted) {
-                return;
-              }
-              Navigator.pop(context);
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Profile updated')));
-            },
-            child: const Text('Save'),
-          ),
-        ],
+  void _editProfile(BuildContext context, UserModel userModel) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProfileScreen(userModel: userModel),
       ),
     );
   }
@@ -69,19 +27,30 @@ class ProfileScreen extends StatelessWidget {
 
     await FirebaseAuth.instance.sendPasswordResetEmail(email: user.email!);
 
-    if (!context.mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Password reset email sent')));
+    if (!context.mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Email Sent'),
+        content: const Text(
+          'A password reset link has been sent to your email. Please check your spam folder if you don\'t see it.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     final authService = AuthService();
-    final firestoreService = FirestoreService();
 
     if (user == null) {
       return const Scaffold(
@@ -175,11 +144,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           title: const Text('Edit Profile'),
                           trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _editProfile(
-                            context,
-                            userModel,
-                            firestoreService,
-                          ),
+                          onTap: () => _editProfile(context, userModel),
                         ),
                         const Divider(height: 1),
                         ListTile(
@@ -200,13 +165,9 @@ class ProfileScreen extends StatelessWidget {
                           title: const Text('Notifications'),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () {
-                            // TODO: Navigate to notifications
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Notification settings coming soon',
-                                ),
-                              ),
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.notifications,
                             );
                           },
                         ),
@@ -219,15 +180,7 @@ class ProfileScreen extends StatelessWidget {
                           title: const Text('Payment Methods'),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () {
-                            // TODO: Navigate to payment methods
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Payment methods feature coming soon',
-                                ),
-                              ),
-                            );
+                            Navigator.pushNamed(context, AppRoutes.payments);
                           },
                         ),
                       ],
@@ -259,9 +212,23 @@ class ProfileScreen extends StatelessWidget {
                             ],
                           ),
                           onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Language settings coming soon'),
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: const Text('Select Language'),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    ListTile(
+                                      title: const Text('English'),
+                                      trailing: const Icon(
+                                        Icons.check,
+                                        color: AppTheme.primaryRed,
+                                      ),
+                                      onTap: () => Navigator.pop(ctx),
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
                           },
@@ -275,13 +242,7 @@ class ProfileScreen extends StatelessWidget {
                           title: const Text('Help & Support'),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Help & support feature coming soon',
-                                ),
-                              ),
-                            );
+                            Navigator.pushNamed(context, AppRoutes.helpSupport);
                           },
                         ),
                         const Divider(height: 1),
@@ -293,12 +254,9 @@ class ProfileScreen extends StatelessWidget {
                           title: const Text('Privacy Policy'),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Privacy policy feature coming soon',
-                                ),
-                              ),
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.privacyPolicy,
                             );
                           },
                         ),
@@ -396,26 +354,42 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  void _showAboutDialog(BuildContext context) {
+  void _showAboutDialog(BuildContext context) async {
+    final doc = await FirebaseFirestore.instance
+        .collection('app_config')
+        .doc('android')
+        .get();
+    String firebaseVersion = doc.data()?['latest_version'] ?? 'Unknown';
+
+    if (!context.mounted) return;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('About Hostel Booking'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('About Rentra'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Hostel Booking App'),
-            const SizedBox(height: 8),
-            Text(
-              'Version 1.0.0',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: AppTheme.grey),
+            const Text(
+              'Rentra',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 8),
+            const Text('Version (Latest):'),
+            Text(firebaseVersion, style: const TextStyle(color: AppTheme.grey)),
+            const SizedBox(height: 16),
+            const Text(
+              'Developed by:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const Text('Amit Kumar'),
+            const Text('Anurag Shrivastava'),
             const SizedBox(height: 16),
             const Text(
               'Find and book amazing hostels around the world with ease. Your perfect stay is just a tap away!',
+              style: TextStyle(fontSize: 14),
             ),
           ],
         ),

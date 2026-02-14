@@ -22,6 +22,8 @@ class _SignupScreenState extends State<SignupScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _phoneNumberController = TextEditingController();
+  DateTime? _selectedDateOfBirth;
+  String? _selectedGender;
   final _authService = AuthService();
   //added cloudinary instance
   final _cloudinaryService = CloudinaryService.instance;
@@ -39,7 +41,6 @@ class _SignupScreenState extends State<SignupScreen> {
     super.initState();
     _checkCloudinaryStatus();
   }
-
 
   @override
   void dispose() {
@@ -104,7 +105,6 @@ class _SignupScreenState extends State<SignupScreen> {
       print('Failed to take photo: $e');
     }
   }
-
 
   void _showImagePickerOptions() {
     showModalBottomSheet(
@@ -171,7 +171,6 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-
   Future<void> _handleSignup() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -183,8 +182,12 @@ class _SignupScreenState extends State<SignupScreen> {
         password: _passwordController.text,
         name: _nameController.text.trim(),
         phoneNumber: _phoneNumberController.text.trim(),
+        dateOfBirth: _selectedDateOfBirth,
+        gender: _selectedGender,
         isAdmin: false,
-        profileImage: _profileImage != null ? await _cloudinaryService.uploadImage(_profileImage!) : '',
+        profileImage: _profileImage != null
+            ? await _cloudinaryService.uploadImage(_profileImage!)
+            : '',
       );
 
       if (!mounted) {
@@ -261,10 +264,17 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: Stack(
                     children: [
                       CircleAvatar(
-                        radius: 50,        backgroundColor: AppTheme.primaryRed.withOpacity(0.1),
-                        backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
+                        radius: 50,
+                        backgroundColor: AppTheme.primaryRed.withOpacity(0.1),
+                        backgroundImage: _profileImage != null
+                            ? FileImage(_profileImage!)
+                            : null,
                         child: _profileImage == null
-                            ? const Icon(Icons.person, size: 50, color: AppTheme.primaryRed)
+                            ? const Icon(
+                                Icons.person,
+                                size: 50,
+                                color: AppTheme.primaryRed,
+                              )
                             : null,
                       ),
                       Positioned(
@@ -274,7 +284,11 @@ class _SignupScreenState extends State<SignupScreen> {
                           backgroundColor: AppTheme.primaryRed,
                           radius: 18,
                           child: IconButton(
-                            icon: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
+                            icon: const Icon(
+                              Icons.camera_alt,
+                              size: 18,
+                              color: Colors.white,
+                            ),
                             onPressed: () {
                               // Show a bottom sheet or dialog to choose Camera or Gallery
                               _showImagePickerOptions();
@@ -336,6 +350,65 @@ class _SignupScreenState extends State<SignupScreen> {
                     }
                     return null;
                   },
+                ),
+
+                const SizedBox(height: 16),
+
+                // DOB Picker
+                InkWell(
+                  onTap: () async {
+                    final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now().subtract(
+                        const Duration(days: 365 * 18),
+                      ),
+                      firstDate: DateTime(1900),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null) {
+                      setState(() => _selectedDateOfBirth = picked);
+                    }
+                  },
+                  child: InputDecorator(
+                    decoration: const InputDecoration(
+                      labelText: 'Date of Birth',
+                      prefixIcon: Icon(Icons.calendar_today_outlined),
+                    ),
+                    child: Text(
+                      _selectedDateOfBirth == null
+                          ? 'Select Date of Birth'
+                          : '${_selectedDateOfBirth!.day}/${_selectedDateOfBirth!.month}/${_selectedDateOfBirth!.year}',
+                      style: TextStyle(
+                        color: _selectedDateOfBirth == null
+                            ? AppTheme.grey
+                            : AppTheme.black,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Gender Dropdown
+                DropdownButtonFormField<String>(
+                  value: _selectedGender,
+                  decoration: const InputDecoration(
+                    labelText: 'Gender',
+                    prefixIcon: Icon(Icons.person_outline),
+                  ),
+                  items: ['Male', 'Female', 'Prefer not to say', 'Other'].map((
+                    String value,
+                  ) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                  onChanged: (newValue) {
+                    setState(() => _selectedGender = newValue);
+                  },
+                  validator: (value) =>
+                      value == null ? 'Please select a gender' : null,
                 ),
 
                 const SizedBox(height: 16),

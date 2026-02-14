@@ -4,9 +4,10 @@ class UserModel {
   final String name;
   final String? phoneNumber;
   final String? photoUrl;
+  final DateTime? dateOfBirth;
+  final String? gender;
   final DateTime createdAt;
   final bool isAdmin;
-
 
   UserModel({
     required this.uid,
@@ -14,6 +15,8 @@ class UserModel {
     required this.name,
     this.phoneNumber,
     this.photoUrl,
+    this.dateOfBirth,
+    this.gender,
     required this.createdAt,
     this.isAdmin = false,
   });
@@ -25,6 +28,8 @@ class UserModel {
       'name': name,
       'phoneNumber': phoneNumber,
       'photoUrl': photoUrl,
+      'dateOfBirth': dateOfBirth?.millisecondsSinceEpoch,
+      'gender': gender,
       'createdAt': createdAt.millisecondsSinceEpoch,
       'isAdmin': isAdmin,
     };
@@ -37,6 +42,10 @@ class UserModel {
       name: map['name'] ?? '',
       phoneNumber: map['phoneNumber'],
       photoUrl: map['photoUrl'],
+      dateOfBirth: map['dateOfBirth'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['dateOfBirth'])
+          : null,
+      gender: map['gender'],
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ?? 0),
       isAdmin: map['isAdmin'] ?? false,
     );
@@ -48,6 +57,8 @@ class UserModel {
     String? name,
     String? phoneNumber,
     String? photoUrl,
+    DateTime? dateOfBirth,
+    String? gender,
     DateTime? createdAt,
     bool? isAdmin,
   }) {
@@ -57,6 +68,8 @@ class UserModel {
       name: name ?? this.name,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       photoUrl: photoUrl ?? this.photoUrl,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      gender: gender ?? this.gender,
       createdAt: createdAt ?? this.createdAt,
       isAdmin: isAdmin ?? this.isAdmin,
     );
