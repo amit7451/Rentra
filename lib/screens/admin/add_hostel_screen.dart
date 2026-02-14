@@ -27,6 +27,13 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
   final _cityController = TextEditingController();
   final _countryController = TextEditingController();
   final _priceController = TextEditingController();
+  final _price1Controller = TextEditingController();
+  final _price2Controller = TextEditingController();
+  final _price3Controller = TextEditingController();
+  final _rooms1Controller = TextEditingController();
+  final _rooms2Controller = TextEditingController();
+  final _rooms3Controller = TextEditingController();
+  final _flatCapacityController = TextEditingController();
   final _availableRoomsController = TextEditingController();
   final _ratingController = TextEditingController();
   final _totalReviewsController = TextEditingController();
@@ -58,6 +65,13 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
     _cityController.dispose();
     _countryController.dispose();
     _priceController.dispose();
+    _price1Controller.dispose();
+    _price2Controller.dispose();
+    _price3Controller.dispose();
+    _rooms1Controller.dispose();
+    _rooms2Controller.dispose();
+    _rooms3Controller.dispose();
+    _flatCapacityController.dispose();
     _availableRoomsController.dispose();
     _ratingController.dispose();
     _totalReviewsController.dispose();
@@ -238,6 +252,31 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
 
       setState(() => _isLoading = true);
 
+      // prepare fields depending on unit type
+      double parsedPrice = 0.0;
+      int availableRooms = 0;
+      double p1 = 0.0, p2 = 0.0, p3 = 0.0;
+      int r1 = 0, r2 = 0, r3 = 0;
+      int? flatCap;
+
+      if (_unitType == 'flat') {
+        // Use tryParse to avoid crashes if the field is somehow empty
+        parsedPrice = double.tryParse(_priceController.text.trim()) ?? 0.0;
+        flatCap = int.tryParse(_flatCapacityController.text.trim()) ?? 1;
+        availableRooms = 1;
+      } else {
+        // Hostel / PG Logic
+        p1 = double.tryParse(_price1Controller.text.trim()) ?? 0.0;
+        p2 = double.tryParse(_price2Controller.text.trim()) ?? 0.0;
+        p3 = double.tryParse(_price3Controller.text.trim()) ?? 0.0;
+
+        r1 = int.tryParse(_rooms1Controller.text.trim()) ?? 0;
+        r2 = int.tryParse(_rooms2Controller.text.trim()) ?? 0;
+        r3 = int.tryParse(_rooms3Controller.text.trim()) ?? 0;
+
+        availableRooms = r1 + r2 + r3;
+      }
+
       final hostel = HostelModel(
         id: '',
         name: _nameController.text.trim(),
@@ -245,12 +284,19 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
         address: _addressController.text.trim(),
         city: _cityController.text.trim(),
         country: _countryController.text.trim(),
-        pricePerNight: double.parse(_priceController.text),
+        rentPrice: parsedPrice,
+        price1Seater: p1,
+        price2Seater: p2,
+        price3Seater: p3,
+        rooms1Seater: r1,
+        rooms2Seater: r2,
+        rooms3Seater: r3,
+        flatCapacity: flatCap,
         unitType: _unitType,
         rentPeriod: _unitType == 'flat' ? 'monthly' : 'yearly',
-        availableRooms: int.parse(_availableRoomsController.text),
-        rating: double.parse(_ratingController.text),
-        totalReviews: int.parse(_totalReviewsController.text),
+        availableRooms: availableRooms,
+        rating: double.tryParse(_ratingController.text) ?? 4.5,
+        totalReviews: int.tryParse(_totalReviewsController.text) ?? 0,
         images: uploadedUrls,
         amenities: _amenities,
         ownerId: _ownerId!,
@@ -350,10 +396,9 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
                     const SizedBox(height: 16),
                     _field(
                       _descriptionController,
-                      'Description',
-                      'Describe your hostel',
+                      'Description (Optional)',
+                      'List amenities, rules, or details',
                       maxLines: 4,
-                      validator: _required('description'),
                     ),
                     const SizedBox(height: 12),
 
@@ -438,23 +483,111 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
 
                     _sectionTitle('Pricing & Availability'),
                     const SizedBox(height: 16),
-                    _field(
-                      _priceController,
-                      _unitType == 'flat'
-                          ? 'Price Per Month (₹)'
-                          : 'Price Per Year (₹)',
-                      _unitType == 'flat' ? 'e.g. 5000' : 'e.g. 50000',
-                      keyboardType: TextInputType.number,
-                      validator: _numericValidator('price'),
-                    ),
-                    const SizedBox(height: 16),
-                    _field(
-                      _availableRoomsController,
-                      'Available Rooms',
-                      'e.g. 10',
-                      keyboardType: TextInputType.number,
-                      validator: _intValidator('available rooms'),
-                    ),
+                    if (_unitType == 'flat') ...[
+                      _field(
+                        _priceController,
+                        'Price Per Month (₹)',
+                        'e.g. 5000',
+                        keyboardType: TextInputType.number,
+                        validator: _numericValidator('price'),
+                      ),
+                      const SizedBox(height: 16),
+                      _field(
+                        _flatCapacityController,
+                        'Capacity (persons)',
+                        'e.g. 2',
+                        keyboardType: TextInputType.number,
+                        validator: _intValidator('capacity'),
+                      ),
+                    ] else ...[
+                      // Hostel / PG: pricing and counts per seater
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _field(
+                              _price1Controller,
+                              '1-seater Price (Optional)',
+                              'e.g. 8000',
+                              keyboardType: TextInputType.number,
+                              validator: _optionalNumericValidator(
+                                '1-seater price',
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _field(
+                              _rooms1Controller,
+                              '1-seater Count (Optional)',
+                              'e.g. 5',
+                              keyboardType: TextInputType.number,
+                              validator: _optionalIntValidator(
+                                '1-seater count',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _field(
+                              _price2Controller,
+                              '2-seater Price (Optional)',
+                              'e.g. 6000',
+                              keyboardType: TextInputType.number,
+                              validator: _optionalNumericValidator(
+                                '2-seater price',
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _field(
+                              _rooms2Controller,
+                              '2-seater Count (Optional)',
+                              'e.g. 10',
+                              keyboardType: TextInputType.number,
+                              validator: _optionalIntValidator(
+                                '2-seater count',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _field(
+                              _price3Controller,
+                              '3-seater Price (Optional)',
+                              'e.g. 4000',
+                              keyboardType: TextInputType.number,
+                              validator: _optionalNumericValidator(
+                                '3-seater price',
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _field(
+                              _rooms3Controller,
+                              '3-seater Count (Optional)',
+                              'e.g. 8',
+                              keyboardType: TextInputType.number,
+                              validator: _optionalIntValidator(
+                                '3-seater count',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+
+                    _sectionTitle('Ratings & Feedback (Initial)'),
                     const SizedBox(height: 16),
                     Row(
                       children: [
@@ -877,6 +1010,19 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
 
   String? Function(String?) _intValidator(String fieldName) => (v) {
     if (v == null || v.isEmpty) return 'Please enter $fieldName';
+    if (int.tryParse(v) == null) return 'Enter a whole number';
+    if (int.parse(v) < 0) return 'Cannot be negative';
+    return null;
+  };
+
+  String? Function(String?) _optionalNumericValidator(String fieldName) => (v) {
+    if (v == null || v.isEmpty) return null;
+    if (double.tryParse(v) == null) return 'Enter a valid number';
+    return null;
+  };
+
+  String? Function(String?) _optionalIntValidator(String fieldName) => (v) {
+    if (v == null || v.isEmpty) return null;
     if (int.tryParse(v) == null) return 'Enter a whole number';
     if (int.parse(v) < 0) return 'Cannot be negative';
     return null;

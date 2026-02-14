@@ -20,14 +20,11 @@ class UpdateService {
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
 
-      if (latestVersion != currentVersion) {
-        return {
-          'needs_update': true,
-          'apk_url': apkUrl,
-          'force_update': forceUpdate,
-        };
-      }
-      return {'needs_update': false};
+      return {
+        'needs_update': latestVersion != currentVersion,
+        'apk_url': apkUrl,
+        'force_update': forceUpdate,
+      };
     } catch (e) {
       debugPrint("Update check failed: $e");
       return null;

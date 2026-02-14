@@ -71,7 +71,14 @@ class FirestoreService {
         'address': hostel.address,
         'city': hostel.city,
         'country': hostel.country,
-        'pricePerNight': hostel.pricePerNight,
+        'pricePerNight': hostel.rentPrice,
+        'price1Seater': hostel.price1Seater,
+        'price2Seater': hostel.price2Seater,
+        'price3Seater': hostel.price3Seater,
+        'rooms1Seater': hostel.rooms1Seater,
+        'rooms2Seater': hostel.rooms2Seater,
+        'rooms3Seater': hostel.rooms3Seater,
+        'flatCapacity': hostel.flatCapacity,
         'unitType': hostel.unitType,
         'rentPeriod': hostel.rentPeriod,
         'availableRooms': hostel.availableRooms,
@@ -100,11 +107,14 @@ class FirestoreService {
       query = query.where('unitType', isEqualTo: unitType);
     }
 
-    query = query.orderBy('rating', descending: true).limit(20);
+    // Server-side: match index #1 and #2. Client-side: filter out full rooms.
+    query = query.orderBy('rating', descending: true).limit(30);
 
     return query.snapshots().map(
-      (snapshot) =>
-          snapshot.docs.map((doc) => HostelModel.fromMap(doc.data())).toList(),
+      (snapshot) => snapshot.docs
+          .map((doc) => HostelModel.fromMap(doc.data()))
+          .where((h) => h.availableRooms > 0)
+          .toList(),
     );
   }
 
@@ -124,6 +134,15 @@ class FirestoreService {
     }
   }
 
+  // Stream a single hostel
+  Stream<HostelModel?> watchHostel(String hostelId) {
+    return _firestore
+        .collection(_hostelsCollection)
+        .doc(hostelId)
+        .snapshots()
+        .map((doc) => doc.exists ? HostelModel.fromMap(doc.data()!) : null);
+  }
+
   // Search hostels
   Stream<List<HostelModel>> searchHostels(String query) {
     return _firestore
@@ -135,17 +154,95 @@ class FirestoreService {
               .map((doc) => HostelModel.fromMap(doc.data()))
               .toList();
 
-          // Filter by query (search in name, city, country)
-          return hostels.where((hostel) {
+          // Filter by availability and query (search in name, city, country)
+          final filtered = hostels.where((hostel) {
+            if (hostel.availableRooms <= 0) return false;
             final searchQuery = query.toLowerCase();
             return hostel.name.toLowerCase().contains(searchQuery) ||
                 hostel.city.toLowerCase().contains(searchQuery) ||
                 hostel.country.toLowerCase().contains(searchQuery);
           }).toList();
+
+          // Sort by rating client-side
+          filtered.sort((a, b) => b.rating.compareTo(a.rating));
+          return filtered;
         });
   }
 
-  // Filter hostels by price range
+  // Advanced search/filter/sort
+  Stream<List<HostelModel>> getEnhancedHostels({
+    String? query,
+    String? unitType,
+    String? sortBy, // 'price_asc', 'price_desc', 'rating_desc'
+  }) {
+    return _firestore
+        .collection(_hostelsCollection)
+        .where('isActive', isEqualTo: true)
+        .snapshots()
+        .map((snapshot) {
+          final hostels = snapshot.docs
+              .map((doc) => HostelModel.fromMap(doc.data()))
+              .where((h) => h.availableRooms > 0)
+              .toList();
+
+          List<HostelModel> filtered = hostels;
+
+          // 1. Filter by unitType
+          if (unitType != null && unitType != 'all') {
+            filtered = filtered
+                .where(
+                  (h) => h.unitType.toLowerCase() == unitType.toLowerCase(),
+                )
+                .toList();
+          }
+
+          // 2. Filter by search query
+          if (query != null && query.isNotEmpty) {
+            final q = query.toLowerCase();
+            filtered = filtered
+                .where(
+                  (h) =>
+                      h.name.toLowerCase().contains(q) ||
+                      h.city.toLowerCase().contains(q) ||
+                      h.country.toLowerCase().contains(q),
+                )
+                .toList();
+          }
+
+          // 3. Helper for starting price (Logic from HotelCard)
+          double getStartingPrice(HostelModel h) {
+            if (h.unitType.toLowerCase() == 'flat') return h.rentPrice;
+            final prices = [
+              h.price1Seater,
+              h.price2Seater,
+              h.price3Seater,
+            ].where((p) => p != null && p > 0).map((p) => p!).toList();
+            return prices.isEmpty
+                ? h.rentPrice
+                : prices.reduce((a, b) => a < b ? a : b);
+          }
+
+          // 4. Sort
+          if (sortBy == 'price_asc') {
+            filtered.sort(
+              (a, b) => getStartingPrice(a).compareTo(getStartingPrice(b)),
+            );
+          } else if (sortBy == 'price_desc') {
+            filtered.sort(
+              (a, b) => getStartingPrice(b).compareTo(getStartingPrice(a)),
+            );
+          } else if (sortBy == 'rating_desc') {
+            filtered.sort((a, b) => b.rating.compareTo(a.rating));
+          } else {
+            // Default sort by rating
+            filtered.sort((a, b) => b.rating.compareTo(a.rating));
+          }
+
+          return filtered;
+        });
+  }
+
+  // Filter hostels by price range (Moved to client-side to prevent indexing errors)
   Stream<List<HostelModel>> filterHostelsByPrice({
     required double minPrice,
     required double maxPrice,
@@ -153,14 +250,20 @@ class FirestoreService {
     return _firestore
         .collection(_hostelsCollection)
         .where('isActive', isEqualTo: true)
-        .where('pricePerNight', isGreaterThanOrEqualTo: minPrice)
-        .where('pricePerNight', isLessThanOrEqualTo: maxPrice)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
+        .map((snapshot) {
+          final hostels = snapshot.docs
               .map((doc) => HostelModel.fromMap(doc.data()))
-              .toList(),
-        );
+              .where(
+                (h) =>
+                    h.availableRooms > 0 &&
+                    h.rentPrice >= minPrice &&
+                    h.rentPrice <= maxPrice,
+              )
+              .toList();
+          hostels.sort((a, b) => b.rating.compareTo(a.rating));
+          return hostels;
+        });
   }
 
   // Get hostels by owner
@@ -296,5 +399,35 @@ class FirestoreService {
               .map((doc) => HostelModel.fromMap(doc.data()))
               .toList(),
         );
+  }
+
+  // Update room availability (overall and seater-specific)
+  Future<void> updateSeaterAvailability({
+    required String hostelId,
+    required int overallCount,
+    required int seaterType, // 1, 2, or 3
+    required int seaterCount,
+  }) async {
+    try {
+      final Map<String, dynamic> updates = {'availableRooms': overallCount};
+
+      if (seaterType == 1) updates['rooms1Seater'] = seaterCount;
+      if (seaterType == 2) updates['rooms2Seater'] = seaterCount;
+      if (seaterType == 3) updates['rooms3Seater'] = seaterCount;
+
+      await _firestore
+          .collection(_hostelsCollection)
+          .doc(hostelId)
+          .update(updates);
+    } catch (e) {
+      throw 'Failed to update availability: $e';
+    }
+  }
+
+  // For compatibility with firestore_service_additions or other callers
+  Future<void> updateAvailableRooms(String hostelId, int rooms) async {
+    await _firestore.collection(_hostelsCollection).doc(hostelId).update({
+      'availableRooms': rooms,
+    });
   }
 }

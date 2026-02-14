@@ -17,7 +17,8 @@ class _SearchScreenState extends State<SearchScreen> {
   final _firestoreService = FirestoreService();
 
   String _searchQuery = '';
-  RangeValues _priceRange = const RangeValues(0, 500);
+  String _selectedUnitType = 'all'; // 'all', 'hostel', 'flat'
+  String _sortBy = 'rating_desc'; // 'rating_desc', 'price_asc', 'price_desc'
   bool _isFiltering = false;
 
   @override
@@ -30,6 +31,7 @@ class _SearchScreenState extends State<SearchScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.white,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -37,7 +39,12 @@ class _SearchScreenState extends State<SearchScreen> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,7 +53,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Filters',
+                        'Filters & Sorting',
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                       IconButton(
@@ -55,37 +62,63 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 24),
+
+                  // Unit Type Filter
+                  const Text(
+                    'Unit Type',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      _FilterChip(
+                        label: 'All',
+                        isSelected: _selectedUnitType == 'all',
+                        onSelected: (val) =>
+                            setModalState(() => _selectedUnitType = 'all'),
+                      ),
+                      _FilterChip(
+                        label: 'Hostel / PG',
+                        isSelected: _selectedUnitType == 'hostel',
+                        onSelected: (val) =>
+                            setModalState(() => _selectedUnitType = 'hostel'),
+                      ),
+                      _FilterChip(
+                        label: 'Flat',
+                        isSelected: _selectedUnitType == 'flat',
+                        onSelected: (val) =>
+                            setModalState(() => _selectedUnitType = 'flat'),
+                      ),
+                    ],
+                  ),
 
                   const SizedBox(height: 24),
 
-                  Text(
-                    'Price Range (per night)',
-                    style: Theme.of(context).textTheme.titleLarge,
+                  // Sort Options
+                  const Text(
+                    'Sort By',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-
-                  const SizedBox(height: 16),
-
-                  RangeSlider(
-                    values: _priceRange,
-                    min: 0,
-                    max: 500,
-                    divisions: 50,
-                    activeColor: AppTheme.primaryRed,
-                    labels: RangeLabels(
-                      '\$${_priceRange.start.round()}',
-                      '\$${_priceRange.end.round()}',
-                    ),
-                    onChanged: (values) {
-                      setModalState(() => _priceRange = values);
-                    },
+                  const SizedBox(height: 12),
+                  _SortOption(
+                    label: 'Top Rated',
+                    value: 'rating_desc',
+                    groupValue: _sortBy,
+                    onChanged: (val) => setModalState(() => _sortBy = val!),
                   ),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('\$${_priceRange.start.round()}'),
-                      Text('\$${_priceRange.end.round()}'),
-                    ],
+                  _SortOption(
+                    label: 'Price: Low to High',
+                    value: 'price_asc',
+                    groupValue: _sortBy,
+                    onChanged: (val) => setModalState(() => _sortBy = val!),
+                  ),
+                  _SortOption(
+                    label: 'Price: High to Low',
+                    value: 'price_desc',
+                    groupValue: _sortBy,
+                    onChanged: (val) => setModalState(() => _sortBy = val!),
                   ),
 
                   const SizedBox(height: 32),
@@ -95,11 +128,13 @@ class _SearchScreenState extends State<SearchScreen> {
                     child: ElevatedButton(
                       onPressed: () {
                         setState(() {
-                          _isFiltering = true;
+                          _isFiltering =
+                              _selectedUnitType != 'all' ||
+                              _sortBy != 'rating_desc';
                         });
                         Navigator.pop(context);
                       },
-                      child: const Text('Apply Filters'),
+                      child: const Text('Apply'),
                     ),
                   ),
 
@@ -110,14 +145,15 @@ class _SearchScreenState extends State<SearchScreen> {
                     child: TextButton(
                       onPressed: () {
                         setModalState(() {
-                          _priceRange = const RangeValues(0, 500);
+                          _selectedUnitType = 'all';
+                          _sortBy = 'rating_desc';
                         });
                         setState(() {
                           _isFiltering = false;
                         });
                         Navigator.pop(context);
                       },
-                      child: const Text('Clear Filters'),
+                      child: const Text('Reset All'),
                     ),
                   ),
                 ],
@@ -132,9 +168,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Search Hostels'),
-      ),
+      appBar: AppBar(title: const Text('Search Hostels')),
       body: Column(
         children: [
           // Search bar
@@ -150,12 +184,12 @@ class _SearchScreenState extends State<SearchScreen> {
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                            )
                           : null,
                     ),
                     onChanged: (value) {
@@ -166,7 +200,9 @@ class _SearchScreenState extends State<SearchScreen> {
                 const SizedBox(width: 8),
                 Container(
                   decoration: BoxDecoration(
-                    color: _isFiltering ? AppTheme.primaryRed : AppTheme.lightGrey,
+                    color: _isFiltering
+                        ? AppTheme.primaryRed
+                        : AppTheme.lightGrey,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: IconButton(
@@ -184,23 +220,18 @@ class _SearchScreenState extends State<SearchScreen> {
           // Results
           Expanded(
             child: StreamBuilder<List<HostelModel>>(
-              stream: _isFiltering
-                  ? _firestoreService.filterHostelsByPrice(
-                minPrice: _priceRange.start,
-                maxPrice: _priceRange.end,
-              )
-                  : _searchQuery.isEmpty
-                  ? _firestoreService.getHostels()
-                  : _firestoreService.searchHostels(_searchQuery),
+              stream: _firestoreService.getEnhancedHostels(
+                query: _searchQuery,
+                unitType: _selectedUnitType,
+                sortBy: _sortBy,
+              ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const LoadingIndicator(message: 'Searching...');
                 }
 
                 if (snapshot.hasError) {
-                  return Center(
-                    child: Text('Error: ${snapshot.error}'),
-                  );
+                  return Center(child: Text('Error: ${snapshot.error}'));
                 }
 
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -242,6 +273,59 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final ValueChanged<bool> onSelected;
+
+  const _FilterChip({
+    required this.label,
+    required this.isSelected,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: onSelected,
+      selectedColor: AppTheme.primaryRed.withValues(alpha: 0.2),
+      checkmarkColor: AppTheme.primaryRed,
+      labelStyle: TextStyle(
+        color: isSelected ? AppTheme.primaryRed : AppTheme.black,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      ),
+    );
+  }
+}
+
+class _SortOption extends StatelessWidget {
+  final String label;
+  final String value;
+  final String groupValue;
+  final ValueChanged<String?> onChanged;
+
+  const _SortOption({
+    required this.label,
+    required this.value,
+    required this.groupValue,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return RadioListTile<String>(
+      title: Text(label),
+      value: value,
+      groupValue: groupValue,
+      onChanged: onChanged,
+      activeColor: AppTheme.primaryRed,
+      contentPadding: EdgeInsets.zero,
     );
   }
 }

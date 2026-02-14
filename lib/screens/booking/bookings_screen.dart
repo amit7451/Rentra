@@ -262,7 +262,7 @@ class BookingsScreen extends StatelessWidget {
                               onPressed: () {
                                 _showCancelDialog(
                                   context,
-                                  booking.id,
+                                  booking,
                                   firestoreService,
                                 );
                               },
@@ -302,7 +302,7 @@ class BookingsScreen extends StatelessWidget {
 
   void _showCancelDialog(
     BuildContext context,
-    String bookingId,
+    BookingModel booking,
     FirestoreService firestoreService,
   ) {
     final reasonController = TextEditingController();
@@ -334,12 +334,47 @@ class BookingsScreen extends StatelessWidget {
           TextButton(
             onPressed: () async {
               try {
+                final wasConfirmed = booking.status == BookingStatus.confirmed;
+
+                // 1. Update status
                 await firestoreService.cancelBooking(
-                  bookingId,
+                  booking.id,
                   reasonController.text.trim().isEmpty
                       ? 'User cancelled'
                       : reasonController.text.trim(),
                 );
+
+                // 2. Restore room if it was confirmed
+                if (wasConfirmed) {
+                  final hostel = await firestoreService.getHostel(
+                    booking.hostelId,
+                  );
+                  if (hostel != null) {
+                    final newOverall = hostel.availableRooms + 1;
+                    final isHostel = hostel.unitType != 'flat';
+                    final seater = booking.selectedSeater ?? 1;
+
+                    if (isHostel) {
+                      int seaterCount = 0;
+                      if (seater == 1) seaterCount = hostel.rooms1Seater;
+                      if (seater == 2) seaterCount = hostel.rooms2Seater;
+                      if (seater == 3) seaterCount = hostel.rooms3Seater;
+
+                      await firestoreService.updateSeaterAvailability(
+                        hostelId: hostel.id,
+                        overallCount: newOverall,
+                        seaterType: seater,
+                        seaterCount: seaterCount + 1,
+                      );
+                    } else {
+                      await firestoreService.updateAvailableRooms(
+                        hostel.id,
+                        newOverall,
+                      );
+                    }
+                  }
+                }
+
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(

@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../app/theme.dart';
 import '../app/routes.dart';
-import '../screens/main/main_bottom_nav.dart';
 import '../models/user_model.dart';
 import '../services/update_service.dart';
 
@@ -25,12 +24,7 @@ class AppDrawer extends StatelessWidget {
             InkWell(
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const MainBottomNav(initialIndex: 3),
-                  ),
-                );
+                Navigator.pushNamed(context, AppRoutes.profile);
               },
               child: StreamBuilder<DocumentSnapshot>(
                 stream: FirebaseFirestore.instance
@@ -104,13 +98,67 @@ class AppDrawer extends StatelessWidget {
 
             const Divider(),
 
-            _drawerItem(Icons.settings, 'Settings', () {}),
-            _drawerItem(Icons.help_outline, 'Help & Support', () {}),
+            _drawerItem(Icons.payment_rounded, 'Payments & Transactions', () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppRoutes.payments);
+            }),
+
+            _drawerItem(Icons.add_business_rounded, 'Add your property', () async {
+              final userDoc = await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(user.uid)
+                  .get();
+              final isAdmin = userDoc.data()?['isAdmin'] == true;
+
+              if (!context.mounted) return;
+
+              if (isAdmin) {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, AppRoutes.addHostel);
+              } else {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: const Text('Request Access'),
+                    content: const Text(
+                      'To list your property and become an admin, you need special permissions. Would you like to send a request?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Request sent. Wait for approval to list your property.',
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        child: const Text('Request'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            }),
+
+            _drawerItem(Icons.help_outline, 'Help & Support', () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppRoutes.helpSupport);
+            }),
+
             _drawerItem(Icons.system_update, 'Update App', () async {
               final updateInfo = await UpdateService.checkForUpdate();
-              if (!context.mounted) {
-                return;
-              }
+              if (!context.mounted) return;
 
               if (updateInfo?['needs_update'] == true) {
                 UpdateService.showUpdateDialog(
@@ -119,30 +167,71 @@ class AppDrawer extends StatelessWidget {
                   updateInfo['force_update'],
                 );
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('App is already up to date')),
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    title: const Text('Up to Date'),
+                    content: const Text('Your app is already up to date!'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  ),
                 );
               }
             }),
-            _drawerItem(Icons.language, 'Change Language', () {}),
-            _drawerItem(Icons.privacy_tip_outlined, 'Privacy Policy', () {}),
-            _drawerItem(Icons.card_giftcard, 'Invite & Earn', () {}),
+
+            _drawerItem(Icons.privacy_tip_outlined, 'Privacy Policy', () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppRoutes.privacyPolicy);
+            }),
+
+            _drawerItem(Icons.card_giftcard_rounded, 'Invite & Earn', () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, AppRoutes.inviteEarn);
+            }),
 
             const Spacer(),
             const Divider(),
 
             _drawerItem(Icons.logout, 'Log out', () async {
-              await FirebaseAuth.instance.signOut();
-              if (!context.mounted) {
-                return;
-              }
-
-              Navigator.pop(context);
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                AppRoutes.login,
-                (route) => false,
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  title: const Text('Logout'),
+                  content: const Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                      child: const Text('Logout'),
+                    ),
+                  ],
+                ),
               );
+
+              if (confirm == true) {
+                await FirebaseAuth.instance.signOut();
+                if (!context.mounted) return;
+
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.login,
+                  (route) => false,
+                );
+              }
             }, isLogout: true),
 
             const SizedBox(height: 12),

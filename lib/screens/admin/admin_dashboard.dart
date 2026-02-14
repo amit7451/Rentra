@@ -8,6 +8,7 @@ import 'add_hostel_screen.dart';
 import 'my_hostels_screen.dart';
 import 'admin_bookings_screen.dart';
 import 'admin_stats_screen.dart';
+import '../../app/routes.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
@@ -59,6 +60,13 @@ class AdminDashboard extends StatelessWidget {
               );
               if (confirm == true) {
                 await FirebaseAuth.instance.signOut();
+                if (context.mounted) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    AppRoutes.login,
+                    (route) => false,
+                  );
+                }
               }
             },
           ),
@@ -73,34 +81,7 @@ class AdminDashboard extends StatelessWidget {
             _WelcomeHeader(user: user),
             const SizedBox(height: 20),
 
-            // ── Summary period selector ─────────────────────────
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'All Time',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-                  ),
-                  Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // ── Metric Cards (2×2 grid) ─────────────────────────
+            // ── Top 4 Containers (Revenue, Pending, Add, My Hostels) ──
             StreamBuilder<List<HostelModel>>(
               stream: firestoreService.getHostelsByOwner(uid),
               builder: (context, hostelSnap) {
@@ -118,13 +99,10 @@ class AdminDashboard extends StatelessWidget {
                       0,
                       (sum, b) => sum + b.totalPrice,
                     );
-                    final guests = confirmed.fold<int>(
-                      0,
-                      (sum, b) => sum + b.numberOfGuests,
-                    );
 
                     return Column(
                       children: [
+                        // Row 1: Total Revenue & Pending Bookings
                         Row(
                           children: [
                             Expanded(
@@ -142,34 +120,18 @@ class AdminDashboard extends StatelessWidget {
                                 ),
                                 trendLabel: '+12%',
                                 trendUp: true,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const AdminStatsScreen(),
+                                  ),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 14),
                             Expanded(
                               child: _MetricCard(
-                                label: 'New Bookings',
-                                value: '${bookings.length}',
-                                icon: Icons.book_online_outlined,
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFF1E88E5),
-                                    Color(0xFF42A5F5),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                trendLabel: '',
-                                trendUp: null,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _MetricCard(
-                                label: 'Pending',
+                                label: 'Pending Bookings',
                                 value: '${pending.length}',
                                 icon: Icons.hourglass_bottom_outlined,
                                 gradient: const LinearGradient(
@@ -182,24 +144,67 @@ class AdminDashboard extends StatelessWidget {
                                 ),
                                 trendLabel: '',
                                 trendUp: null,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const AdminBookingsScreen(
+                                      initialIndex: 0,
+                                    ),
+                                  ),
+                                ), // Pending tab
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        // Row 2: Add Hostel & My Hostels
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _MetricCard(
+                                label: 'Add Hostel',
+                                value: 'New',
+                                icon: Icons.add_home_work_rounded,
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFFD32F2F),
+                                    Color(0xFFEF5350),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                trendLabel: '',
+                                trendUp: null,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const AddHostelScreen(),
+                                  ),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 14),
                             Expanded(
                               child: _MetricCard(
-                                label: 'Total Guests',
-                                value: '$guests',
-                                icon: Icons.people_alt_outlined,
+                                label: 'My Hostels',
+                                value: '${hostelSnap.data?.length ?? 0}',
+                                icon: Icons.apartment_rounded,
                                 gradient: const LinearGradient(
                                   colors: [
-                                    Color(0xFF8E24AA),
-                                    Color(0xFFAB47BC),
+                                    Color(0xFF1976D2),
+                                    Color(0xFF42A5F5),
                                   ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
-                                trendLabel: '+8%',
-                                trendUp: true,
+                                trendLabel: '',
+                                trendUp: null,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const MyHostelsScreen(),
+                                  ),
+                                ),
                               ),
                             ),
                           ],
@@ -224,7 +229,7 @@ class AdminDashboard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // ── 6 Feature Cards ─────────────────────────────────
+            // ── Bottom Grid (5 Items) ───────────────────────────
             _FeatureGrid(uid: uid, firestoreService: firestoreService),
 
             const SizedBox(height: 24),
@@ -313,6 +318,7 @@ class _MetricCard extends StatelessWidget {
   final LinearGradient gradient;
   final String trendLabel;
   final bool? trendUp;
+  final VoidCallback? onTap;
 
   const _MetricCard({
     required this.label,
@@ -321,79 +327,87 @@ class _MetricCard extends StatelessWidget {
     required this.gradient,
     required this.trendLabel,
     required this.trendUp,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(9),
-                decoration: BoxDecoration(
-                  gradient: gradient,
-                  borderRadius: BorderRadius.circular(10),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(9),
+                  decoration: BoxDecoration(
+                    gradient: gradient,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 18),
                 ),
-                child: Icon(icon, color: Colors.white, size: 18),
-              ),
-              if (trendLabel.isNotEmpty && trendUp != null)
-                Row(
-                  children: [
-                    Icon(
-                      trendUp!
-                          ? Icons.arrow_upward_rounded
-                          : Icons.arrow_downward_rounded,
-                      size: 12,
-                      color: trendUp! ? Colors.green : Colors.red,
-                    ),
-                    Text(
-                      trendLabel,
-                      style: TextStyle(
-                        fontSize: 11,
+                if (trendLabel.isNotEmpty && trendUp != null)
+                  Row(
+                    children: [
+                      Icon(
+                        trendUp!
+                            ? Icons.arrow_upward_rounded
+                            : Icons.arrow_downward_rounded,
+                        size: 12,
                         color: trendUp! ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.bold,
                       ),
-                    ),
-                  ],
-                ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              color: Colors.black87,
-              letterSpacing: -0.5,
+                      Text(
+                        trendLabel,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: trendUp! ? Colors.green : Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[500],
-              fontWeight: FontWeight.w500,
+            const SizedBox(height: 14),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 20, // Reduced font size slightly to prevent overflow
+                fontWeight: FontWeight.w800,
+                color: Colors.black87,
+                letterSpacing: -0.5,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[500],
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -411,31 +425,9 @@ class _FeatureGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final features = [
       _Feature(
-        icon: Icons.add_home_work_rounded,
-        label: 'Add Hostel',
-        subtitle: 'List a new property',
-        bgColor: const Color(0xFFFFEBEE),
-        iconColor: AppTheme.primaryRed,
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const AddHostelScreen()),
-        ),
-      ),
-      _Feature(
-        icon: Icons.apartment_rounded,
-        label: 'My Hostels',
-        subtitle: 'View & edit listings',
-        bgColor: const Color(0xFFE3F2FD),
-        iconColor: const Color(0xFF1565C0),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const MyHostelsScreen()),
-        ),
-      ),
-      _Feature(
         icon: Icons.receipt_long_rounded,
         label: 'Bookings',
-        subtitle: 'Confirm reservations',
+        subtitle: 'All reservations',
         bgColor: const Color(0xFFE8F5E9),
         iconColor: const Color(0xFF2E7D32),
         onTap: () => Navigator.push(
@@ -446,7 +438,7 @@ class _FeatureGrid extends StatelessWidget {
       _Feature(
         icon: Icons.bar_chart_rounded,
         label: 'Analytics',
-        subtitle: 'Revenue & stats',
+        subtitle: 'Detailed stats',
         bgColor: const Color(0xFFFFF3E0),
         iconColor: const Color(0xFFE65100),
         onTap: () => Navigator.push(
@@ -455,7 +447,45 @@ class _FeatureGrid extends StatelessWidget {
         ),
       ),
       _Feature(
-        icon: Icons.star_rounded,
+        icon: Icons.check_circle_outline_rounded,
+        label: 'Confirmed',
+        subtitle: 'Active bookings',
+        bgColor: const Color(0xFFE3F2FD),
+        iconColor: const Color(0xFF1565C0),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                const AdminBookingsScreen(initialIndex: 1), // Confirmed
+          ),
+        ),
+      ),
+      _Feature(
+        icon: Icons.support_agent_rounded,
+        label: 'Help & Support',
+        subtitle: 'Contact support',
+        bgColor: const Color(0xFFE0F2F1),
+        iconColor: const Color(0xFF00695C),
+        onTap: () {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Help & Support'),
+              content: const Text(
+                'For assistance, please contact the support team at:\n\nsupport@rentra.com\n\nOr call us at +91 12345 67890.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Close'),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+      _Feature(
+        icon: Icons.star_rate_rounded,
         label: 'Reviews',
         subtitle: 'Guest feedback',
         bgColor: const Color(0xFFF3E5F5),
@@ -463,16 +493,6 @@ class _FeatureGrid extends StatelessWidget {
         onTap: () => ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Reviews coming soon!'))),
-      ),
-      _Feature(
-        icon: Icons.tune_rounded,
-        label: 'Settings',
-        subtitle: 'Preferences & account',
-        bgColor: const Color(0xFFE0F2F1),
-        iconColor: const Color(0xFF00695C),
-        onTap: () => ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Settings coming soon!'))),
       ),
     ];
 

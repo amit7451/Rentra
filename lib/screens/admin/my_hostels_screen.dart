@@ -214,7 +214,7 @@ class _HostelCard extends StatelessWidget {
                 Row(
                   children: [
                     _infoChip(
-                      '₹${hostel.pricePerNight.toStringAsFixed(0)}/${hostel.rentPeriod == 'monthly' ? 'mo' : 'yr'}',
+                      '₹${hostel.rentPrice.toStringAsFixed(0)}/${hostel.rentPeriod == 'monthly' ? 'mo' : 'yr'}',
                       Icons.currency_rupee,
                       AppTheme.primaryRed.withValues(alpha: 0.1),
                       AppTheme.primaryRed,

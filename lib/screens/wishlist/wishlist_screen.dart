@@ -326,7 +326,7 @@ class _WishlistCardState extends State<_WishlistCard> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        '₹${h.pricePerNight.toStringAsFixed(0)}/${h.rentPeriod == 'monthly' ? 'mo' : 'yr'}',
+                        '₹${h.rentPrice.toStringAsFixed(0)}/${h.rentPeriod == 'monthly' ? 'mo' : 'yr'}',
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.white,

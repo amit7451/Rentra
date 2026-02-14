@@ -7,7 +7,17 @@ class HostelModel {
   final String address;
   final String city;
   final String country;
-  final double pricePerNight;
+  final double rentPrice;
+  // For hostels: separate pricing per seater (1,2,3)
+  final double? price1Seater;
+  final double? price2Seater;
+  final double? price3Seater;
+  // Room counts for hostels
+  final int rooms1Seater;
+  final int rooms2Seater;
+  final int rooms3Seater;
+  // For flats: how many persons the flat can accommodate
+  final int? flatCapacity;
   final String unitType; // 'hostel' or 'flat'
   final String rentPeriod; // 'yearly' or 'monthly'
   final double rating;
@@ -26,7 +36,14 @@ class HostelModel {
     required this.address,
     required this.city,
     required this.country,
-    required this.pricePerNight,
+    required this.rentPrice,
+    this.price1Seater,
+    this.price2Seater,
+    this.price3Seater,
+    this.rooms1Seater = 0,
+    this.rooms2Seater = 0,
+    this.rooms3Seater = 0,
+    this.flatCapacity,
     this.unitType = 'hostel',
     this.rentPeriod = 'yearly',
     this.rating = 0.0,
@@ -47,7 +64,14 @@ class HostelModel {
       'address': address,
       'city': city,
       'country': country,
-      'pricePerNight': pricePerNight,
+      'pricePerNight': rentPrice,
+      'price1Seater': price1Seater,
+      'price2Seater': price2Seater,
+      'price3Seater': price3Seater,
+      'rooms1Seater': rooms1Seater,
+      'rooms2Seater': rooms2Seater,
+      'rooms3Seater': rooms3Seater,
+      'flatCapacity': flatCapacity,
       'unitType': unitType,
       'rentPeriod': rentPeriod,
       'rating': rating,
@@ -68,7 +92,14 @@ class HostelModel {
       address: '',
       city: '',
       country: '',
-      pricePerNight: 0.0,
+      rentPrice: 0.0,
+      price1Seater: null,
+      price2Seater: null,
+      price3Seater: null,
+      rooms1Seater: 0,
+      rooms2Seater: 0,
+      rooms3Seater: 0,
+      flatCapacity: null,
       unitType: 'hostel',
       rentPeriod: 'yearly',
       images: [],
@@ -98,7 +129,16 @@ class HostelModel {
       address: map['address'] ?? '',
       city: map['city'] ?? '',
       country: map['country'] ?? '',
-      pricePerNight: (map['pricePerNight'] ?? 0.0).toDouble(),
+      rentPrice: (map['pricePerNight'] ?? 0.0).toDouble(),
+      price1Seater: map['price1Seater'] == null
+          ? null
+          : (map['price1Seater'] as num).toDouble(),
+      price2Seater: map['price2Seater'] == null
+          ? null
+          : (map['price2Seater'] as num).toDouble(),
+      price3Seater: map['price3Seater'] == null
+          ? null
+          : (map['price3Seater'] as num).toDouble(),
       unitType: (map['unitType'] ?? 'hostel') as String,
       rentPeriod:
           (map['rentPeriod'] ??
@@ -111,6 +151,10 @@ class HostelModel {
       images: List<String>.from(map['images'] ?? []),
       amenities: List<String>.from(map['amenities'] ?? []),
       availableRooms: map['availableRooms'] ?? 0,
+      rooms1Seater: map['rooms1Seater'] ?? 0,
+      rooms2Seater: map['rooms2Seater'] ?? 0,
+      rooms3Seater: map['rooms3Seater'] ?? 0,
+      flatCapacity: map['flatCapacity'],
       ownerId: map['ownerId'] ?? '',
       createdAt: parseCreatedAt(map['createdAt']), // Use helper function
       isActive: map['isActive'] ?? true,
@@ -124,7 +168,10 @@ class HostelModel {
     String? address,
     String? city,
     String? country,
-    double? pricePerNight,
+    double? rentPrice,
+    double? price1Seater,
+    double? price2Seater,
+    double? price3Seater,
     String? unitType,
     String? rentPeriod,
     double? rating,
@@ -132,6 +179,10 @@ class HostelModel {
     List<String>? images,
     List<String>? amenities,
     int? availableRooms,
+    int? rooms1Seater,
+    int? rooms2Seater,
+    int? rooms3Seater,
+    int? flatCapacity,
     String? ownerId,
     DateTime? createdAt,
     bool? isActive,
@@ -143,7 +194,10 @@ class HostelModel {
       address: address ?? this.address,
       city: city ?? this.city,
       country: country ?? this.country,
-      pricePerNight: pricePerNight ?? this.pricePerNight,
+      rentPrice: rentPrice ?? this.rentPrice,
+      price1Seater: price1Seater ?? this.price1Seater,
+      price2Seater: price2Seater ?? this.price2Seater,
+      price3Seater: price3Seater ?? this.price3Seater,
       unitType: unitType ?? this.unitType,
       rentPeriod: rentPeriod ?? this.rentPeriod,
       rating: rating ?? this.rating,
@@ -151,6 +205,10 @@ class HostelModel {
       images: images ?? this.images,
       amenities: amenities ?? this.amenities,
       availableRooms: availableRooms ?? this.availableRooms,
+      rooms1Seater: rooms1Seater ?? this.rooms1Seater,
+      rooms2Seater: rooms2Seater ?? this.rooms2Seater,
+      rooms3Seater: rooms3Seater ?? this.rooms3Seater,
+      flatCapacity: flatCapacity ?? this.flatCapacity,
       ownerId: ownerId ?? this.ownerId,
       createdAt: createdAt ?? this.createdAt,
       isActive: isActive ?? this.isActive,

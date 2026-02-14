@@ -6,10 +6,10 @@ import '../../models/booking_model.dart';
 import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
 import '../../widgets/loading_indicator.dart';
-import '../../services/firestore_service_additions.dart';
 
 class AdminBookingsScreen extends StatefulWidget {
-  const AdminBookingsScreen({super.key});
+  final int initialIndex;
+  const AdminBookingsScreen({super.key, this.initialIndex = 0});
 
   @override
   State<AdminBookingsScreen> createState() => _AdminBookingsScreenState();
@@ -24,7 +24,11 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
   @override
   void initState() {
     super.initState();
-    _tabs = TabController(length: 3, vsync: this);
+    _tabs = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: widget.initialIndex,
+    );
   }
 
   @override
@@ -304,7 +308,21 @@ class _BookingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final checkIn = booking.checkInDate;
     final checkOut = booking.checkOutDate;
-    final nights = checkOut.difference(checkIn).inDays;
+    final isFlat = hostel.unitType == 'flat';
+
+    String durationText;
+    if (isFlat) {
+      // Calculate months for flats
+      final totalDays = checkOut.difference(checkIn).inDays;
+      final months = (totalDays / 30).ceil();
+      durationText = '$months month${months != 1 ? 's' : ''}';
+    } else {
+      // Calculate years for hostels
+      final totalDays = checkOut.difference(checkIn).inDays;
+      final years = (totalDays / 365).ceil();
+      final displayYears = years > 0 ? years : 1; // Default to 1 if < 1yr
+      durationText = '$displayYears year${displayYears != 1 ? 's' : ''}';
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -374,22 +392,22 @@ class _BookingCard extends StatelessWidget {
                 const Divider(height: 20),
 
                 // ── Booking details grid ───────────────────────
+                _row(
+                  isFlat
+                      ? Icons.people_outline
+                      : Icons.airline_seat_individual_suite_outlined,
+                  isFlat ? 'Capacity' : 'Seater',
+                  isFlat
+                      ? '${hostel.flatCapacity ?? 0} Person'
+                      : '${booking.selectedSeater ?? 1} Seater',
+                ),
                 _row(Icons.calendar_today_outlined, 'Check-in', _fmt(checkIn)),
                 _row(
                   Icons.calendar_today_outlined,
                   'Check-out',
                   _fmt(checkOut),
                 ),
-                _row(
-                  Icons.nights_stay_outlined,
-                  'Duration',
-                  '$nights month${nights != 1 ? 's' : ''}',
-                ),
-                _row(
-                  Icons.people_outline,
-                  'Guests',
-                  '${booking.numberOfGuests}',
-                ),
+                _row(Icons.calendar_month_outlined, 'Duration', durationText),
                 _row(
                   Icons.currency_rupee,
                   'Total',
@@ -544,7 +562,7 @@ class _BookingCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Available rooms: ${hostel.availableRooms} → ${hostel.availableRooms - booking.numberOfGuests}',
+                        'Available units: ${hostel.availableRooms} → ${hostel.availableRooms - 1}',
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.green,
@@ -603,16 +621,65 @@ class _BookingCard extends StatelessWidget {
       await firestoreService.updateBookingStatus(booking.id, newStatus);
 
       // 2. Room management
-      if (hostel.id.isNotEmpty) {
+      if (booking.hostelId.isNotEmpty) {
+        // Fetch LATEST hostel data to avoid race conditions/stale counts
+        final latestHostel = await firestoreService.getHostel(booking.hostelId);
+        if (latestHostel == null) return;
+
+        final isHostel = latestHostel.unitType != 'flat';
+        final seater = booking.selectedSeater ?? 1;
+
         if (isConfirm) {
-          // Reduce available rooms when confirmed
-          final newCount = (hostel.availableRooms - booking.numberOfGuests)
-              .clamp(0, 9999);
-          await firestoreService.updateAvailableRooms(hostel.id, newCount);
+          // Reduce available rooms when confirmed (always 1 unit)
+          final newOverall = (latestHostel.availableRooms - 1).clamp(0, 9999);
+
+          if (isHostel) {
+            // Find current count of that specific seater
+            int seaterCount = 0;
+            if (seater == 1) seaterCount = latestHostel.rooms1Seater;
+            if (seater == 2) seaterCount = latestHostel.rooms2Seater;
+            if (seater == 3) seaterCount = latestHostel.rooms3Seater;
+
+            final newSeaterCount = (seaterCount - 1).clamp(0, 9999);
+
+            await firestoreService.updateSeaterAvailability(
+              hostelId: latestHostel.id,
+              overallCount: newOverall,
+              seaterType: seater,
+              seaterCount: newSeaterCount,
+            );
+          } else {
+            // Flat behavior
+            await firestoreService.updateAvailableRooms(
+              latestHostel.id,
+              newOverall,
+            );
+          }
         } else if (wasConfirmed) {
-          // Restore rooms when a confirmed booking is cancelled
-          final restored = hostel.availableRooms + booking.numberOfGuests;
-          await firestoreService.updateAvailableRooms(hostel.id, restored);
+          // Restore rooms when a confirmed booking is cancelled (always 1 unit)
+          final newOverall = latestHostel.availableRooms + 1;
+
+          if (isHostel) {
+            int seaterCount = 0;
+            if (seater == 1) seaterCount = latestHostel.rooms1Seater;
+            if (seater == 2) seaterCount = latestHostel.rooms2Seater;
+            if (seater == 3) seaterCount = latestHostel.rooms3Seater;
+
+            final newSeaterCount = seaterCount + 1;
+
+            await firestoreService.updateSeaterAvailability(
+              hostelId: latestHostel.id,
+              overallCount: newOverall,
+              seaterType: seater,
+              seaterCount: newSeaterCount,
+            );
+          } else {
+            // Flat behavior
+            await firestoreService.updateAvailableRooms(
+              latestHostel.id,
+              newOverall,
+            );
+          }
         }
       }
 

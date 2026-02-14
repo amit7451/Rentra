@@ -59,6 +59,27 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final user = await _authService.signInWithGoogle();
+      if (user != null && mounted) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.main);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google Sign-In failed: $e'),
+            backgroundColor: AppTheme.darkRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   void _showForgotPasswordDialog(BuildContext context) {
     final TextEditingController emailController = TextEditingController();
     final AuthService authService = AuthService();
@@ -242,6 +263,40 @@ class _LoginScreenState extends State<LoginScreen> {
                   text: 'Sign In',
                   onPressed: _handleLogin,
                   isLoading: _isLoading,
+                ),
+
+                const SizedBox(height: 16),
+
+                // Add this inside your Column, below the PrimaryButton
+                Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text('OR', style: TextStyle(color: AppTheme.grey)),
+                    ),
+                    const Expanded(child: Divider()),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // Google Sign-In Button
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: _isLoading
+                      ? null
+                      : _handleGoogleSignIn, // We will create this method
+                  icon: Image.asset(
+                    'assets/images/google_logo.png',
+                    height: 24,
+                  ), // Ensure you have this asset
+                  label: const Text('Continue with Google'),
                 ),
 
                 const SizedBox(height: 24),

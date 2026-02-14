@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firestore_service.dart';
 import '../models/user_model.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirestoreService _firestoreService = FirestoreService();
 
   // Get current user
@@ -19,7 +21,7 @@ class AuthService {
     required String name,
     required String phoneNumber,
     bool isAdmin = false,
-    String? profileImage = ' '
+    String? profileImage = ' ',
   }) async {
     try {
       final UserCredential result = await _auth.createUserWithEmailAndPassword(
@@ -51,6 +53,28 @@ class AuthService {
     } catch (e) {
       throw 'An unexpected error occurred. Please try again.';
     }
+  }
+
+  Future<User?> signInWithGoogle() async {
+    // 1. Trigger the authentication flow
+    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+    if (googleUser == null) return null; // User canceled the sign-in
+
+    // 2. Obtain the auth details from the request
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
+
+    // 3. Create a new credential
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    // 4. Once signed in, return the UserCredential
+    final UserCredential userCredential = await _auth.signInWithCredential(
+      credential,
+    );
+    return userCredential.user;
   }
 
   // Sign in with email and password

@@ -11,6 +11,11 @@ import '../screens/profile/profile_screen.dart';
 import '../screens/notifications/notifications.dart';
 import '../screens/wishlist/wishlist_screen.dart';
 import '../screens/admin/admin_dashboard.dart';
+import '../screens/admin/add_hostel_screen.dart';
+import '../screens/drawer/payments_screen.dart';
+import '../screens/drawer/help_support_screen.dart';
+import '../screens/drawer/privacy_policy_screen.dart';
+import '../screens/drawer/invite_earn_screen.dart';
 
 class AppRoutes {
   // static const String splash = '/';
@@ -26,6 +31,11 @@ class AppRoutes {
   static const String notifications = '/notifications';
   static const String wishlist = '/wishlist';
   static const String adminDashboard = '/admin';
+  static const String addHostel = '/add-hostel';
+  static const String payments = '/payments';
+  static const String helpSupport = '/help-support';
+  static const String privacyPolicy = '/privacy-policy';
+  static const String inviteEarn = '/invite-earn';
 
   static Map<String, WidgetBuilder> routes = {
     // splash: (context) => const SplashScreen(),
@@ -39,6 +49,11 @@ class AppRoutes {
     wishlist: (context) => const WishlistScreen(),
     notifications: (context) => const NotificationsScreen(),
     adminDashboard: (context) => const AdminDashboard(),
+    addHostel: (context) => const AddHostelScreen(),
+    payments: (context) => const PaymentsScreen(),
+    helpSupport: (context) => const HelpSupportScreen(),
+    privacyPolicy: (context) => const PrivacyPolicyScreen(),
+    inviteEarn: (context) => const InviteEarnScreen(),
   };
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {

@@ -104,32 +104,24 @@ class HotelCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryRed,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              color: AppTheme.white,
-                              size: 16,
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.star,
+                            color: Color(0xFFFFB400), // yellow star
+                            size: 20,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            hostel.rating.toStringAsFixed(1),
+                            style: const TextStyle(
+                              color: Colors.black, // black rating text
+                              fontWeight: FontWeight.bold,
+                              fontSize:
+                                  14, // same default size (keep/remove if already defined)
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              hostel.rating.toStringAsFixed(1),
-                              style: const TextStyle(
-                                color: AppTheme.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -165,19 +157,62 @@ class HotelCard extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            '₹${hostel.pricePerNight.toStringAsFixed(0)}',
-                            style: Theme.of(context).textTheme.headlineMedium
-                                ?.copyWith(
-                                  color: AppTheme.primaryRed,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                          Text(
-                            hostel.rentPeriod == 'monthly'
-                                ? 'Monthly'
-                                : 'Yearly',
-                            style: Theme.of(context).textTheme.bodySmall,
+                          Builder(
+                            builder: (context) {
+                              double startingPrice = hostel.rentPrice;
+                              if (hostel.unitType != 'flat') {
+                                final prices =
+                                    [
+                                          hostel.price1Seater,
+                                          hostel.price2Seater,
+                                          hostel.price3Seater,
+                                        ]
+                                        .where((p) => p != null && p > 0)
+                                        .map((p) => p!)
+                                        .toList();
+                                if (prices.isNotEmpty) {
+                                  startingPrice = prices.reduce(
+                                    (a, b) => a < b ? a : b,
+                                  );
+                                }
+                              }
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (hostel.unitType != 'flat')
+                                    Text(
+                                      'Starting from',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
+                                            color: AppTheme.grey,
+                                            fontSize: 10,
+                                          ),
+                                    ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '₹${startingPrice.toStringAsFixed(0)}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineMedium
+                                        ?.copyWith(
+                                          color: AppTheme.primaryRed,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                  Text(
+                                    hostel.rentPeriod == 'monthly'
+                                        ? 'Monthly'
+                                        : 'Yearly',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -188,6 +223,9 @@ class HotelCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: (() {
+                            if (hostel.unitType.toLowerCase() == 'flat') {
+                              return Colors.green.withValues(alpha: 0.08);
+                            }
                             final rooms = hostel.availableRooms;
                             if (rooms <= 0) {
                               return AppTheme.grey.withValues(alpha: 0.1);
@@ -203,21 +241,20 @@ class HotelCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          hostel.availableRooms > 0
-                              ? '${hostel.availableRooms} rooms available'
-                              : 'No rooms',
+                          hostel.unitType.toLowerCase() == 'flat'
+                              ? 'Capacity: ${hostel.flatCapacity ?? 0} person'
+                              : (hostel.availableRooms > 0
+                                    ? '${hostel.availableRooms} rooms available'
+                                    : 'No rooms available'),
                           style: TextStyle(
                             color: (() {
+                              if (hostel.unitType.toLowerCase() == 'flat') {
+                                return Colors.green;
+                              }
                               final rooms = hostel.availableRooms;
-                              if (rooms <= 0) {
-                                return AppTheme.grey;
-                              }
-                              if (rooms <= 3) {
-                                return AppTheme.primaryRed;
-                              }
-                              if (rooms <= 5) {
-                                return Colors.orange;
-                              }
+                              if (rooms <= 0) return AppTheme.grey;
+                              if (rooms <= 3) return AppTheme.primaryRed;
+                              if (rooms <= 5) return Colors.orange;
                               return Colors.green;
                             })(),
                             fontSize: 12,

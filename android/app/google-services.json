@@ -12,7 +12,20 @@
           "package_name": "com.rentra.app.rentra"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "360291447254-6tn7unrpo1l3eu3l5lmlfqojrkad3lba.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rentra.app.rentra",
+            "certificate_hash": "4cd9dc375bbf4275fd8a46e26dbbd52463f755ae"
+          }
+        },
+        {
+          "client_id": "360291447254-88beq1qn1vf7a9me7e3718hpghqimfmq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDCM97B4mRKh2JXRtyiXhgnBAWs7pRAE24"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "360291447254-88beq1qn1vf7a9me7e3718hpghqimfmq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

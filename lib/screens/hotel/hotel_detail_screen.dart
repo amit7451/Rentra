@@ -16,8 +16,8 @@ class HotelDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final firestoreService = FirestoreService();
 
-    return FutureBuilder<HostelModel?>(
-      future: firestoreService.getHostel(hostelId),
+    return StreamBuilder<HostelModel?>(
+      stream: firestoreService.watchHostel(hostelId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -133,33 +133,23 @@ class HotelDetailScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 16),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryRed,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.star,
-                                  color: AppTheme.white,
-                                  size: 20,
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                color: Color(0xFFFFB400),
+                                size: 24,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                hostel.rating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  hostel.rating.toStringAsFixed(1),
-                                  style: const TextStyle(
-                                    color: AppTheme.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -195,83 +185,136 @@ class HotelDetailScreen extends StatelessWidget {
                       const SizedBox(height: 24),
 
                       // Price
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryRed.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '₹${hostel.pricePerNight.toStringAsFixed(0)}',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .displaySmall
-                                      ?.copyWith(
-                                        color: AppTheme.primaryRed,
-                                        fontWeight: FontWeight.bold,
+                      if (hostel.unitType == 'flat')
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryRed.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Rent Price',
+                                    style: TextStyle(
+                                      color: AppTheme.grey,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Text(
+                                    '₹${hostel.rentPrice.toStringAsFixed(0)}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .displaySmall
+                                        ?.copyWith(
+                                          color: AppTheme.primaryRed,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                  Text(
+                                    hostel.rentPeriod == 'monthly'
+                                        ? '/ Month'
+                                        : '/ Year',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                              _buildAvailabilityBadge(
+                                hostel.availableRooms,
+                                isFlat: true,
+                                capacity: hostel.flatCapacity,
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppTheme.lightGrey),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        'Seater',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey[700],
+                                        ),
                                       ),
-                                ),
-                                Text(
-                                  hostel.rentPeriod == 'monthly'
-                                      ? 'Monthly'
-                                      : 'Yearly',
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: (() {
-                                  final rooms = hostel.availableRooms;
-                                  if (rooms <= 0) {
-                                    return AppTheme.grey.withValues(alpha: 0.1);
-                                  }
-                                  if (rooms <= 3) {
-                                    return Colors.red.withValues(alpha: 0.08);
-                                  }
-                                  if (rooms <= 5) {
-                                    return Colors.amber.withValues(alpha: 0.08);
-                                  }
-                                  return Colors.green.withValues(alpha: 0.08);
-                                })(),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                hostel.availableRooms > 0
-                                    ? '${hostel.availableRooms} rooms available'
-                                    : 'No rooms',
-                                style: TextStyle(
-                                  color: (() {
-                                    final rooms = hostel.availableRooms;
-                                    if (rooms <= 0) {
-                                      return AppTheme.grey;
-                                    }
-                                    if (rooms <= 3) {
-                                      return AppTheme.primaryRed;
-                                    }
-                                    if (rooms <= 5) {
-                                      return Colors.orange;
-                                    }
-                                    return Colors.green;
-                                  })(),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        'Price',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text(
+                                        'Availability',
+                                        textAlign: TextAlign.right,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ),
-                          ],
+                              const Divider(),
+                              _buildSeaterRow(
+                                context,
+                                '1 Seater',
+                                hostel.price1Seater,
+                                hostel.rooms1Seater,
+                                hostel.rentPeriod,
+                              ),
+                              _buildSeaterRow(
+                                context,
+                                '2 Seater',
+                                hostel.price2Seater,
+                                hostel.rooms2Seater,
+                                hostel.rentPeriod,
+                              ),
+                              _buildSeaterRow(
+                                context,
+                                '3 Seater',
+                                hostel.price3Seater,
+                                hostel.rooms3Seater,
+                                hostel.rentPeriod,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
 
                       const SizedBox(height: 24),
 
@@ -341,7 +384,7 @@ class HotelDetailScreen extends StatelessWidget {
                           arguments: {
                             'hostelId': hostel.id,
                             'hostelName': hostel.name,
-                            'pricePerNight': hostel.pricePerNight,
+                            'pricePerNight': hostel.rentPrice,
                             'rentPeriod': hostel.rentPeriod,
                           },
                         );
@@ -353,6 +396,108 @@ class HotelDetailScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildAvailabilityBadge(
+    int rooms, {
+    bool isFlat = false,
+    int? capacity,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        if (isFlat && capacity != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.blue.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                'Capacity: $capacity person',
+                style: const TextStyle(
+                  color: Colors.blue,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: (() {
+              if (rooms <= 0) return AppTheme.grey.withValues(alpha: 0.1);
+              if (isFlat) return Colors.green.withValues(alpha: 0.08);
+              if (rooms <= 3) return Colors.red.withValues(alpha: 0.08);
+              if (rooms <= 5) return Colors.amber.withValues(alpha: 0.08);
+              return Colors.green.withValues(alpha: 0.08);
+            })(),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            isFlat
+                ? (rooms > 0 ? 'Available' : 'Not Available')
+                : (rooms > 0 ? '$rooms rooms' : 'No rooms'),
+            style: TextStyle(
+              color: (() {
+                if (rooms <= 0) return AppTheme.grey;
+                if (isFlat) return Colors.green;
+                if (rooms <= 3) return AppTheme.primaryRed;
+                if (rooms <= 5) return Colors.orange;
+                return Colors.green;
+              })(),
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSeaterRow(
+    BuildContext context,
+    String label,
+    double? price,
+    int available,
+    String rentPeriod,
+  ) {
+    if (price == null || price == 0) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              '₹${price.toStringAsFixed(0)}',
+              style: const TextStyle(
+                color: AppTheme.primaryRed,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: _buildAvailabilityBadge(available),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

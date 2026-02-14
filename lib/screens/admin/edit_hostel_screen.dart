@@ -31,6 +31,13 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
   late final TextEditingController _ratingController;
   late final TextEditingController _totalReviewsController;
   final TextEditingController _amenityController = TextEditingController();
+  late final TextEditingController _price1Controller;
+  late final TextEditingController _price2Controller;
+  late final TextEditingController _price3Controller;
+  late final TextEditingController _rooms1Controller;
+  late final TextEditingController _rooms2Controller;
+  late final TextEditingController _rooms3Controller;
+  late final TextEditingController _flatCapacityController;
 
   late List<String> _existingImageUrls; // Already uploaded to Cloudinary
   final List<File> _newSelectedImages = []; // New images to upload
@@ -52,9 +59,24 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
     _addressController = TextEditingController(text: h.address);
     _cityController = TextEditingController(text: h.city);
     _countryController = TextEditingController(text: h.country);
-    _priceController = TextEditingController(text: h.pricePerNight.toString());
+    _priceController = TextEditingController(text: h.rentPrice.toString());
     _availableRoomsController = TextEditingController(
       text: h.availableRooms.toString(),
+    );
+    _price1Controller = TextEditingController(
+      text: h.price1Seater?.toString() ?? '',
+    );
+    _price2Controller = TextEditingController(
+      text: h.price2Seater?.toString() ?? '',
+    );
+    _price3Controller = TextEditingController(
+      text: h.price3Seater?.toString() ?? '',
+    );
+    _rooms1Controller = TextEditingController(text: h.rooms1Seater.toString());
+    _rooms2Controller = TextEditingController(text: h.rooms2Seater.toString());
+    _rooms3Controller = TextEditingController(text: h.rooms3Seater.toString());
+    _flatCapacityController = TextEditingController(
+      text: h.flatCapacity?.toString() ?? '',
     );
     _ratingController = TextEditingController(text: h.rating.toString());
     _totalReviewsController = TextEditingController(
@@ -74,10 +96,17 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
     _cityController.dispose();
     _countryController.dispose();
     _priceController.dispose();
+    _price1Controller.dispose();
+    _price2Controller.dispose();
+    _price3Controller.dispose();
+    _rooms1Controller.dispose();
+    _rooms2Controller.dispose();
+    _rooms3Controller.dispose();
     _availableRoomsController.dispose();
     _ratingController.dispose();
     _totalReviewsController.dispose();
     _amenityController.dispose();
+    _flatCapacityController.dispose();
     super.dispose();
   }
 
@@ -110,7 +139,7 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
 
   Future<void> _pickImages() async {
     try {
-      final List<XFile>? pickedFiles = await _picker.pickMultiImage(
+      final List<XFile> pickedFiles = await _picker.pickMultiImage(
         maxWidth: 1200,
         maxHeight: 1200,
         imageQuality: 85,
@@ -268,18 +297,52 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
 
       setState(() => _isLoading = true);
 
+      double parsedPrice = 0.0;
+      int? flatCap;
+      if (_unitType == 'flat') {
+        parsedPrice = double.tryParse(_priceController.text) ?? 0.0;
+        flatCap =
+            int.tryParse(_flatCapacityController.text) ??
+            widget.hostel.flatCapacity;
+      }
+
       final updated = widget.hostel.copyWith(
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         address: _addressController.text.trim(),
         city: _cityController.text.trim(),
         country: _countryController.text.trim(),
-        pricePerNight: double.parse(_priceController.text),
+        rentPrice: parsedPrice,
+        price1Seater: _unitType == 'flat'
+            ? 0.0
+            : double.tryParse(_price1Controller.text) ?? 0.0,
+        price2Seater: _unitType == 'flat'
+            ? 0.0
+            : double.tryParse(_price2Controller.text) ?? 0.0,
+        price3Seater: _unitType == 'flat'
+            ? 0.0
+            : double.tryParse(_price3Controller.text) ?? 0.0,
+        rooms1Seater: _unitType == 'flat'
+            ? 0
+            : int.tryParse(_rooms1Controller.text) ?? 0,
+        rooms2Seater: _unitType == 'flat'
+            ? 0
+            : int.tryParse(_rooms2Controller.text) ?? 0,
+        rooms3Seater: _unitType == 'flat'
+            ? 0
+            : int.tryParse(_rooms3Controller.text) ?? 0,
+        flatCapacity: flatCap,
         unitType: _unitType,
         rentPeriod: _unitType == 'flat' ? 'monthly' : 'yearly',
-        availableRooms: int.parse(_availableRoomsController.text),
-        rating: double.parse(_ratingController.text),
-        totalReviews: int.parse(_totalReviewsController.text),
+        availableRooms: _unitType == 'flat'
+            ? (int.tryParse(_availableRoomsController.text) ?? 1)
+            : (int.tryParse(_rooms1Controller.text) ?? 0) +
+                  (int.tryParse(_rooms2Controller.text) ?? 0) +
+                  (int.tryParse(_rooms3Controller.text) ?? 0),
+        rating: double.tryParse(_ratingController.text) ?? widget.hostel.rating,
+        totalReviews:
+            int.tryParse(_totalReviewsController.text) ??
+            widget.hostel.totalReviews,
         images: allImageUrls,
         amenities: _amenities,
         isActive: _isActive,
@@ -424,10 +487,9 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
                     const SizedBox(height: 14),
                     _field(
                       _descriptionController,
-                      'Description',
-                      'Describe your hostel',
+                      'Description (Optional)',
+                      'List amenities, rules, or details',
                       maxLines: 4,
-                      validator: _req('description'),
                     ),
                     const SizedBox(height: 12),
 
@@ -512,54 +574,138 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
 
                     _sectionTitle('Pricing & Availability'),
                     const SizedBox(height: 14),
-                    _field(
-                      _priceController,
-                      _unitType == 'flat'
-                          ? 'Price Per Month (₹)'
-                          : 'Price Per Year (₹)',
-                      _unitType == 'flat' ? 'e.g. 5000' : 'e.g. 50000',
-                      keyboardType: TextInputType.number,
-                      validator: _numVal('price'),
-                    ),
-                    const SizedBox(height: 14),
-                    _field(
-                      _availableRoomsController,
-                      'Available Rooms',
-                      'e.g. 10',
-                      keyboardType: TextInputType.number,
-                      validator: _intVal('rooms'),
-                    ),
-                    const SizedBox(height: 14),
+                    if (_unitType == 'flat') ...[
+                      _field(
+                        _priceController,
+                        'Price Per Month (₹)',
+                        'e.g. 5000',
+                        keyboardType: TextInputType.number,
+                        validator: _numVal('price'),
+                      ),
+                      const SizedBox(height: 14),
+                      _field(
+                        _availableRoomsController,
+                        'Available Rooms',
+                        'e.g. 1',
+                        keyboardType: TextInputType.number,
+                        validator: _intVal('rooms'),
+                      ),
+                      const SizedBox(height: 14),
+                      _field(
+                        _flatCapacityController,
+                        'Capacity (persons)',
+                        'e.g. 2',
+                        keyboardType: TextInputType.number,
+                        validator: _intVal('capacity'),
+                      ),
+                    ] else ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _field(
+                              _price1Controller,
+                              '1-seater Price (Optional)',
+                              'e.g. 8000',
+                              keyboardType: TextInputType.number,
+                              validator: _optionalNumVal('1-seater price'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _field(
+                              _rooms1Controller,
+                              '1-seater Count (Optional)',
+                              'e.g. 5',
+                              keyboardType: TextInputType.number,
+                              validator: _optionalIntVal('1-seater count'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _field(
+                              _price2Controller,
+                              '2-seater Price (Optional)',
+                              'e.g. 6000',
+                              keyboardType: TextInputType.number,
+                              validator: _optionalNumVal('2-seater price'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _field(
+                              _rooms2Controller,
+                              '2-seater Count (Optional)',
+                              'e.g. 10',
+                              keyboardType: TextInputType.number,
+                              validator: _optionalIntVal('2-seater count'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _field(
+                              _price3Controller,
+                              '3-seater Price (Optional)',
+                              'e.g. 4000',
+                              keyboardType: TextInputType.number,
+                              validator: _optionalNumVal('3-seater price'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _field(
+                              _rooms3Controller,
+                              '3-seater Count (Optional)',
+                              'e.g. 8',
+                              keyboardType: TextInputType.number,
+                              validator: _optionalIntVal('3-seater count'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+
+                    _sectionTitle('Ratings & Reviews'),
+                    const SizedBox(height: 16),
                     Row(
                       children: [
                         Expanded(
                           child: _field(
                             _ratingController,
                             'Rating (0-5)',
-                            '4.5',
+                            'e.g. 4.5',
                             keyboardType: TextInputType.number,
                             validator: (v) {
                               if (v == null || v.isEmpty) return 'Required';
                               final r = double.tryParse(v);
                               if (r == null || r < 0 || r > 5) {
-                                return '0 – 5';
+                                return 'Must be 0-5';
                               }
                               return null;
                             },
                           ),
                         ),
-                        const SizedBox(width: 14),
+                        const SizedBox(width: 16),
                         Expanded(
                           child: _field(
                             _totalReviewsController,
                             'Total Reviews',
-                            '0',
+                            'e.g. 10',
                             keyboardType: TextInputType.number,
-                            validator: _intVal('reviews'),
+                            validator: _intVal('total reviews'),
                           ),
                         ),
                       ],
                     ),
+
                     const SizedBox(height: 24),
 
                     _sectionTitle('Images'),
@@ -1057,6 +1203,19 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
 
   String? Function(String?) _intVal(String f) => (v) {
     if (v == null || v.isEmpty) return 'Required';
+    if (int.tryParse(v) == null) return 'Whole number only';
+    if (int.parse(v) < 0) return 'Cannot be negative';
+    return null;
+  };
+
+  String? Function(String?) _optionalNumVal(String f) => (v) {
+    if (v == null || v.isEmpty) return null;
+    if (double.tryParse(v) == null) return 'Invalid number';
+    return null;
+  };
+
+  String? Function(String?) _optionalIntVal(String f) => (v) {
+    if (v == null || v.isEmpty) return null;
     if (int.tryParse(v) == null) return 'Whole number only';
     if (int.parse(v) < 0) return 'Cannot be negative';
     return null;
