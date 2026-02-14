@@ -14,7 +14,7 @@ class HelpSupportScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Contact Super Admin',
+              'Contact Details',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -27,21 +27,21 @@ class HelpSupportScreen extends StatelessWidget {
               context,
               Icons.email_outlined,
               'Email',
-              'support@rentra.com',
+              'amitkumarstm1507@gmail.com',
               () {},
             ),
             _contactItem(
               context,
               Icons.phone_outlined,
               'Phone',
-              '+91 12345 67890',
+              '+91 9795292927',
               () {},
             ),
             _contactItem(
               context,
               Icons.chat_outlined,
               'WhatsApp',
-              '+91 12345 67890',
+              '+91 9795292927',
               () {},
             ),
             const SizedBox(height: 32),
