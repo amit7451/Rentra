@@ -1,7 +1,5 @@
 # Environment variables - ADD THIS SECTION
-.env
 *.env
-.env.*
 !.env.example
 
 # Miscellaneous
@@ -49,3 +47,5 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+config.bat
+node_modules
