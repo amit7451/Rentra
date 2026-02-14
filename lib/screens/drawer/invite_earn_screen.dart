@@ -43,11 +43,14 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
     }
   }
 
-  void _shareContent() {
+  Future<void> _shareContent() async {
     if (_appLink != null) {
-      Share.share(
-        'Hey! I found this amazing app for booking hostels and flats. Check it out: $_appLink',
-        subject: 'Stay with Rentra',
+      await SharePlus.instance.share(
+        ShareParams(
+          text:
+              'Hey! I found this amazing app for booking hostels and flats. Check it out: $_appLink',
+          subject: 'Stay with Rentra',
+        ),
       );
     }
   }
