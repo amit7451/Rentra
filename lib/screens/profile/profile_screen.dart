@@ -25,26 +25,73 @@ class ProfileScreen extends StatelessWidget {
 
     if (user == null || user.email == null) return;
 
-    await FirebaseAuth.instance.sendPasswordResetEmail(email: user.email!);
+    // Check rate limit
+    try {
+      final docRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid);
+      final doc = await docRef.get();
 
-    if (!context.mounted) return;
+      if (doc.exists) {
+        final data = doc.data();
+        final lastSent = data?['lastPasswordResetEmailSentAt'] as Timestamp?;
 
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Email Sent'),
-        content: const Text(
-          'A password reset link has been sent to your email. Please check your spam folder if you don\'t see it.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
+        if (lastSent != null) {
+          final lastSentTime = lastSent.toDate();
+          final now = DateTime.now();
+          final difference = now.difference(lastSentTime);
+
+          if (difference.inMinutes < 2) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Mail already sent. Check spam folder.'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            }
+            return;
+          }
+        }
+      }
+
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: user.email!);
+
+      // Update timestamp
+      await docRef.update({
+        'lastPasswordResetEmailSentAt': FieldValue.serverTimestamp(),
+      });
+
+      if (!context.mounted) return;
+
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-        ],
-      ),
-    );
+          title: const Text('Email Sent'),
+          content: const Text(
+            'A password reset link has been sent to your email. Please check your spam folder.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send email: $e'),
+            backgroundColor: AppTheme.darkRed,
+          ),
+        );
+      }
+    }
   }
 
   @override

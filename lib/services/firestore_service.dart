@@ -47,12 +47,192 @@ class FirestoreService {
     }
   }
 
-  // Delete user
+  // Soft delete user
+  Future<void> softDeleteUser(String uid) async {
+    try {
+      final batch = _firestore.batch();
+
+      // 1. Update user document
+      final userRef = _firestore.collection(_usersCollection).doc(uid);
+      batch.update(userRef, {
+        'accountStatus': 'deleted',
+        'isActive': false,
+        'deletedAt': FieldValue.serverTimestamp(),
+      });
+
+      // 2. Deactivate all hostels owned by this user
+      final hostelsQuery = await _firestore
+          .collection(_hostelsCollection)
+          .where('ownerId', isEqualTo: uid)
+          .get();
+
+      for (var doc in hostelsQuery.docs) {
+        batch.update(doc.reference, {'isActive': false});
+      }
+
+      await batch.commit();
+    } catch (e) {
+      throw 'Failed to soft delete user: $e';
+    }
+  }
+
+  // Reactivate user
+  Future<void> reactivateUser(String uid) async {
+    try {
+      final batch = _firestore.batch();
+
+      // 1. Update user document
+      final userRef = _firestore.collection(_usersCollection).doc(uid);
+      batch.update(userRef, {
+        'accountStatus': 'active',
+        'isActive': true,
+        'deletedAt': null,
+      });
+
+      // 2. Reactivate all hostels owned by this user
+      final hostelsQuery = await _firestore
+          .collection(_hostelsCollection)
+          .where('ownerId', isEqualTo: uid)
+          .get();
+
+      for (var doc in hostelsQuery.docs) {
+        batch.update(doc.reference, {'isActive': true});
+      }
+
+      await batch.commit();
+    } catch (e) {
+      throw 'Failed to reactivate user: $e';
+    }
+  }
+
+  // Delete user (Standard delete)
   Future<void> deleteUser(String uid) async {
     try {
       await _firestore.collection(_usersCollection).doc(uid).delete();
     } catch (e) {
       throw 'Failed to delete user: $e';
+    }
+  }
+
+  // Get user by email
+  Future<UserModel?> getUserByEmail(String email) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection(_usersCollection)
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        return UserModel.fromMap(querySnapshot.docs.first.data());
+      }
+      return null;
+    } catch (e) {
+      throw 'Failed to get user by email: $e';
+    }
+  }
+
+  // Hard delete user data (Removes everything permanently)
+  Future<void> hardDeleteUserData(String uid) async {
+    try {
+      final batch = _firestore.batch();
+
+      // 1. Delete user doc
+      batch.delete(_firestore.collection(_usersCollection).doc(uid));
+
+      // 2. Delete hostels owned by user
+      final hostelsQuery = await _firestore
+          .collection(_hostelsCollection)
+          .where('ownerId', isEqualTo: uid)
+          .get();
+      for (var doc in hostelsQuery.docs) {
+        batch.delete(doc.reference);
+      }
+
+      // 3. Delete bookings related to user (as tenant or host)
+      // As Tenant
+      final tenantBookings = await _firestore
+          .collection(_bookingsCollection)
+          .where('userId', isEqualTo: uid)
+          .get();
+      for (var doc in tenantBookings.docs) {
+        batch.delete(doc.reference);
+      }
+
+      // As Host
+      final hostBookings = await _firestore
+          .collection(_bookingsCollection)
+          .where('adminId', isEqualTo: uid)
+          .get();
+      for (var doc in hostBookings.docs) {
+        batch.delete(doc.reference);
+      }
+
+      await batch.commit();
+    } catch (e) {
+      throw 'Failed to hard delete user data: $e';
+    }
+  }
+
+  // Migrate user data to new UID (for account recovery)
+  Future<void> migrateUser(String oldUid, String newUid) async {
+    try {
+      final batch = _firestore.batch();
+
+      // 1. Get old user data
+      final oldUserDoc = await _firestore
+          .collection(_usersCollection)
+          .doc(oldUid)
+          .get();
+      if (!oldUserDoc.exists) return; // Should not happen if checked before
+
+      final userData = oldUserDoc.data()!;
+      // Update UID in data
+      userData['uid'] = newUid;
+      userData['accountStatus'] = 'active'; // Reactivate
+      userData['isActive'] = true;
+      userData['deletedAt'] = null;
+
+      // 2. Set new user doc
+      final newUserRef = _firestore.collection(_usersCollection).doc(newUid);
+      batch.set(newUserRef, userData);
+
+      // 3. Migrate Hostels
+      final hostelsQuery = await _firestore
+          .collection(_hostelsCollection)
+          .where('ownerId', isEqualTo: oldUid)
+          .get();
+      for (var doc in hostelsQuery.docs) {
+        batch.update(doc.reference, {
+          'ownerId': newUid,
+          'isActive': true,
+        }); // Also reactivate hostels
+      }
+
+      // 4. Migrate Bookings (as Tenant)
+      final tenantBookings = await _firestore
+          .collection(_bookingsCollection)
+          .where('userId', isEqualTo: oldUid)
+          .get();
+      for (var doc in tenantBookings.docs) {
+        batch.update(doc.reference, {'userId': newUid});
+      }
+
+      // 5. Migrate Bookings (as Host)
+      final hostBookings = await _firestore
+          .collection(_bookingsCollection)
+          .where('adminId', isEqualTo: oldUid)
+          .get();
+      for (var doc in hostBookings.docs) {
+        batch.update(doc.reference, {'adminId': newUid});
+      }
+
+      // 6. Delete old user doc
+      batch.delete(_firestore.collection(_usersCollection).doc(oldUid));
+
+      await batch.commit();
+    } catch (e) {
+      throw 'Failed to migrate user data: $e';
     }
   }
 
@@ -352,11 +532,16 @@ class FirestoreService {
   }
 
   // Cancel booking
-  Future<void> cancelBooking(String bookingId, String reason) async {
+  Future<void> cancelBooking(
+    String bookingId,
+    String? reason,
+    String cancelledBy,
+  ) async {
     try {
       await _firestore.collection(_bookingsCollection).doc(bookingId).update({
         'status': BookingStatus.cancelled.name,
         'cancellationReason': reason,
+        'cancelledBy': cancelledBy,
       });
     } catch (e) {
       throw 'Failed to cancel booking: $e';

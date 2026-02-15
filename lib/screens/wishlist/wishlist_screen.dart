@@ -5,6 +5,7 @@ import '../../services/wishlist_service.dart';
 import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../app/routes.dart';
 
 class WishlistScreen extends StatelessWidget {
   const WishlistScreen({super.key});
@@ -243,8 +244,7 @@ class _WishlistCardState extends State<_WishlistCard> {
 
     return GestureDetector(
       onTap: () {
-        // Navigate to hostel detail screen
-        // Navigator.pushNamed(context, AppRoutes.hostelDetail, arguments: h);
+        Navigator.pushNamed(context, AppRoutes.hotelDetail, arguments: h.id);
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
@@ -326,7 +326,7 @@ class _WishlistCardState extends State<_WishlistCard> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        '₹${h.rentPrice.toStringAsFixed(0)}/${h.rentPeriod == 'monthly' ? 'mo' : 'yr'}',
+                        '₹${h.startingPrice.toStringAsFixed(0)}/${h.rentPeriod == 'monthly' ? 'mo' : 'yr'}',
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.white,

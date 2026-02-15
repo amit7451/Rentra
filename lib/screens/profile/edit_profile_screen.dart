@@ -1,11 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../models/user_model.dart';
 import '../../services/firestore_service.dart';
 import '../../services/cloudinary_service.dart';
+import '../../services/auth_service.dart';
 import '../../app/theme.dart';
+import '../../app/routes.dart';
 import '../../widgets/primary_button.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -29,10 +32,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _picker = ImagePicker();
   final _firestoreService = FirestoreService();
   final _cloudinaryService = CloudinaryService.instance;
+  final _authService = AuthService();
 
   @override
   void initState() {
-    super.initState();
     _nameController = TextEditingController(text: widget.userModel.name);
     _phoneNumberController = TextEditingController(
       text: widget.userModel.phoneNumber,
@@ -40,6 +43,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _emailController = TextEditingController(text: widget.userModel.email);
     _selectedDateOfBirth = widget.userModel.dateOfBirth;
     _selectedGender = widget.userModel.gender;
+    super.initState();
   }
 
   @override
@@ -48,6 +52,155 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _phoneNumberController.dispose();
     _emailController.dispose();
     super.dispose();
+  }
+
+  Future<void> _showDeleteAccountDialog(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    // Layer 1: Initial Warning
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Account?'),
+        content: const Text(
+          'This action is permanent and cannot be undone. All your data and listed properties will be deactivated.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Next'),
+          ),
+        ],
+      ),
+    );
+
+    if (proceed != true) return;
+
+    // Layer 2: Re-authentication
+    String? password;
+    final isGoogle = user.providerData.any((p) => p.providerId == 'google.com');
+
+    if (!isGoogle) {
+      final passController = TextEditingController();
+      final reAuthProceed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Confirm Identity'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Please enter your password to continue.'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: passController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Next'),
+            ),
+          ],
+        ),
+      );
+
+      if (reAuthProceed != true) return;
+      password = passController.text;
+    } else {
+      // For Google users, we'll re-auth during the actual call
+    }
+
+    // Layer 3: Type confirmation
+    final confirmController = TextEditingController();
+    bool canDelete = false;
+
+    if (!context.mounted) return;
+
+    final finalConfirmation = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Final Confirmation'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Type DELETE below to confirm.'),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: confirmController,
+                    onChanged: (val) {
+                      setDialogState(() => canDelete = val == 'DELETE');
+                    },
+                    decoration: const InputDecoration(
+                      hintText: 'DELETE',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: canDelete ? () => Navigator.pop(ctx, true) : null,
+                  style: TextButton.styleFrom(
+                    foregroundColor: canDelete ? Colors.red : Colors.grey,
+                  ),
+                  child: const Text('Permanently Delete'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (finalConfirmation != true) return;
+
+    // Execution
+    setState(() => _isLoading = true);
+    try {
+      await _authService.reauthenticateAndDelete(password: password);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account deleted successfully.')),
+        );
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Deletion failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _pickImage() async {
@@ -103,7 +256,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Profile')),
+      appBar: AppBar(
+        title: const Text('Edit Profile'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_forever, color: Colors.white),
+            tooltip: 'Delete Account',
+            onPressed: () => _showDeleteAccountDialog(context),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Form(
@@ -183,7 +345,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedGender,
+                initialValue: _selectedGender,
                 decoration: const InputDecoration(
                   labelText: 'Gender',
                   prefixIcon: Icon(Icons.person_outline),

@@ -33,23 +33,32 @@ class AuthService {
 
       final User? user = result.user;
       if (user != null) {
-        // Create user model
-        final userModel = UserModel(
-          uid: user.uid,
-          email: email,
-          name: name,
-          phoneNumber: phoneNumber,
-          dateOfBirth: dateOfBirth,
-          gender: gender,
-          createdAt: DateTime.now(),
-          isAdmin: isAdmin,
-          photoUrl: profileImage,
-        );
+        try {
+          // Create user model
+          final userModel = UserModel(
+            uid: user.uid,
+            email: email,
+            name: name,
+            phoneNumber: phoneNumber,
+            dateOfBirth: dateOfBirth,
+            gender: gender,
+            createdAt: DateTime.now(),
+            isAdmin: isAdmin,
+            photoUrl: profileImage,
+          );
 
-        // Save user data to Firestore
-        await _firestoreService.createUser(userModel);
+          // Save user data to Firestore
+          await _firestoreService.createUser(userModel);
 
-        return userModel;
+          // Save user data to Firestore
+          await _firestoreService.createUser(userModel);
+
+          return userModel;
+        } catch (e) {
+          // Rollback: delete auth user if firestore fails
+          await user.delete();
+          rethrow;
+        }
       }
       return null;
     } on FirebaseAuthException catch (e) {
@@ -78,7 +87,33 @@ class AuthService {
     final UserCredential userCredential = await _auth.signInWithCredential(
       credential,
     );
-    return userCredential.user;
+    final user = userCredential.user;
+
+    if (user != null) {
+      // 1. Check if user document exists in Firestore (Direct UID match)
+      final existingUser = await _firestoreService.getUser(user.uid);
+
+      if (existingUser != null) {
+        if (existingUser.accountStatus == 'deleted') {
+          // Reactivate soft-deleted account (Same UID)
+          await _firestoreService.reactivateUser(user.uid);
+        }
+      } else {
+        // Create new user document if it doesn't exist
+        final newUser = UserModel(
+          uid: user.uid,
+          email: user.email ?? '',
+          name: user.displayName ?? 'New User',
+          phoneNumber: user.phoneNumber,
+          photoUrl: user.photoURL,
+          createdAt: DateTime.now(),
+          isAdmin: false,
+        );
+        await _firestoreService.createUser(newUser);
+      }
+    }
+
+    return user;
   }
 
   // Sign in with email and password
@@ -96,6 +131,18 @@ class AuthService {
       if (user != null) {
         // Get user data from Firestore
         final userModel = await _firestoreService.getUser(user.uid);
+
+        if (userModel == null) {
+          // User exists in Auth but not in Firestore (incomplete signup)
+          await _auth.signOut();
+          throw 'Account not found. Please sign up.';
+        }
+
+        if (userModel.accountStatus == 'deleted') {
+          // Reactivate soft-deleted account
+          await _firestoreService.reactivateUser(user.uid);
+        }
+
         return userModel;
       }
       return null;
@@ -139,19 +186,56 @@ class AuthService {
     }
   }
 
-  // Delete account
-  Future<void> deleteAccount() async {
-    try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        // Delete user data from Firestore
-        await _firestoreService.deleteUser(user.uid);
-        // Delete auth account
-        await user.delete();
-      }
-    } catch (e) {
-      throw 'Failed to delete account. Please try again.';
+  // Re-authenticate with Email/Password
+  Future<void> reauthenticateWithEmail(String password) async {
+    final user = _auth.currentUser;
+    if (user == null || user.email == null) throw 'User not logged in';
+
+    AuthCredential credential = EmailAuthProvider.credential(
+      email: user.email!,
+      password: password,
+    );
+
+    await user.reauthenticateWithCredential(credential);
+  }
+
+  // Re-authenticate with Google
+  Future<void> reauthenticateWithGoogle() async {
+    final user = _auth.currentUser;
+    if (user == null) throw 'User not logged in';
+
+    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+    if (googleUser == null) throw 'Google authentication cancelled';
+
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    await user.reauthenticateWithCredential(credential);
+  }
+
+  // Soft Delete Flow (Layered)
+  Future<void> reauthenticateAndDelete({String? password}) async {
+    final user = _auth.currentUser;
+    if (user == null) throw 'No user found';
+
+    // 1. Re-authenticate
+    if (password != null) {
+      // Email user
+      await reauthenticateWithEmail(password);
+    } else {
+      // Google user
+      await reauthenticateWithGoogle();
     }
+
+    // 2. Soft delete in Firestore (update status + deactivate properties)
+    await _firestoreService.softDeleteUser(user.uid);
+
+    // 3. Delete from Firebase Auth (Hard delete from Auth side)
+    await user.delete();
   }
 
   // Handle Firebase Auth exceptions
@@ -162,7 +246,7 @@ class AuthService {
       case 'email-already-in-use':
         return 'An account already exists with this email.';
       case 'user-not-found':
-        return 'No user found with this email.';
+        return 'Account deleted or not found. Please sign up again.';
       case 'wrong-password':
         return 'Wrong password provided.';
       case 'invalid-email':

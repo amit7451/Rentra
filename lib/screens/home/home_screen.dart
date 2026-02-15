@@ -9,8 +9,8 @@ import '../../widgets/error_text.dart';
 import '../search/search_screen.dart';
 import '/widgets/app_drawer.dart';
 import 'hotel_card.dart';
-
-import 'package:rentra/app/routes.dart';
+import '../../app/routes.dart';
+import '/widgets/verification_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,6 +24,32 @@ class _HomeScreenState extends State<HomeScreen> {
   final _wishlistService = WishlistService();
   final _uid = FirebaseAuth.instance.currentUser?.uid ?? '';
   String _selectedUnitType = 'hostel'; // 'hostel' or 'flat'
+  bool _isVerified = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkVerification();
+  }
+
+  Future<void> _checkVerification() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.reload(); // Reload to get the latest status
+      if (mounted) {
+        setState(() {
+          _isVerified =
+              FirebaseAuth.instance.currentUser?.emailVerified ?? false;
+        });
+        if (!_isVerified) {
+          // Show popup after a slight delay to ensure context is ready
+          Future.delayed(const Duration(seconds: 1), () {
+            if (mounted) showVerificationDialog(context);
+          });
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +126,44 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (!_isVerified)
+            GestureDetector(
+              onTap: () => showVerificationDialog(context),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 16,
+                ),
+                decoration: const BoxDecoration(color: Colors.amber),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.black87,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        'Email not verified. Tap to verify now.',
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: Colors.black54,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           // ── Red search header ─────────────────────────────────
           Container(
             width: double.infinity,
@@ -218,8 +282,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     return RefreshIndicator(
                       color: AppTheme.primaryRed,
-                      onRefresh: () async =>
-                          await Future.delayed(const Duration(seconds: 1)),
+                      onRefresh: () async {
+                        // Re-check verification on refresh
+                        await _checkVerification();
+                        // Optional delay for better specific UX feel
+                        await Future.delayed(const Duration(seconds: 1));
+                      },
                       child: ListView.builder(
                         padding: const EdgeInsets.only(top: 16, bottom: 16),
                         itemCount: snapshot.data!.length,

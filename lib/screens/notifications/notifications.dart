@@ -1,70 +1,58 @@
 import 'package:flutter/material.dart';
 import '../../app/theme.dart';
 
-class NotificationsScreen extends StatefulWidget {
+class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
-
-  @override
-  State<NotificationsScreen> createState() => _NotificationsScreenState();
-}
-
-class _NotificationsScreenState extends State<NotificationsScreen> {
-  // Dumb state for demonstration, not persisted
-  bool _bookingConfirmation = true;
-  bool _priceDrops = true;
-  bool _newProperties = true;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifications')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _buildNotificationToggle(
-            'Booking Confirmation',
-            'Get notified when your booking is approved or rejected',
-            _bookingConfirmation,
-            (value) => setState(() => _bookingConfirmation = value),
-          ),
-          const Divider(),
-          _buildNotificationToggle(
-            'Price Drops & Offers',
-            'Be the first to know about discounts and special offers',
-            _priceDrops,
-            (value) => setState(() => _priceDrops = value),
-          ),
-          const Divider(),
-          _buildNotificationToggle(
-            'New Properties',
-            'Get updates when new properties are added in your area',
-            _newProperties,
-            (value) => setState(() => _newProperties = value),
-          ),
-        ],
+      appBar: AppBar(
+        title: const Text('Notifications'),
+        backgroundColor: AppTheme.primaryRed,
+        foregroundColor: Colors.white,
       ),
-    );
-  }
-
-  Widget _buildNotificationToggle(
-    String title,
-    String subtitle,
-    bool value,
-    ValueChanged<bool> onChanged,
-  ) {
-    return SwitchListTile(
-      value: value,
-      onChanged: onChanged,
-      activeColor: AppTheme.primaryRed,
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryRed.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.notifications_paused_outlined,
+                size: 80,
+                color: AppTheme.primaryRed,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Notifications Coming Soon!',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Text(
+                'We are working on bringing you real-time updates for your bookings and offers.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-      subtitle: Text(
-        subtitle,
-        style: const TextStyle(color: AppTheme.grey, fontSize: 13),
-      ),
-      contentPadding: EdgeInsets.zero,
     );
   }
 }

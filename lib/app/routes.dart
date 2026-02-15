@@ -59,9 +59,18 @@ class AppRoutes {
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case hotelDetail:
-        final hostelId = settings.arguments as String;
+        String id;
+        bool hide = false;
+        if (settings.arguments is Map) {
+          final args = settings.arguments as Map<String, dynamic>;
+          id = args['hostelId'];
+          hide = args['hideBookingButton'] ?? false;
+        } else {
+          id = settings.arguments as String;
+        }
         return MaterialPageRoute(
-          builder: (context) => HotelDetailScreen(hostelId: hostelId),
+          builder: (context) =>
+              HotelDetailScreen(hostelId: id, hideBookingButton: hide),
         );
       case booking:
         final args = settings.arguments as Map<String, dynamic>;

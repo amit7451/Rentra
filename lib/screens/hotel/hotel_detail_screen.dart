@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/firestore_service.dart';
 import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
@@ -9,12 +10,18 @@ import '../../widgets/primary_button.dart';
 
 class HotelDetailScreen extends StatelessWidget {
   final String hostelId;
+  final bool hideBookingButton;
 
-  const HotelDetailScreen({super.key, required this.hostelId});
+  const HotelDetailScreen({
+    super.key,
+    required this.hostelId,
+    this.hideBookingButton = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final firestoreService = FirestoreService();
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
     return StreamBuilder<HostelModel?>(
       stream: firestoreService.watchHostel(hostelId),
@@ -361,39 +368,59 @@ class HotelDetailScreen extends StatelessWidget {
           ),
 
           // Book button
-          bottomNavigationBar: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppTheme.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, -5),
+          bottomNavigationBar: hideBookingButton
+              ? null
+              : Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, -5),
+                      ),
+                    ],
+                  ),
+                  child: SafeArea(
+                    child: PrimaryButton(
+                      text: 'Book Now',
+                      onPressed: hostel.availableRooms > 0
+                          ? () {
+                              if (currentUserId == hostel.ownerId) {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text('Action Not Allowed'),
+                                    content: const Text(
+                                      'You cannot book your own property.',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(ctx),
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                return;
+                              }
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.booking,
+                                arguments: {
+                                  'hostelId': hostel.id,
+                                  'hostelName': hostel.name,
+                                  'pricePerNight': hostel.rentPrice,
+                                  'rentPeriod': hostel.rentPeriod,
+                                },
+                              );
+                            }
+                          : () {},
+                      icon: Icons.calendar_today,
+                    ),
+                  ),
                 ),
-              ],
-            ),
-            child: SafeArea(
-              child: PrimaryButton(
-                text: 'Book Now',
-                onPressed: hostel.availableRooms > 0
-                    ? () {
-                        Navigator.pushNamed(
-                          context,
-                          AppRoutes.booking,
-                          arguments: {
-                            'hostelId': hostel.id,
-                            'hostelName': hostel.name,
-                            'pricePerNight': hostel.rentPrice,
-                            'rentPeriod': hostel.rentPeriod,
-                          },
-                        );
-                      }
-                    : () {},
-                icon: Icons.calendar_today,
-              ),
-            ),
-          ),
         );
       },
     );

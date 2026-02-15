@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/firestore_service.dart';
 import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
+import '../../app/routes.dart';
 import '../../widgets/loading_indicator.dart';
 import 'edit_hostel_screen.dart';
 
@@ -124,186 +125,241 @@ class _HostelCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Image ──────────────────────────────────────────
-          ClipRRect(
+          InkWell(
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                AppRoutes.hotelDetail,
+                arguments: {'hostelId': hostel.id, 'hideBookingButton': true},
+              );
+            },
             borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-            child: Stack(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                hostel.images.isNotEmpty
-                    ? Image.network(
-                        hostel.images.first,
-                        height: 170,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => _placeholder(),
-                      )
-                    : _placeholder(),
-                // Status badge overlay
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: hostel.isActive
-                          ? Colors.green.withValues(alpha: 0.9)
-                          : Colors.grey.withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          hostel.isActive
-                              ? Icons.check_circle
-                              : Icons.pause_circle,
-                          size: 13,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          hostel.isActive ? 'Active' : 'Inactive',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
+                // ── Image ──────────────────────────────────────────
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(18),
+                  ),
+                  child: Stack(
+                    children: [
+                      hostel.images.isNotEmpty
+                          ? Image.network(
+                              hostel.images.first,
+                              height: 170,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => _placeholder(),
+                            )
+                          : _placeholder(),
+                      // Status badge overlay
+                      Positioned(
+                        top: 12,
+                        right: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: hostel.isActive
+                                ? Colors.green.withValues(alpha: 0.9)
+                                : Colors.grey.withValues(alpha: 0.9),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                hostel.isActive
+                                    ? Icons.check_circle
+                                    : Icons.pause_circle,
+                                size: 13,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                hostel.isActive ? 'Active' : 'Inactive',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── Info ───────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        hostel.name,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 15,
+                            color: Colors.grey[600],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${hostel.address}, ${hostel.city}',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 13,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Builder(
+                            builder: (context) {
+                              double displayPrice = hostel.rentPrice;
+                              if (hostel.unitType != 'flat' &&
+                                  displayPrice == 0) {
+                                final prices =
+                                    [
+                                          hostel.price1Seater,
+                                          hostel.price2Seater,
+                                          hostel.price3Seater,
+                                        ]
+                                        .where((p) => p != null && p > 0)
+                                        .map((p) => p!)
+                                        .toList();
+                                if (prices.isNotEmpty) {
+                                  displayPrice = prices.reduce(
+                                    (a, b) => a < b ? a : b,
+                                  );
+                                }
+                              }
+                              return _infoChip(
+                                '₹${displayPrice.toStringAsFixed(0)}/${hostel.rentPeriod == 'monthly' ? 'mo' : 'yr'}',
+                                Icons.payments_outlined,
+                                AppTheme.primaryRed.withValues(alpha: 0.1),
+                                AppTheme.primaryRed,
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 10),
+                          _infoChip(
+                            '${hostel.availableRooms} rooms',
+                            Icons.bed_outlined,
+                            Colors.blue.withValues(alpha: 0.1),
+                            Colors.blue[700]!,
+                          ),
+                          const SizedBox(width: 10),
+                          // Rating box fixed as per hotel_card.dart
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                color: Color(0xFFFFB400),
+                                size: 16,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                hostel.rating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+
+                      // ── Amenities preview ───────────────────────
+                      if (hostel.amenities.isNotEmpty)
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: hostel.amenities.take(4).map((a) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                a,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
 
-          // ── Info ───────────────────────────────────────────
+          // ── Action Buttons ──────────────────────────
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  hostel.name,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: _actionButton(
+                    label: 'Edit',
+                    icon: Icons.edit_outlined,
+                    color: AppTheme.primaryRed,
+                    outlined: true,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => EditHostelScreen(hostel: hostel),
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on_outlined,
-                      size: 15,
-                      color: Colors.grey[600],
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${hostel.address}, ${hostel.city}',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    _infoChip(
-                      '₹${hostel.rentPrice.toStringAsFixed(0)}/${hostel.rentPeriod == 'monthly' ? 'mo' : 'yr'}',
-                      Icons.currency_rupee,
-                      AppTheme.primaryRed.withValues(alpha: 0.1),
-                      AppTheme.primaryRed,
-                    ),
-                    const SizedBox(width: 10),
-                    _infoChip(
-                      '${hostel.availableRooms} rooms',
-                      Icons.bed_outlined,
-                      Colors.blue.withValues(alpha: 0.1),
-                      Colors.blue[700]!,
-                    ),
-                    const SizedBox(width: 10),
-                    _infoChip(
-                      '${hostel.rating}★',
-                      Icons.star_outline,
-                      Colors.amber.withValues(alpha: 0.1),
-                      Colors.amber[700]!,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-
-                // ── Amenities preview ───────────────────────
-                if (hostel.amenities.isNotEmpty)
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: hostel.amenities.take(4).map((a) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          a,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[700],
-                          ),
-                        ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _actionButton(
+                    label: hostel.isActive ? 'Deactivate' : 'Activate',
+                    icon: hostel.isActive
+                        ? Icons.pause_circle_outline
+                        : Icons.play_circle_outline,
+                    color: hostel.isActive ? Colors.orange[700]! : Colors.green,
+                    outlined: true,
+                    onTap: () async {
+                      await firestoreService.toggleHostelActive(
+                        hostel.id,
+                        !hostel.isActive,
                       );
-                    }).toList(),
+                    },
                   ),
-                const SizedBox(height: 14),
-
-                // ── Action Buttons ──────────────────────────
-                Row(
-                  children: [
-                    Expanded(
-                      child: _actionButton(
-                        label: 'Edit',
-                        icon: Icons.edit_outlined,
-                        color: AppTheme.primaryRed,
-                        outlined: true,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => EditHostelScreen(hostel: hostel),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _actionButton(
-                        label: hostel.isActive ? 'Deactivate' : 'Activate',
-                        icon: hostel.isActive
-                            ? Icons.pause_circle_outline
-                            : Icons.play_circle_outline,
-                        color: hostel.isActive
-                            ? Colors.orange[700]!
-                            : Colors.green,
-                        outlined: true,
-                        onTap: () async {
-                          await firestoreService.toggleHostelActive(
-                            hostel.id,
-                            !hostel.isActive,
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    _deleteButton(context),
-                  ],
                 ),
+                const SizedBox(width: 10),
+                _deleteButton(context),
               ],
             ),
           ),

@@ -391,7 +391,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
                 // Gender Dropdown
                 DropdownButtonFormField<String>(
-                  value: _selectedGender,
+                  initialValue: _selectedGender,
                   decoration: const InputDecoration(
                     labelText: 'Gender',
                     prefixIcon: Icon(Icons.person_outline),

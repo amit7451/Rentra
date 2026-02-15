@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class UserModel {
   final String uid;
   final String email;
@@ -8,6 +10,9 @@ class UserModel {
   final String? gender;
   final DateTime createdAt;
   final bool isAdmin;
+  final String accountStatus; // 'active', 'deleted', 'suspended'
+  final bool isActive;
+  final DateTime? deletedAt;
 
   UserModel({
     required this.uid,
@@ -19,6 +24,9 @@ class UserModel {
     this.gender,
     required this.createdAt,
     this.isAdmin = false,
+    this.accountStatus = 'active',
+    this.isActive = true,
+    this.deletedAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -32,6 +40,9 @@ class UserModel {
       'gender': gender,
       'createdAt': createdAt.millisecondsSinceEpoch,
       'isAdmin': isAdmin,
+      'accountStatus': accountStatus,
+      'isActive': isActive,
+      'deletedAt': deletedAt?.millisecondsSinceEpoch,
     };
   }
 
@@ -42,13 +53,21 @@ class UserModel {
       name: map['name'] ?? '',
       phoneNumber: map['phoneNumber'],
       photoUrl: map['photoUrl'],
-      dateOfBirth: map['dateOfBirth'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['dateOfBirth'])
-          : null,
+      dateOfBirth: _parseDate(map['dateOfBirth']),
       gender: map['gender'],
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ?? 0),
+      createdAt: _parseDate(map['createdAt']) ?? DateTime.now(),
       isAdmin: map['isAdmin'] ?? false,
+      accountStatus: map['accountStatus'] ?? 'active',
+      isActive: map['isActive'] ?? true,
+      deletedAt: _parseDate(map['deletedAt']),
     );
+  }
+
+  static DateTime? _parseDate(dynamic value) {
+    if (value == null) return null;
+    if (value is Timestamp) return value.toDate();
+    if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
+    return null;
   }
 
   UserModel copyWith({
@@ -61,6 +80,9 @@ class UserModel {
     String? gender,
     DateTime? createdAt,
     bool? isAdmin,
+    String? accountStatus,
+    bool? isActive,
+    DateTime? deletedAt,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -72,6 +94,9 @@ class UserModel {
       gender: gender ?? this.gender,
       createdAt: createdAt ?? this.createdAt,
       isAdmin: isAdmin ?? this.isAdmin,
+      accountStatus: accountStatus ?? this.accountStatus,
+      isActive: isActive ?? this.isActive,
+      deletedAt: deletedAt ?? this.deletedAt,
     );
   }
 }

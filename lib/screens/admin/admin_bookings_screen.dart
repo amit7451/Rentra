@@ -398,7 +398,7 @@ class _BookingCard extends StatelessWidget {
                       : Icons.airline_seat_individual_suite_outlined,
                   isFlat ? 'Capacity' : 'Seater',
                   isFlat
-                      ? '${hostel.flatCapacity ?? 0} Person'
+                      ? '${booking.flatCapacity ?? hostel.flatCapacity ?? 0} Person'
                       : '${booking.selectedSeater ?? 1} Seater',
                 ),
                 _row(Icons.calendar_today_outlined, 'Check-in', _fmt(checkIn)),
@@ -420,6 +420,76 @@ class _BookingCard extends StatelessWidget {
                     'Note',
                     booking.specialRequests!,
                   ),
+
+                // ── Cancellation Info & Delete ────────────────────
+                if (booking.status == BookingStatus.cancelled) ...[
+                  const Divider(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Cancelled by ${booking.cancelledBy == 'admin' ? 'Owner' : 'User'}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Colors.red,
+                              ),
+                            ),
+                            if (booking.cancellationReason != null &&
+                                booking.cancellationReason!.isNotEmpty)
+                              Text(
+                                'Reason: ${booking.cancellationReason}',
+                                style: TextStyle(
+                                  color: Colors.red[800],
+                                  fontSize: 12,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () async {
+                          final ok = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Delete Record'),
+                              content: const Text(
+                                'Permanently delete this cancelled booking record?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: const Text(
+                                    'Delete',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (ok == true) {
+                            await firestoreService.deleteBooking(booking.id);
+                          }
+                        },
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.red,
+                          size: 20,
+                        ),
+                        tooltip: 'Delete record',
+                      ),
+                    ],
+                  ),
+                ],
 
                 // ── Action Buttons ─────────────────────────────
                 if (booking.status == BookingStatus.pending) ...[
@@ -529,6 +599,7 @@ class _BookingCard extends StatelessWidget {
   ) async {
     final isConfirm = newStatus == BookingStatus.confirmed;
     final wasConfirmed = booking.status == BookingStatus.confirmed;
+    final reasonController = TextEditingController();
 
     final ok = await showDialog<bool>(
       context: context,
@@ -544,6 +615,17 @@ class _BookingCard extends StatelessWidget {
                   ? 'Confirm this booking for "${booking.hostelName}"?'
                   : 'Cancel this booking? The guest will be notified.',
             ),
+            if (!isConfirm) ...[
+              const SizedBox(height: 16),
+              TextField(
+                controller: reasonController,
+                decoration: const InputDecoration(
+                  labelText: 'Reason (Optional)',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+              ),
+            ],
             if (isConfirm && hostel.availableRooms > 0) ...[
               const SizedBox(height: 12),
               Container(
@@ -618,7 +700,17 @@ class _BookingCard extends StatelessWidget {
 
     try {
       // 1. Update booking status
-      await firestoreService.updateBookingStatus(booking.id, newStatus);
+      if (newStatus == BookingStatus.cancelled) {
+        await firestoreService.cancelBooking(
+          booking.id,
+          reasonController.text.trim().isEmpty
+              ? null
+              : reasonController.text.trim(),
+          'admin',
+        );
+      } else {
+        await firestoreService.updateBookingStatus(booking.id, newStatus);
+      }
 
       // 2. Room management
       if (booking.hostelId.isNotEmpty) {

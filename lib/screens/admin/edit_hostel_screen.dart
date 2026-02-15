@@ -145,7 +145,7 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
         imageQuality: 85,
       );
 
-      if (pickedFiles != null && pickedFiles.isNotEmpty) {
+      if (pickedFiles.isNotEmpty) {
         if (pickedFiles.length +
                 _existingImageUrls.length +
                 _newSelectedImages.length >

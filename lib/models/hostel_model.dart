@@ -56,6 +56,16 @@ class HostelModel {
     this.isActive = true,
   });
 
+  double get startingPrice {
+    if (unitType.toLowerCase() == 'flat') return rentPrice;
+    final prices = [
+      price1Seater,
+      price2Seater,
+      price3Seater,
+    ].where((p) => p != null && p > 0).map((p) => p!).toList();
+    return prices.isEmpty ? rentPrice : prices.reduce((a, b) => a < b ? a : b);
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,

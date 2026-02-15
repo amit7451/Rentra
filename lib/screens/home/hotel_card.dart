@@ -159,24 +159,6 @@ class HotelCard extends StatelessWidget {
                         children: [
                           Builder(
                             builder: (context) {
-                              double startingPrice = hostel.rentPrice;
-                              if (hostel.unitType != 'flat') {
-                                final prices =
-                                    [
-                                          hostel.price1Seater,
-                                          hostel.price2Seater,
-                                          hostel.price3Seater,
-                                        ]
-                                        .where((p) => p != null && p > 0)
-                                        .map((p) => p!)
-                                        .toList();
-                                if (prices.isNotEmpty) {
-                                  startingPrice = prices.reduce(
-                                    (a, b) => a < b ? a : b,
-                                  );
-                                }
-                              }
-
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -193,7 +175,7 @@ class HotelCard extends StatelessWidget {
                                     ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    '₹${startingPrice.toStringAsFixed(0)}',
+                                    '₹${hostel.startingPrice.toStringAsFixed(0)}',
                                     style: Theme.of(context)
                                         .textTheme
                                         .headlineMedium

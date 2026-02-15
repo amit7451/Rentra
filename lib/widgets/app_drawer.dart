@@ -6,6 +6,7 @@ import '../app/theme.dart';
 import '../app/routes.dart';
 import '../models/user_model.dart';
 import '../services/update_service.dart';
+import 'verification_dialog.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -39,9 +40,22 @@ class AppDrawer extends StatelessWidget {
                     );
                   }
 
-                  final userModel = UserModel.fromMap(
-                    snapshot.data!.data() as Map<String, dynamic>,
-                  );
+                  final doc = snapshot.data!;
+                  // Fallback to Auth data if Firestore doc missing or empty
+                  String name = user.displayName ?? 'User';
+                  String? photoUrl = user.photoURL;
+
+                  if (doc.exists && doc.data() != null) {
+                    try {
+                      final userModel = UserModel.fromMap(
+                        doc.data() as Map<String, dynamic>,
+                      );
+                      name = userModel.name;
+                      photoUrl = userModel.photoUrl;
+                    } catch (_) {
+                      // ignore parse errors
+                    }
+                  }
 
                   return Padding(
                     padding: const EdgeInsets.all(16),
@@ -50,14 +64,17 @@ class AppDrawer extends StatelessWidget {
                         CircleAvatar(
                           radius: 28,
                           backgroundColor: AppTheme.primaryRed,
-                          backgroundImage: userModel.photoUrl != null
-                              ? NetworkImage(userModel.photoUrl!)
+                          backgroundImage: photoUrl != null
+                              ? NetworkImage(photoUrl)
                               : null,
-                          child: userModel.photoUrl == null
-                              ? const Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                  size: 30,
+                          child: photoUrl == null
+                              ? Text(
+                                  name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 )
                               : null,
                         ),
@@ -67,7 +84,7 @@ class AppDrawer extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                userModel.name,
+                                name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -104,6 +121,20 @@ class AppDrawer extends StatelessWidget {
             }),
 
             _drawerItem(Icons.add_business_rounded, 'Add your property', () async {
+              // Check email verification first
+              await FirebaseAuth.instance.currentUser?.reload();
+              final currentUser = FirebaseAuth.instance.currentUser;
+
+              if (currentUser != null && !currentUser.emailVerified) {
+                if (context.mounted) {
+                  Navigator.pop(context); // Close drawer
+                  showVerificationDialog(context);
+                }
+                return;
+              }
+
+              if (!context.mounted) return;
+
               final userDoc = await FirebaseFirestore.instance
                   .collection('users')
                   .doc(user.uid)

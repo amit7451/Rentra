@@ -14,7 +14,9 @@ class BookingModel {
   final DateTime bookingDate;
   final String? specialRequests;
   final String? cancellationReason;
+  final String? cancelledBy; // 'user' or 'admin'
   final int? selectedSeater; // 1, 2, or 3 for hostels; null or 0 for flats
+  final int? flatCapacity; // Added capacity for flats
 
   BookingModel({
     required this.id,
@@ -30,7 +32,9 @@ class BookingModel {
     required this.bookingDate,
     this.specialRequests,
     this.cancellationReason,
+    this.cancelledBy,
     this.selectedSeater,
+    this.flatCapacity,
   });
 
   int get numberOfNights {
@@ -52,7 +56,9 @@ class BookingModel {
       'bookingDate': bookingDate.millisecondsSinceEpoch,
       'specialRequests': specialRequests,
       'cancellationReason': cancellationReason,
+      'cancelledBy': cancelledBy,
       'selectedSeater': selectedSeater,
+      'flatCapacity': flatCapacity,
     };
   }
 
@@ -76,7 +82,9 @@ class BookingModel {
       bookingDate: DateTime.fromMillisecondsSinceEpoch(map['bookingDate'] ?? 0),
       specialRequests: map['specialRequests'],
       cancellationReason: map['cancellationReason'],
+      cancelledBy: map['cancelledBy'],
       selectedSeater: map['selectedSeater'],
+      flatCapacity: map['flatCapacity'],
     );
   }
 
@@ -94,7 +102,9 @@ class BookingModel {
     DateTime? bookingDate,
     String? specialRequests,
     String? cancellationReason,
+    String? cancelledBy,
     int? selectedSeater,
+    int? flatCapacity,
   }) {
     return BookingModel(
       id: id ?? this.id,
@@ -110,7 +120,9 @@ class BookingModel {
       bookingDate: bookingDate ?? this.bookingDate,
       specialRequests: specialRequests ?? this.specialRequests,
       cancellationReason: cancellationReason ?? this.cancellationReason,
+      cancelledBy: cancelledBy ?? this.cancelledBy,
       selectedSeater: selectedSeater ?? this.selectedSeater,
+      flatCapacity: flatCapacity ?? this.flatCapacity,
     );
   }
 }

@@ -219,13 +219,24 @@ class BookingsScreen extends StatelessWidget {
 
                         const SizedBox(height: 12),
 
-                        // Guests and nights
+                        // Seater/Capacity and nights
                         Row(
                           children: [
-                            Icon(Icons.people, size: 16, color: AppTheme.grey),
+                            Icon(
+                              booking.selectedSeater == 0
+                                  ? Icons.home_work_outlined
+                                  : Icons
+                                        .airline_seat_individual_suite_outlined,
+                              size: 16,
+                              color: AppTheme.grey,
+                            ),
                             const SizedBox(width: 4),
                             Text(
-                              '${booking.numberOfGuests} ${booking.numberOfGuests == 1 ? 'Guest' : 'Guests'}',
+                              booking.selectedSeater == 0
+                                  ? (booking.flatCapacity != null
+                                        ? 'Flat (Capacity: ${booking.flatCapacity})'
+                                        : 'Flat')
+                                  : '${booking.selectedSeater} Seater',
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ],
@@ -238,11 +249,11 @@ class BookingsScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Total Price',
+                              'Booking Price',
                               style: Theme.of(context).textTheme.bodyLarge,
                             ),
                             Text(
-                              booking.totalPrice.toStringAsFixed(2),
+                              '₹${booking.totalPrice.toStringAsFixed(0)}',
                               style: Theme.of(context).textTheme.headlineSmall
                                   ?.copyWith(
                                     color: AppTheme.primaryRed,
@@ -275,17 +286,89 @@ class BookingsScreen extends StatelessWidget {
                           ),
                         ],
 
-                        // Cancellation reason
-                        if (booking.status == BookingStatus.cancelled &&
-                            booking.cancellationReason != null) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            'Reason: ${booking.cancellationReason}',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: AppTheme.grey,
-                                  fontStyle: FontStyle.italic,
+                        // Cancellation info and Delete button
+                        if (booking.status == BookingStatus.cancelled) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Colors.red.withValues(alpha: 0.1),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Cancelled by ${booking.cancelledBy == 'admin' ? 'Owner' : 'You'}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () async {
+                                        final ok = await showDialog<bool>(
+                                          context: context,
+                                          builder: (ctx) => AlertDialog(
+                                            title: const Text('Delete Record'),
+                                            content: const Text(
+                                              'Remove this cancelled booking from your list?',
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.pop(ctx, false),
+                                                child: const Text('Cancel'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.pop(ctx, true),
+                                                child: const Text(
+                                                  'Delete',
+                                                  style: TextStyle(
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                        if (ok == true) {
+                                          await firestoreService.deleteBooking(
+                                            booking.id,
+                                          );
+                                        }
+                                      },
+                                      child: const Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.red,
+                                        size: 18,
+                                      ),
+                                    ),
+                                  ],
                                 ),
+                                if (booking.cancellationReason != null &&
+                                    booking.cancellationReason!.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Reason: ${booking.cancellationReason}',
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Colors.red[800],
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
                         ],
                       ],
@@ -340,8 +423,9 @@ class BookingsScreen extends StatelessWidget {
                 await firestoreService.cancelBooking(
                   booking.id,
                   reasonController.text.trim().isEmpty
-                      ? 'User cancelled'
+                      ? null
                       : reasonController.text.trim(),
+                  'user',
                 );
 
                 // 2. Restore room if it was confirmed
