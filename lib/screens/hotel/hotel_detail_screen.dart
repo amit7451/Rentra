@@ -7,8 +7,11 @@ import '../../app/routes.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/error_text.dart';
 import '../../widgets/primary_button.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:geolocator/geolocator.dart';
 
-class HotelDetailScreen extends StatelessWidget {
+class HotelDetailScreen extends StatefulWidget {
   final String hostelId;
   final bool hideBookingButton;
 
@@ -19,12 +22,39 @@ class HotelDetailScreen extends StatelessWidget {
   });
 
   @override
+  State<HotelDetailScreen> createState() => _HotelDetailScreenState();
+}
+
+class _HotelDetailScreenState extends State<HotelDetailScreen> {
+  Position? _currentPosition;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.whileInUse ||
+          permission == LocationPermission.always) {
+        final pos = await Geolocator.getCurrentPosition();
+        if (mounted) setState(() => _currentPosition = pos);
+      }
+    } catch (_) {}
+  }
+
+  @override
   Widget build(BuildContext context) {
     final firestoreService = FirestoreService();
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
     return StreamBuilder<HostelModel?>(
-      stream: firestoreService.watchHostel(hostelId),
+      stream: firestoreService.watchHostel(widget.hostelId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -140,22 +170,65 @@ class HotelDetailScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 16),
-                          Row(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              const Icon(
-                                Icons.star,
-                                color: Color(0xFFFFB400),
-                                size: 24,
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.star,
+                                    color: Color(0xFFFFB400),
+                                    size: 24,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    hostel.rating.toStringAsFixed(1),
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                hostel.rating.toStringAsFixed(1),
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
+                              if (_currentPosition != null &&
+                                  hostel.latitude != null &&
+                                  hostel.longitude != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.near_me,
+                                          color: AppTheme.primaryRed,
+                                          size: 16,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          '${(Geolocator.distanceBetween(_currentPosition!.latitude, _currentPosition!.longitude, hostel.latitude!, hostel.longitude!) / 1000).toStringAsFixed(1)} km',
+                                          style: const TextStyle(
+                                            color: Colors.black87,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         ],
@@ -359,6 +432,97 @@ class HotelDetailScreen extends StatelessWidget {
                         }).toList(),
                       ),
 
+                      const SizedBox(height: 24),
+
+                      // Map Section
+                      if (hostel.latitude != null &&
+                          hostel.longitude != null) ...[
+                        Text(
+                          'Location',
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                        const SizedBox(height: 12),
+                        GestureDetector(
+                          onTap: () async {
+                            final url = Uri.parse(
+                              'https://www.google.com/maps/dir/?api=1&destination=${hostel.latitude},${hostel.longitude}',
+                            );
+                            if (await canLaunchUrl(url)) {
+                              await launchUrl(
+                                url,
+                                mode: LaunchMode.externalApplication,
+                              );
+                            }
+                          },
+                          child: Container(
+                            height: 200,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppTheme.lightGrey),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Stack(
+                                children: [
+                                  GoogleMap(
+                                    initialCameraPosition: CameraPosition(
+                                      target: LatLng(
+                                        hostel.latitude!,
+                                        hostel.longitude!,
+                                      ),
+                                      zoom: 14,
+                                    ),
+                                    markers: {
+                                      Marker(
+                                        markerId: const MarkerId(
+                                          'hostelLocation',
+                                        ),
+                                        position: LatLng(
+                                          hostel.latitude!,
+                                          hostel.longitude!,
+                                        ),
+                                      ),
+                                    },
+                                    liteModeEnabled: true,
+                                    zoomControlsEnabled: false,
+                                    myLocationButtonEnabled: false,
+                                    scrollGesturesEnabled: false,
+                                    zoomGesturesEnabled: false,
+                                  ),
+                                  Positioned(
+                                    bottom: 8,
+                                    right: 8,
+                                    child: IgnorePointer(
+                                      child: ElevatedButton.icon(
+                                        onPressed: () {},
+                                        icon: const Icon(
+                                          Icons.directions,
+                                          size: 16,
+                                        ),
+                                        label: const Text('Navigate'),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.white,
+                                          foregroundColor: AppTheme.primaryRed,
+                                          elevation: 2,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 8,
+                                          ),
+                                          textStyle: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+
                       const SizedBox(height: 100),
                     ],
                   ),
@@ -368,7 +532,7 @@ class HotelDetailScreen extends StatelessWidget {
           ),
 
           // Book button
-          bottomNavigationBar: hideBookingButton
+          bottomNavigationBar: widget.hideBookingButton
               ? null
               : Container(
                   padding: const EdgeInsets.all(16),

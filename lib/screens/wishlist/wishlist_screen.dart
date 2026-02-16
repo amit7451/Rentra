@@ -16,23 +16,68 @@ class WishlistScreen extends StatelessWidget {
 
     if (uid == null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Wishlist'),
-          backgroundColor: AppTheme.primaryRed,
-          foregroundColor: Colors.white,
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.login_outlined, size: 64, color: Colors.grey),
-              const SizedBox(height: 16),
-              const Text(
-                'Sign in to view your wishlist',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              elevation: 0,
+              pinned: true,
+              backgroundColor: Colors.grey[50],
+              centerTitle: true,
+              title: const Text(
+                'Wishlist',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ],
-          ),
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(1),
+                child: Container(
+                  height: 1,
+                  width: double.infinity,
+                  clipBehavior: Clip.none,
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: Colors.black.withOpacity(0.06),
+                  ),
+                ),
+              ),
+            ),
+            SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.login_outlined,
+                      size: 64,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Sign in to view your wishlist',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -42,96 +87,142 @@ class WishlistScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F7),
-      appBar: AppBar(
-        title: const Text('Wishlist'),
-        centerTitle: true,
-        backgroundColor: AppTheme.primaryRed,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: StreamBuilder<List<String>>(
-        stream: wishlistService.watchWishlist(uid),
-        builder: (context, idSnap) {
-          if (idSnap.connectionState == ConnectionState.waiting) {
-            return const LoadingIndicator(message: 'Loading wishlist...');
-          }
-
-          final hostelIds = idSnap.data ?? [];
-
-          if (hostelIds.isEmpty) {
-            return _EmptyWishlist();
-          }
-
-          return StreamBuilder<List<HostelModel>>(
-            stream: firestoreService.getHostels(),
-            builder: (context, hostelSnap) {
-              if (hostelSnap.connectionState == ConnectionState.waiting) {
-                return const LoadingIndicator(message: 'Loading hostels...');
-              }
-
-              final all = hostelSnap.data ?? [];
-              final wishlisted = all
-                  .where((h) => hostelIds.contains(h.id))
-                  .toList();
-
-              if (wishlisted.isEmpty) {
-                return _EmptyWishlist();
-              }
-
-              return Column(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.transparent,
+            pinned: true,
+            backgroundColor: Colors.grey[50],
+            centerTitle: true,
+            title: const Text(
+              'Wishlist',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            expandedHeight: 80,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  // ── Count header ────────────────────────────────
                   Container(
-                    margin: const EdgeInsets.all(16),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
+                    height: 1,
+                    width: double.infinity,
+                    clipBehavior: Clip.none,
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryRed.withValues(alpha: 0.07),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.favorite,
-                          color: AppTheme.primaryRed,
-                          size: 18,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${wishlisted.length} saved propert${wishlisted.length == 1 ? 'y' : 'ies'}',
-                          style: const TextStyle(
-                            color: AppTheme.primaryRed,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                  ),
-
-                  // ── Hostel list ─────────────────────────────────
-                  Expanded(
-                    child: RefreshIndicator(
-                      color: AppTheme.primaryRed,
-                      onRefresh: () async =>
-                          await Future.delayed(const Duration(seconds: 1)),
-                      child: ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        itemCount: wishlisted.length,
-                        itemBuilder: (context, i) => _WishlistCard(
-                          hostel: wishlisted[i],
-                          uid: uid,
-                          wishlistService: wishlistService,
-                        ),
-                      ),
+                    child: Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: Colors.black.withOpacity(0.06),
                     ),
                   ),
                 ],
+              ),
+            ),
+          ),
+          StreamBuilder<List<String>>(
+            stream: wishlistService.watchWishlist(uid),
+            builder: (context, idSnap) {
+              if (idSnap.connectionState == ConnectionState.waiting) {
+                return const SliverFillRemaining(
+                  child: LoadingIndicator(message: 'Loading wishlist...'),
+                );
+              }
+
+              final hostelIds = idSnap.data ?? [];
+
+              if (hostelIds.isEmpty) {
+                return SliverFillRemaining(child: _EmptyWishlist());
+              }
+
+              return StreamBuilder<List<HostelModel>>(
+                stream: firestoreService.getHostels(),
+                builder: (context, hostelSnap) {
+                  if (hostelSnap.connectionState == ConnectionState.waiting) {
+                    return const SliverFillRemaining(
+                      child: LoadingIndicator(message: 'Loading hostels...'),
+                    );
+                  }
+
+                  final all = hostelSnap.data ?? [];
+                  final wishlisted = all
+                      .where((h) => hostelIds.contains(h.id))
+                      .toList();
+
+                  if (wishlisted.isEmpty) {
+                    return SliverFillRemaining(child: _EmptyWishlist());
+                  }
+
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      if (index == 0) {
+                        return Column(
+                          children: [
+                            // ── Count header ────────────────────────────────
+                            Container(
+                              margin: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryRed.withValues(
+                                  alpha: 0.07,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.favorite,
+                                    color: AppTheme.primaryRed,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '${wishlisted.length} saved propert${wishlisted.length == 1 ? 'y' : 'ies'}',
+                                    style: const TextStyle(
+                                      color: AppTheme.primaryRed,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: _WishlistCard(
+                          hostel: wishlisted[index - 1],
+                          uid: uid,
+                          wishlistService: wishlistService,
+                        ),
+                      );
+                    }, childCount: wishlisted.length + 1),
+                  );
+                },
               );
             },
-          );
-        },
+          ),
+        ],
       ),
     );
   }

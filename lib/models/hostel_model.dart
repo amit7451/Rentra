@@ -8,6 +8,11 @@ class HostelModel {
   final String city;
   final String country;
   final double rentPrice;
+  final double? latitude;
+  final double? longitude;
+  final String? googleMapAddress;
+  final String? state;
+  final String? pincode;
   // For hostels: separate pricing per seater (1,2,3)
   final double? price1Seater;
   final double? price2Seater;
@@ -37,6 +42,11 @@ class HostelModel {
     required this.city,
     required this.country,
     required this.rentPrice,
+    this.latitude,
+    this.longitude,
+    this.googleMapAddress,
+    this.state,
+    this.pincode,
     this.price1Seater,
     this.price2Seater,
     this.price3Seater,
@@ -75,6 +85,11 @@ class HostelModel {
       'city': city,
       'country': country,
       'pricePerNight': rentPrice,
+      'latitude': latitude,
+      'longitude': longitude,
+      'googleMapAddress': googleMapAddress,
+      'state': state,
+      'pincode': pincode,
       'price1Seater': price1Seater,
       'price2Seater': price2Seater,
       'price3Seater': price3Seater,
@@ -103,6 +118,11 @@ class HostelModel {
       city: '',
       country: '',
       rentPrice: 0.0,
+      latitude: null,
+      longitude: null,
+      googleMapAddress: null,
+      state: null,
+      pincode: null,
       price1Seater: null,
       price2Seater: null,
       price3Seater: null,
@@ -140,6 +160,15 @@ class HostelModel {
       city: map['city'] ?? '',
       country: map['country'] ?? '',
       rentPrice: (map['pricePerNight'] ?? 0.0).toDouble(),
+      latitude: map['latitude'] != null
+          ? (map['latitude'] as num).toDouble()
+          : null,
+      longitude: map['longitude'] != null
+          ? (map['longitude'] as num).toDouble()
+          : null,
+      googleMapAddress: map['googleMapAddress'],
+      state: map['state'],
+      pincode: map['pincode'],
       price1Seater: map['price1Seater'] == null
           ? null
           : (map['price1Seater'] as num).toDouble(),
@@ -179,6 +208,11 @@ class HostelModel {
     String? city,
     String? country,
     double? rentPrice,
+    double? latitude,
+    double? longitude,
+    String? googleMapAddress,
+    String? state,
+    String? pincode,
     double? price1Seater,
     double? price2Seater,
     double? price3Seater,
@@ -205,6 +239,11 @@ class HostelModel {
       city: city ?? this.city,
       country: country ?? this.country,
       rentPrice: rentPrice ?? this.rentPrice,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      googleMapAddress: googleMapAddress ?? this.googleMapAddress,
+      state: state ?? this.state,
+      pincode: pincode ?? this.pincode,
       price1Seater: price1Seater ?? this.price1Seater,
       price2Seater: price2Seater ?? this.price2Seater,
       price3Seater: price3Seater ?? this.price3Seater,

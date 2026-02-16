@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
 import '../models/hostel_model.dart';
 import '../models/booking_model.dart';
+import 'package:geolocator/geolocator.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -243,35 +244,11 @@ class FirestoreService {
     try {
       final docRef = _firestore.collection(_hostelsCollection).doc();
 
-      // Create hostel data with auto-generated ID and active status
-      final hostelData = {
-        'id': docRef.id,
-        'name': hostel.name,
-        'description': hostel.description,
-        'address': hostel.address,
-        'city': hostel.city,
-        'country': hostel.country,
-        'pricePerNight': hostel.rentPrice,
-        'price1Seater': hostel.price1Seater,
-        'price2Seater': hostel.price2Seater,
-        'price3Seater': hostel.price3Seater,
-        'rooms1Seater': hostel.rooms1Seater,
-        'rooms2Seater': hostel.rooms2Seater,
-        'rooms3Seater': hostel.rooms3Seater,
-        'flatCapacity': hostel.flatCapacity,
-        'unitType': hostel.unitType,
-        'rentPeriod': hostel.rentPeriod,
-        'availableRooms': hostel.availableRooms,
-        'rating': hostel.rating,
-        'totalReviews': hostel.totalReviews,
-        'images': hostel.images,
-        'amenities': hostel.amenities,
-        'ownerId': hostel.ownerId, // Critical: link hostel to owner
-        'isActive': true, // Default active status
-        'createdAt': FieldValue.serverTimestamp(),
-      };
+      final data = hostel.toMap();
+      data['id'] = docRef.id;
+      data['createdAt'] = FieldValue.serverTimestamp();
 
-      await docRef.set(hostelData);
+      await docRef.set(data);
     } catch (e) {
       throw 'Failed to add hostel: $e';
     }
@@ -287,15 +264,18 @@ class FirestoreService {
       query = query.where('unitType', isEqualTo: unitType);
     }
 
-    // Server-side: match index #1 and #2. Client-side: filter out full rooms.
-    query = query.orderBy('rating', descending: true).limit(30);
-
-    return query.snapshots().map(
-      (snapshot) => snapshot.docs
+    return query.snapshots().map((snapshot) {
+      final hostels = snapshot.docs
           .map((doc) => HostelModel.fromMap(doc.data()))
           .where((h) => h.availableRooms > 0)
-          .toList(),
-    );
+          .toList();
+
+      // Sort by rating client-side to avoid complex index requirements
+      hostels.sort((a, b) => b.rating.compareTo(a.rating));
+
+      // Limit to 30 client-side
+      return hostels.take(30).toList();
+    });
   }
 
   // In getHostel method:
@@ -353,7 +333,10 @@ class FirestoreService {
   Stream<List<HostelModel>> getEnhancedHostels({
     String? query,
     String? unitType,
-    String? sortBy, // 'price_asc', 'price_desc', 'rating_desc'
+    String? sortBy, // 'price_asc', 'price_desc', 'rating_desc', 'distance'
+    double? lat,
+    double? lng,
+    double? radiusInKm,
   }) {
     return _firestore
         .collection(_hostelsCollection)
@@ -402,8 +385,42 @@ class FirestoreService {
                 : prices.reduce((a, b) => a < b ? a : b);
           }
 
-          // 4. Sort
-          if (sortBy == 'price_asc') {
+          // 4. Filter by Location (Radius)
+          if (lat != null && lng != null && radiusInKm != null) {
+            filtered = filtered.where((h) {
+              if (h.latitude == null || h.longitude == null) return false;
+              final dist =
+                  Geolocator.distanceBetween(
+                    lat,
+                    lng,
+                    h.latitude!,
+                    h.longitude!,
+                  ) /
+                  1000; // convert to km
+              return dist <= radiusInKm;
+            }).toList();
+          }
+
+          // 5. Sort
+          if (sortBy == 'distance' && lat != null && lng != null) {
+            filtered.sort((a, b) {
+              if (a.latitude == null || a.longitude == null) return 1;
+              if (b.latitude == null || b.longitude == null) return -1;
+              final distA = Geolocator.distanceBetween(
+                lat,
+                lng,
+                a.latitude!,
+                a.longitude!,
+              );
+              final distB = Geolocator.distanceBetween(
+                lat,
+                lng,
+                b.latitude!,
+                b.longitude!,
+              );
+              return distA.compareTo(distB);
+            });
+          } else if (sortBy == 'price_asc') {
             filtered.sort(
               (a, b) => getStartingPrice(a).compareTo(getStartingPrice(b)),
             );
@@ -614,5 +631,49 @@ class FirestoreService {
     await _firestore.collection(_hostelsCollection).doc(hostelId).update({
       'availableRooms': rooms,
     });
+  }
+
+  // Get Hostels Sorted by Distance
+  Stream<List<HostelModel>> getHostelsNearLocation({
+    required double? lat,
+    required double? lng,
+    double radiusInKm = 5000, // Large default to show all sorted
+  }) {
+    return _firestore
+        .collection(_hostelsCollection)
+        .where('isActive', isEqualTo: true)
+        .snapshots()
+        .map((snapshot) {
+          final hostels = snapshot.docs
+              .map((doc) => HostelModel.fromMap(doc.data()))
+              .where((h) => h.availableRooms > 0)
+              .toList();
+
+          if (lat == null || lng == null) {
+            return hostels;
+          }
+
+          // Calculate distances and sort
+          hostels.sort((a, b) {
+            if (a.latitude == null || a.longitude == null) return 1;
+            if (b.latitude == null || b.longitude == null) return -1;
+
+            final distA = Geolocator.distanceBetween(
+              lat,
+              lng,
+              a.latitude!,
+              a.longitude!,
+            );
+            final distB = Geolocator.distanceBetween(
+              lat,
+              lng,
+              b.latitude!,
+              b.longitude!,
+            );
+            return distA.compareTo(distB);
+          });
+
+          return hostels;
+        });
   }
 }

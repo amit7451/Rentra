@@ -5,7 +5,7 @@ import '../../models/booking_model.dart';
 import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
 import '../../widgets/primary_button.dart';
-import '/widgets/verification_dialog.dart';
+import '../../widgets/verification_dialog.dart';
 
 class BookingScreen extends StatefulWidget {
   final String hostelId;
@@ -558,7 +558,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   )
                 else
                   DropdownButtonFormField<int>(
-                    value: (() {
+                    initialValue: (() {
                       // Filter available seaters based on rooms and price
                       final available = [
                         if ((_hostel?.rooms1Seater ?? 0) > 0 &&

@@ -24,14 +24,14 @@ class AppTheme {
       surface: white,
       error: darkRed,
     ),
-    scaffoldBackgroundColor: backgroundColor,
+    scaffoldBackgroundColor: const Color(0xFFF9F9F9), // Match Home's clean feel
 
     appBarTheme: const AppBarTheme(
-      backgroundColor: primaryRed,
-      foregroundColor: white,
+      backgroundColor: Color(0xFFF9F9F9),
+      foregroundColor: Colors.black87,
       elevation: 0,
       centerTitle: true,
-      iconTheme: IconThemeData(color: white),
+      iconTheme: IconThemeData(color: Colors.black87),
     ),
 
     elevatedButtonTheme: ElevatedButtonThemeData(

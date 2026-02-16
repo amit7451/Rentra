@@ -106,17 +106,6 @@ class ProfileScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              _showLogoutDialog(context, authService);
-            },
-          ),
-        ],
-      ),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance
             .collection('users')
@@ -129,233 +118,286 @@ class ProfileScreen extends StatelessWidget {
 
           final userModel = UserModel.fromMap(snapshot.data!.data()!);
 
-          return RefreshIndicator(
-            color: AppTheme.primaryRed,
-            onRefresh: () async =>
-                await Future.delayed(const Duration(seconds: 1)),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundColor: AppTheme.primaryRed,
-                    child: userModel.photoUrl != null
-                        ? ClipOval(
-                            child: Image.network(
-                              userModel.photoUrl!,
-                              width: 120,
-                              height: 120,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => const Icon(
-                                Icons.person,
-                                size: 60,
-                                color: AppTheme.white,
-                              ),
+          return CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                surfaceTintColor: Colors.transparent,
+                pinned: true,
+                floating: false,
+                backgroundColor: Colors.grey[50],
+                centerTitle: true,
+                title: const Text(
+                  'Profile',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.logout, color: Colors.black),
+                    onPressed: () {
+                      _showLogoutDialog(context, authService);
+                    },
+                  ),
+                ],
+                expandedHeight: 80,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Container(
+                        height: 1,
+                        width: double.infinity,
+                        clipBehavior: Clip.none,
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
                             ),
-                          )
-                        : const Icon(
-                            Icons.person,
-                            size: 60,
-                            color: AppTheme.white,
-                          ),
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: Colors.black.withOpacity(0.06),
+                        ),
+                      ),
+                    ],
                   ),
-
-                  const SizedBox(height: 16),
-
-                  Text(
-                    userModel.name,
-                    style: Theme.of(context).textTheme.displaySmall,
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  Text(
-                    user.email ?? '',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyLarge?.copyWith(color: AppTheme.grey),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  Card(
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: RefreshIndicator(
+                  color: AppTheme.primaryRed,
+                  onRefresh: () async =>
+                      await Future.delayed(const Duration(seconds: 1)),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        ListTile(
-                          leading: const Icon(
-                            Icons.person_outline,
-                            color: AppTheme.primaryRed,
-                          ),
-                          title: const Text('Edit Profile'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _editProfile(context, userModel),
+                        const SizedBox(height: 20),
+                        CircleAvatar(
+                          radius: 60,
+                          backgroundColor: AppTheme.primaryRed,
+                          child: userModel.photoUrl != null
+                              ? ClipOval(
+                                  child: Image.network(
+                                    userModel.photoUrl!,
+                                    width: 120,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, _, _) => const Icon(
+                                      Icons.person,
+                                      size: 60,
+                                      color: AppTheme.white,
+                                    ),
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.person,
+                                  size: 60,
+                                  color: AppTheme.white,
+                                ),
                         ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(
-                            Icons.lock_outline,
-                            color: AppTheme.primaryRed,
-                          ),
-                          title: const Text('Change Password'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _changePassword(context),
+                        const SizedBox(height: 16),
+                        Text(
+                          userModel.name,
+                          style: Theme.of(context).textTheme.displaySmall,
                         ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(
-                            Icons.notifications_outlined,
-                            color: AppTheme.primaryRed,
-                          ),
-                          title: const Text('Notifications'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              AppRoutes.notifications,
-                            );
-                          },
+                        const SizedBox(height: 8),
+                        Text(
+                          user.email ?? '',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyLarge?.copyWith(color: AppTheme.grey),
                         ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(
-                            Icons.payment_outlined,
-                            color: AppTheme.primaryRed,
-                          ),
-                          title: const Text('Payment Methods'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {
-                            Navigator.pushNamed(context, AppRoutes.payments);
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // App settings
-                  Card(
-                    child: Column(
-                      children: [
-                        ListTile(
-                          leading: const Icon(
-                            Icons.language_outlined,
-                            color: AppTheme.primaryRed,
-                          ),
-                          title: const Text('Language'),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
+                        const SizedBox(height: 32),
+                        Card(
+                          child: Column(
                             children: [
-                              Text(
-                                'English',
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(color: AppTheme.grey),
+                              ListTile(
+                                leading: const Icon(
+                                  Icons.person_outline,
+                                  color: AppTheme.primaryRed,
+                                ),
+                                title: const Text('Edit Profile'),
+                                trailing: const Icon(Icons.chevron_right),
+                                onTap: () => _editProfile(context, userModel),
                               ),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.chevron_right),
+                              const Divider(height: 1),
+                              ListTile(
+                                leading: const Icon(
+                                  Icons.lock_outline,
+                                  color: AppTheme.primaryRed,
+                                ),
+                                title: const Text('Change Password'),
+                                trailing: const Icon(Icons.chevron_right),
+                                onTap: () => _changePassword(context),
+                              ),
+                              const Divider(height: 1),
+                              ListTile(
+                                leading: const Icon(
+                                  Icons.notifications_outlined,
+                                  color: AppTheme.primaryRed,
+                                ),
+                                title: const Text('Notifications'),
+                                trailing: const Icon(Icons.chevron_right),
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.notifications,
+                                  );
+                                },
+                              ),
+                              const Divider(height: 1),
+                              ListTile(
+                                leading: const Icon(
+                                  Icons.payment_outlined,
+                                  color: AppTheme.primaryRed,
+                                ),
+                                title: const Text('Payment Methods'),
+                                trailing: const Icon(Icons.chevron_right),
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.payments,
+                                  );
+                                },
+                              ),
                             ],
                           ),
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                title: const Text('Select Language'),
-                                content: Column(
+                        ),
+                        const SizedBox(height: 16),
+                        Card(
+                          child: Column(
+                            children: [
+                              ListTile(
+                                leading: const Icon(
+                                  Icons.language_outlined,
+                                  color: AppTheme.primaryRed,
+                                ),
+                                title: const Text('Language'),
+                                trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    ListTile(
-                                      title: const Text('English'),
-                                      trailing: const Icon(
-                                        Icons.check,
-                                        color: AppTheme.primaryRed,
-                                      ),
-                                      onTap: () => Navigator.pop(ctx),
+                                    Text(
+                                      'English',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(color: AppTheme.grey),
                                     ),
+                                    const SizedBox(width: 8),
+                                    const Icon(Icons.chevron_right),
                                   ],
                                 ),
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('Select Language'),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          ListTile(
+                                            title: const Text('English'),
+                                            trailing: const Icon(
+                                              Icons.check,
+                                              color: AppTheme.primaryRed,
+                                            ),
+                                            onTap: () => Navigator.pop(ctx),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(
-                            Icons.help_outline,
-                            color: AppTheme.primaryRed,
+                              const Divider(height: 1),
+                              ListTile(
+                                leading: const Icon(
+                                  Icons.help_outline,
+                                  color: AppTheme.primaryRed,
+                                ),
+                                title: const Text('Help & Support'),
+                                trailing: const Icon(Icons.chevron_right),
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.helpSupport,
+                                  );
+                                },
+                              ),
+                              const Divider(height: 1),
+                              ListTile(
+                                leading: const Icon(
+                                  Icons.privacy_tip_outlined,
+                                  color: AppTheme.primaryRed,
+                                ),
+                                title: const Text('Privacy Policy'),
+                                trailing: const Icon(Icons.chevron_right),
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.privacyPolicy,
+                                  );
+                                },
+                              ),
+                              const Divider(height: 1),
+                              ListTile(
+                                leading: const Icon(
+                                  Icons.info_outline,
+                                  color: AppTheme.primaryRed,
+                                ),
+                                title: const Text('About'),
+                                trailing: const Icon(Icons.chevron_right),
+                                onTap: () {
+                                  _showAboutDialog(context);
+                                },
+                              ),
+                            ],
                           ),
-                          title: const Text('Help & Support'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {
-                            Navigator.pushNamed(context, AppRoutes.helpSupport);
-                          },
                         ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(
-                            Icons.privacy_tip_outlined,
-                            color: AppTheme.primaryRed,
+                        const SizedBox(height: 32),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              _showLogoutDialog(context, authService);
+                            },
+                            icon: const Icon(Icons.logout),
+                            label: const Text('Logout'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppTheme.darkRed,
+                              side: const BorderSide(color: AppTheme.darkRed),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
                           ),
-                          title: const Text('Privacy Policy'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              AppRoutes.privacyPolicy,
-                            );
-                          },
                         ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading: const Icon(
-                            Icons.info_outline,
-                            color: AppTheme.primaryRed,
-                          ),
-                          title: const Text('About'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {
-                            _showAboutDialog(context);
-                          },
+                        const SizedBox(height: 16),
+                        Text(
+                          'Version 1.0.0',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(color: AppTheme.grey),
                         ),
+                        const SizedBox(height: 32),
                       ],
                     ),
                   ),
-
-                  const SizedBox(height: 32),
-
-                  // Logout button
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        _showLogoutDialog(context, authService);
-                      },
-                      icon: const Icon(Icons.logout),
-                      label: const Text('Logout'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.darkRed,
-                        side: const BorderSide(color: AppTheme.darkRed),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Version info
-                  Text(
-                    'Version 1.0.0',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: AppTheme.grey),
-                  ),
-
-                  const SizedBox(height: 32),
-                ],
+                ),
               ),
-            ),
+            ],
           );
         },
       ),

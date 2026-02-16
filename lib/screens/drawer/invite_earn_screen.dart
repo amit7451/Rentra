@@ -58,106 +58,162 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Invite & Earn')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  Container(
-                    width: 150,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryRed.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.card_giftcard_rounded,
-                      size: 80,
-                      color: AppTheme.primaryRed,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  const Text(
-                    'Invite Friends & Earn Points',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Share your invite link with your friends and get rewarded when they sign up and book their first stay!',
+          : CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  elevation: 0,
+                  scrolledUnderElevation: 0,
+                  surfaceTintColor: Colors.transparent,
+                  pinned: true,
+                  floating: false,
+                  backgroundColor: Colors.grey[50],
+                  centerTitle: true,
+                  title: const Text(
+                    'Invite & Earn',
                     style: TextStyle(
-                      color: AppTheme.grey,
-                      fontSize: 16,
-                      height: 1.5,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 40),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.lightGrey),
-                    ),
-                    child: Row(
+                  expandedHeight: 80,
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Expanded(
-                          child: Text(
-                            _appLink ?? '',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: AppTheme.black,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        Container(
+                          height: 1,
+                          width: double.infinity,
+                          clipBehavior: Clip.none,
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 15,
+                                offset: const Offset(0, 8),
+                              ),
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.copy,
-                            color: AppTheme.primaryRed,
+                          child: Divider(
+                            height: 1,
+                            thickness: 1,
+                            color: Colors.black.withOpacity(0.06),
                           ),
-                          onPressed: _copyToClipboard,
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _shareContent,
-                      icon: const Icon(Icons.share_rounded),
-                      label: const Text('Share Now'),
+                ),
+                SliverToBoxAdapter(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        Container(
+                          width: 150,
+                          height: 150,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryRed.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.card_giftcard_rounded,
+                            size: 80,
+                            color: AppTheme.primaryRed,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        const Text(
+                          'Invite Friends & Earn Points',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Share your invite link with your friends and get rewarded when they sign up and book their first stay!',
+                          style: TextStyle(
+                            color: AppTheme.grey,
+                            fontSize: 16,
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 40),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppTheme.lightGrey),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _appLink ?? '',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: AppTheme.black,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.copy,
+                                  color: AppTheme.primaryRed,
+                                ),
+                                onPressed: _copyToClipboard,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _shareContent,
+                            icon: const Icon(Icons.share_rounded),
+                            label: const Text('Share Now'),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        const Divider(),
+                        const SizedBox(height: 24),
+                        _benefitItem(
+                          Icons.person_add_outlined,
+                          'Step 1: Invite Friends',
+                          'Share your link with friends who are looking for a place to stay.',
+                        ),
+                        const SizedBox(height: 20),
+                        _benefitItem(
+                          Icons.verified_user_outlined,
+                          'Step 2: They Sign Up',
+                          'Your friends sign up using your link and verified their account.',
+                        ),
+                        const SizedBox(height: 20),
+                        _benefitItem(
+                          Icons.stars_rounded,
+                          'Step 3: Earn Rewards',
+                          'Get 100 points for every successful booking they make!',
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  const Divider(),
-                  const SizedBox(height: 24),
-                  _benefitItem(
-                    Icons.person_add_outlined,
-                    'Step 1: Invite Friends',
-                    'Share your link with friends who are looking for a place to stay.',
-                  ),
-                  const SizedBox(height: 20),
-                  _benefitItem(
-                    Icons.verified_user_outlined,
-                    'Step 2: They Sign Up',
-                    'Your friends sign up using your link and verified their account.',
-                  ),
-                  const SizedBox(height: 20),
-                  _benefitItem(
-                    Icons.stars_rounded,
-                    'Step 3: Earn Rewards',
-                    'Get 100 points for every successful booking they make!',
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
     );
   }

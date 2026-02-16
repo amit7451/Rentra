@@ -5,13 +5,16 @@ import '../../app/routes.dart';
 
 class HotelCard extends StatelessWidget {
   final HostelModel hostel;
+  final double? distance;
 
-  const HotelCard({super.key, required this.hostel});
+  const HotelCard({super.key, required this.hostel, this.distance});
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () {
           Navigator.pushNamed(
@@ -24,19 +27,32 @@ class HotelCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-              child: hostel.images.isNotEmpty
-                  ? Image.network(
-                      hostel.images.first,
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
+            // Image with Distance Overlay
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
+                  child: hostel.images.isNotEmpty
+                      ? Image.network(
+                          hostel.images.first,
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 200,
+                              color: AppTheme.lightGrey,
+                              child: const Icon(
+                                Icons.hotel,
+                                size: 64,
+                                color: AppTheme.grey,
+                              ),
+                            );
+                          },
+                        )
+                      : Container(
                           height: 200,
                           color: AppTheme.lightGrey,
                           child: const Icon(
@@ -44,18 +60,43 @@ class HotelCard extends StatelessWidget {
                             size: 64,
                             color: AppTheme.grey,
                           ),
-                        );
-                      },
-                    )
-                  : Container(
-                      height: 200,
-                      color: AppTheme.lightGrey,
-                      child: const Icon(
-                        Icons.hotel,
-                        size: 64,
-                        color: AppTheme.grey,
+                        ),
+                ),
+                if (distance != null)
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.near_me,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${distance!.toStringAsFixed(1)} km',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                  ),
+              ],
             ),
 
             // Details
@@ -80,7 +121,7 @@ class HotelCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            // Unit type chip (Flat vs Hostel/PG)
+                            // Unit type chip
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -108,17 +149,16 @@ class HotelCard extends StatelessWidget {
                         children: [
                           const Icon(
                             Icons.star,
-                            color: Color(0xFFFFB400), // yellow star
+                            color: Color(0xFFFFB400),
                             size: 20,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             hostel.rating.toStringAsFixed(1),
                             style: const TextStyle(
-                              color: Colors.black, // black rating text
+                              color: Colors.black,
                               fontWeight: FontWeight.bold,
-                              fontSize:
-                                  14, // same default size (keep/remove if already defined)
+                              fontSize: 14,
                             ),
                           ),
                         ],
@@ -157,44 +197,29 @@ class HotelCard extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Builder(
-                            builder: (context) {
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (hostel.unitType != 'flat')
-                                    Text(
-                                      'Starting from',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelSmall
-                                          ?.copyWith(
-                                            color: AppTheme.grey,
-                                            fontSize: 10,
-                                          ),
-                                    ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '₹${hostel.startingPrice.toStringAsFixed(0)}',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineMedium
-                                        ?.copyWith(
-                                          color: AppTheme.primaryRed,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                          if (hostel.unitType != 'flat')
+                            Text(
+                              'Starting from',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: AppTheme.grey,
+                                    fontSize: 10,
                                   ),
-                                  Text(
-                                    hostel.rentPeriod == 'monthly'
-                                        ? 'Monthly'
-                                        : 'Yearly',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                ],
-                              );
-                            },
+                            ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '₹${hostel.startingPrice.toStringAsFixed(0)}',
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
+                                  color: AppTheme.primaryRed,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          Text(
+                            hostel.rentPeriod == 'monthly'
+                                ? 'Monthly'
+                                : 'Yearly',
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
                       ),
