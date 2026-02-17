@@ -260,7 +260,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         title: const Text('Edit Profile'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete_forever, color: Colors.white),
+            icon: const Icon(Icons.delete_forever, color: Colors.black),
             tooltip: 'Delete Account',
             onPressed: () => _showDeleteAccountDialog(context),
           ),

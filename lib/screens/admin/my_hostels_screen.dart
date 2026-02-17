@@ -18,84 +18,118 @@ class MyHostelsScreen extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F7),
-      appBar: AppBar(
-        title: const Text('My Hostels'),
-        centerTitle: true,
-        backgroundColor: AppTheme.primaryRed,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: StreamBuilder<List<HostelModel>>(
-        stream: firestoreService.getHostelsByOwner(uid),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const LoadingIndicator(message: 'Loading your hostels...');
-          }
-
-          if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 12),
-                  Text('Error: ${snapshot.error}', textAlign: TextAlign.center),
-                ],
+      backgroundColor: Colors.grey[50],
+      body: RefreshIndicator(
+        color: AppTheme.primaryRed,
+        onRefresh: () async => await Future.delayed(const Duration(seconds: 1)),
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverAppBar(
+              title: const Text(
+                'My Hostels',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
-            );
-          }
+              centerTitle: true,
+              backgroundColor: Colors.grey[50],
+              foregroundColor: Colors.black,
+              pinned: true,
+              elevation: 0,
+              surfaceTintColor: Colors.transparent,
+              scrolledUnderElevation: 4,
+            ),
+            StreamBuilder<List<HostelModel>>(
+              stream: firestoreService.getHostelsByOwner(uid),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SliverFillRemaining(
+                    child: LoadingIndicator(message: 'Loading your hostels...'),
+                  );
+                }
 
-          final hostels = snapshot.data ?? [];
-
-          if (hostels.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryRed.withValues(alpha: 0.08),
-                      shape: BoxShape.circle,
+                if (snapshot.hasError) {
+                  return SliverFillRemaining(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: Colors.red,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Error: ${snapshot.error}',
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.home_work_outlined,
-                      size: 60,
-                      color: AppTheme.primaryRed,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'No hostels listed yet',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Add your first property to get started',
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            );
-          }
+                  );
+                }
 
-          return RefreshIndicator(
-            color: AppTheme.primaryRed,
-            onRefresh: () async =>
-                await Future.delayed(const Duration(seconds: 1)),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: hostels.length,
-              itemBuilder: (context, index) {
-                return _HostelCard(
-                  hostel: hostels[index],
-                  firestoreService: firestoreService,
+                final hostels = snapshot.data ?? [];
+
+                if (hostels.isEmpty) {
+                  return SliverFillRemaining(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryRed.withValues(
+                                alpha: 0.08,
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.home_work_outlined,
+                              size: 60,
+                              color: AppTheme.primaryRed,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          const Text(
+                            'No hostels listed yet',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Add your first property to get started',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverList.builder(
+                    itemCount: hostels.length,
+                    itemBuilder: (context, index) {
+                      return _HostelCard(
+                        hostel: hostels[index],
+                        firestoreService: firestoreService,
+                      );
+                    },
+                  ),
                 );
               },
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }
@@ -217,19 +251,24 @@ class _HostelCard extends StatelessWidget {
                             color: Colors.grey[600],
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            '${hostel.address}, ${hostel.city}',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 13,
+                          Expanded(
+                            child: Text(
+                              '${hostel.address}, ${hostel.city}',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 13,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                       const SizedBox(height: 10),
-                      Row(
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Builder(
                             builder: (context) {
@@ -259,16 +298,15 @@ class _HostelCard extends StatelessWidget {
                               );
                             },
                           ),
-                          const SizedBox(width: 10),
                           _infoChip(
                             '${hostel.availableRooms} rooms',
                             Icons.bed_outlined,
                             Colors.blue.withValues(alpha: 0.1),
                             Colors.blue[700]!,
                           ),
-                          const SizedBox(width: 10),
                           // Rating box fixed as per hotel_card.dart
                           Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(
                                 Icons.star,

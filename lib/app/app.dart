@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/notification_service.dart';
 import 'theme.dart';
 import 'routes.dart';
 import '../screens/splash_screen.dart';
@@ -9,6 +10,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Book Hostel or Flat',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,

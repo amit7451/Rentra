@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../../services/firestore_service.dart';
 import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
@@ -32,6 +33,13 @@ class _SearchScreenState extends State<SearchScreen> {
   final _locationController = TextEditingController();
   Position? _currentPosition;
   String? _lastSelectedPlace;
+  final FocusNode _searchFocus = FocusNode();
+
+  // Debounced search to avoid full state rebuilds while typing
+  final ValueNotifier<String> _debouncedSearchNotifier = ValueNotifier<String>(
+    '',
+  );
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -41,20 +49,12 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _onSearchChanged() {
-    // If the text changes and it's NOT what we just selected, it means user is typing manually.
-    // We should switch back to text search mode (unless they are refining usage, but simple is better).
-    if (_lastSelectedPlace != null &&
-        _searchController.text != _lastSelectedPlace) {
-      setState(() {
-        _lastSelectedPlace = null;
-        _filterLocation = null; // Clear strict location filter if typing
-        _searchQuery = _searchController.text;
-      });
-    } else {
-      setState(() {
-        _searchQuery = _searchController.text;
-      });
-    }
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 600), () {
+      if (mounted) {
+        _debouncedSearchNotifier.value = _searchController.text;
+      }
+    });
   }
 
   Future<void> _getCurrentLocation() async {
@@ -73,8 +73,12 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void dispose() {
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
-    _locationController.dispose(); // Dispose the location controller
+    _locationController.dispose();
+    _searchFocus.dispose();
+    _debounceTimer?.cancel();
+    _debouncedSearchNotifier.dispose();
     super.dispose();
   }
 
@@ -165,32 +169,26 @@ class _SearchScreenState extends State<SearchScreen> {
                     const SizedBox(height: 12),
                     GooglePlaceAutoCompleteTextField(
                       textEditingController: _locationController,
-                      googleAPIKey:
-                          "AIzaSyCESgiM55uOFhmtWlzz4jB0RPqkwCKprd8", // Replace with env var if possible
+                      googleAPIKey: "AIzaSyCESgiM55uOFhmtWlzz4jB0RPqkwCKprd8",
                       inputDecoration: InputDecoration(
                         hintText: "Search location...",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
                         prefixIcon: const Icon(Icons.location_on_outlined),
-                        suffixIcon: _filterLocation != null
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  setModalState(() {
-                                    _filterLocation = null;
-                                    _locationController.clear();
-                                  });
-                                },
-                              )
-                            : null,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[100],
                       ),
                       debounceTime: 800,
                       countries: ["in"],
-                      isLatLngRequired: true,
+                      isLatLngRequired: false,
                       getPlaceDetailWithLatLng: (Prediction prediction) {
                         if (!mounted) return;
-                        _locationController.text = prediction.description ?? "";
                         if (prediction.lat != null && prediction.lng != null) {
                           final lat = double.tryParse(prediction.lat!) ?? 0.0;
                           final lng = double.tryParse(prediction.lng!) ?? 0.0;
@@ -203,13 +201,6 @@ class _SearchScreenState extends State<SearchScreen> {
                       },
                       itemClick: (Prediction prediction) {
                         if (!mounted) return;
-                        _locationController.text = prediction.description ?? "";
-                        _locationController.selection =
-                            TextSelection.fromPosition(
-                              TextPosition(
-                                offset: prediction.description?.length ?? 0,
-                              ),
-                            );
                       },
                     ),
                     if (_filterLocation != null) ...[
@@ -336,250 +327,248 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Search Hostels and Flats')),
-      body: Column(
-        children: [
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
+      backgroundColor: Colors.grey[50],
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            elevation: 0,
+            scrolledUnderElevation: 4,
+            surfaceTintColor: Colors.transparent,
+            backgroundColor: Colors.grey[50],
+            title: const Text(
+              'Search Hostels and Flats',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            centerTitle: true,
+          ),
+          SliverToBoxAdapter(
+            child: Column(
               children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.search,
-                          color: Colors.black87,
-                          size: 26,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: GooglePlaceAutoCompleteTextField(
-                            textEditingController: _searchController,
-                            googleAPIKey:
-                                "AIzaSyCESgiM55uOFhmtWlzz4jB0RPqkwCKprd8",
-                            inputDecoration: InputDecoration(
-                              hintText: 'Search by name, city, or landmark...',
-                              hintStyle: const TextStyle(
-                                color: Colors.black54,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              suffixIcon: _searchQuery.isNotEmpty
-                                  ? IconButton(
-                                      icon: const Icon(Icons.clear),
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        setState(() {
-                                          _searchQuery = '';
-                                          _filterLocation = null;
-                                          _lastSelectedPlace = null;
-                                        });
-                                      },
-                                    )
-                                  : null,
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 14,
-                              ),
+                // Search bar
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GooglePlaceAutoCompleteTextField(
+                          textEditingController: _searchController,
+                          focusNode: _searchFocus,
+                          googleAPIKey:
+                              "AIzaSyCESgiM55uOFhmtWlzz4jB0RPqkwCKprd8",
+                          inputDecoration: InputDecoration(
+                            hintText: 'Search by name, city, or landmark...',
+                            prefixIcon: const Icon(
+                              Icons.search,
+                              color: Colors.blue,
+                              size: 20,
                             ),
-                            debounceTime: 800,
-                            countries: ["in"],
-                            isLatLngRequired: true,
-                            getPlaceDetailWithLatLng: (Prediction prediction) {
-                              if (!mounted) return;
-                              _searchController.text =
-                                  prediction.description ?? "";
-                              _searchController.selection =
-                                  TextSelection.fromPosition(
-                                    TextPosition(
-                                      offset: _searchController.text.length,
-                                    ),
-                                  );
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                          ),
+                          debounceTime: 600,
+                          countries: ["in"],
+                          isLatLngRequired: false,
+                          getPlaceDetailWithLatLng: (Prediction prediction) {
+                            if (!mounted) return;
+                            final desc = prediction.description ?? "";
 
-                              if (prediction.lat != null &&
-                                  prediction.lng != null) {
-                                final lat =
-                                    double.tryParse(prediction.lat!) ?? 0.0;
-                                final lng =
-                                    double.tryParse(prediction.lng!) ?? 0.0;
-                                setState(() {
-                                  _filterLocation = LatLng(lat, lng);
-                                  _filterRadius = 3.0; // < 3km requirement
-                                  _sortBy = 'distance';
-                                  _searchQuery = prediction.description ?? "";
-                                  _lastSelectedPlace = prediction.description;
-                                });
-                              }
-                            },
-                            itemClick: (Prediction prediction) {
-                              if (!mounted) return;
-                              _searchController.text =
-                                  prediction.description ?? "";
-                              _searchController.selection =
-                                  TextSelection.fromPosition(
-                                    TextPosition(
-                                      offset: _searchController.text.length,
-                                    ),
-                                  );
-                            },
-                            boxDecoration: const BoxDecoration(),
+                            // Dismiss keyboard and suggestions
+                            FocusScope.of(context).unfocus();
+
+                            if (prediction.lat != null &&
+                                prediction.lng != null) {
+                              final lat =
+                                  double.tryParse(prediction.lat!) ?? 0.0;
+                              final lng =
+                                  double.tryParse(prediction.lng!) ?? 0.0;
+                              setState(() {
+                                _filterLocation = LatLng(lat, lng);
+                                _filterRadius = 3.0;
+                                _sortBy = 'distance';
+                                _searchQuery = desc;
+                                _lastSelectedPlace = desc;
+                                _debouncedSearchNotifier.value = desc;
+                              });
+                            }
+                          },
+                          itemClick: (Prediction prediction) {
+                            if (!mounted) return;
+                            FocusScope.of(context).unfocus();
+                          },
+                          boxDecoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withAlpha(20),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: _isFiltering
+                              ? AppTheme.primaryRed
+                              : AppTheme.lightGrey,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.filter_list,
+                            color: _isFiltering
+                                ? AppTheme.white
+                                : AppTheme.grey,
+                          ),
+                          onPressed: _showFilterDialog,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                Container(
-                  decoration: BoxDecoration(
-                    color: _isFiltering
-                        ? AppTheme.primaryRed
-                        : AppTheme.lightGrey,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.filter_list,
-                      color: _isFiltering ? AppTheme.white : AppTheme.grey,
-                    ),
-                    onPressed: _showFilterDialog,
-                  ),
-                ),
-              ],
-            ),
-          ),
 
-          // Soft Divider
-          Container(
-            height: 1,
-            width: double.infinity,
-            clipBehavior: Clip.none,
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 15,
-                  offset: const Offset(0, 8),
+                // Soft Divider
+                Container(
+                  height: 1,
+                  width: double.infinity,
+                  clipBehavior: Clip.none,
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: Colors.black.withOpacity(0.06),
+                  ),
                 ),
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
+                const SizedBox(height: 8),
               ],
             ),
-            child: Divider(
-              height: 1,
-              thickness: 1,
-              color: Colors.black.withOpacity(0.06),
-            ),
           ),
-          const SizedBox(height: 8),
 
           // Results
-          Expanded(
-            child: StreamBuilder<List<HostelModel>>(
-              stream: _firestoreService.getEnhancedHostels(
-                query:
-                    (_lastSelectedPlace != null &&
-                        _searchQuery == _lastSelectedPlace)
-                    ? null
-                    : _searchQuery,
-                unitType: _selectedUnitType,
-                sortBy: _sortBy,
-                lat: _filterLocation?.latitude,
-                lng: _filterLocation?.longitude,
-                radiusInKm: _filterLocation != null ? _filterRadius : null,
-              ),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const LoadingIndicator(message: 'Searching...');
-                }
+          ValueListenableBuilder<String>(
+            valueListenable: _debouncedSearchNotifier,
+            builder: (context, query, child) {
+              return StreamBuilder<List<HostelModel>>(
+                stream: _firestoreService.getEnhancedHostels(
+                  query:
+                      (_lastSelectedPlace != null &&
+                          query == _lastSelectedPlace)
+                      ? null
+                      : query,
+                  unitType: _selectedUnitType,
+                  sortBy: _sortBy,
+                  lat: _filterLocation?.latitude,
+                  lng: _filterLocation?.longitude,
+                  radiusInKm: _filterLocation != null ? _filterRadius : null,
+                ),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const SliverFillRemaining(
+                      child: LoadingIndicator(message: 'Searching...'),
+                    );
+                  }
 
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                }
+                  if (snapshot.hasError) {
+                    return SliverFillRemaining(
+                      child: Center(child: Text('Error: ${snapshot.error}')),
+                    );
+                  }
 
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.search_off,
-                          size: 64,
-                          color: AppTheme.grey,
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return SliverFillRemaining(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.search_off,
+                              size: 64,
+                              color: AppTheme.grey,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No hostels found',
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Try adjusting your search or filters',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No hostels found',
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Try adjusting your search or filters',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
+                      ),
+                    );
+                  }
+
+                  final hostels = snapshot.data!;
+
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final hostel = hostels[index];
+                      double? dist;
+                      if (_filterLocation != null &&
+                          hostel.latitude != null &&
+                          hostel.longitude != null) {
+                        dist =
+                            Geolocator.distanceBetween(
+                              _filterLocation!.latitude,
+                              _filterLocation!.longitude,
+                              hostel.latitude!,
+                              hostel.longitude!,
+                            ) /
+                            1000;
+                      } else if (_currentPosition != null &&
+                          hostel.latitude != null &&
+                          hostel.longitude != null) {
+                        dist =
+                            Geolocator.distanceBetween(
+                              _currentPosition!.latitude,
+                              _currentPosition!.longitude,
+                              hostel.latitude!,
+                              hostel.longitude!,
+                            ) /
+                            1000;
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: HotelCard(hostel: hostel, distance: dist),
+                      );
+                    }, childCount: hostels.length),
                   );
-                }
-
-                final hostels = snapshot.data!;
-
-                return ListView.builder(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  itemCount: hostels.length,
-                  itemBuilder: (context, index) {
-                    final hostel = hostels[index];
-                    double? dist;
-                    if (_filterLocation != null &&
-                        hostel.latitude != null &&
-                        hostel.longitude != null) {
-                      dist =
-                          Geolocator.distanceBetween(
-                            _filterLocation!.latitude,
-                            _filterLocation!.longitude,
-                            hostel.latitude!,
-                            hostel.longitude!,
-                          ) /
-                          1000;
-                    } else if (_currentPosition != null &&
-                        hostel.latitude != null &&
-                        hostel.longitude != null) {
-                      dist =
-                          Geolocator.distanceBetween(
-                            _currentPosition!.latitude,
-                            _currentPosition!.longitude,
-                            hostel.latitude!,
-                            hostel.longitude!,
-                          ) /
-                          1000;
-                    }
-
-                    return HotelCard(hostel: hostel, distance: dist);
-                  },
-                );
-              },
-            ),
+                },
+              );
+            },
           ),
         ],
       ),

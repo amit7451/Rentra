@@ -4,10 +4,16 @@ service cloud.firestore {
     
     // ==================== USERS ====================
     // Users can only read/write their own document
+    // ==================== USERS ====================
     match /users/{userId} {
       allow read: if request.auth.uid == userId;
       allow write: if request.auth.uid == userId;
       allow create: if request.auth.uid != null;
+    }
+
+    // ==================== NOTIFICATIONS ====================
+    match /users/{userId}/notifications/{notificationId} {
+      allow read, write: if request.auth.uid == userId;
     }
 
     // ==================== HOSTELS ====================

@@ -21,6 +21,8 @@ class WishlistScreen extends StatelessWidget {
             SliverAppBar(
               elevation: 0,
               pinned: true,
+              scrolledUnderElevation: 4,
+              surfaceTintColor: Colors.transparent,
               backgroundColor: Colors.grey[50],
               centerTitle: true,
               title: const Text(
@@ -30,32 +32,8 @@ class WishlistScreen extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(1),
-                child: Container(
-                  height: 1,
-                  width: double.infinity,
-                  clipBehavior: Clip.none,
-                  decoration: BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
-                      ),
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: Colors.black.withOpacity(0.06),
-                  ),
-                ),
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(color: Colors.grey[50]),
               ),
             ),
             SliverFillRemaining(
@@ -91,7 +69,7 @@ class WishlistScreen extends StatelessWidget {
         slivers: [
           SliverAppBar(
             elevation: 0,
-            scrolledUnderElevation: 0,
+            scrolledUnderElevation: 4,
             surfaceTintColor: Colors.transparent,
             pinned: true,
             backgroundColor: Colors.grey[50],
@@ -103,37 +81,8 @@ class WishlistScreen extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            expandedHeight: 80,
             flexibleSpace: FlexibleSpaceBar(
-              background: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Container(
-                    height: 1,
-                    width: double.infinity,
-                    clipBehavior: Clip.none,
-                    decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 15,
-                          offset: const Offset(0, 8),
-                        ),
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Divider(
-                      height: 1,
-                      thickness: 1,
-                      color: Colors.black.withOpacity(0.06),
-                    ),
-                  ),
-                ],
-              ),
+              background: Container(color: Colors.grey[50]),
             ),
           ),
           StreamBuilder<List<String>>(

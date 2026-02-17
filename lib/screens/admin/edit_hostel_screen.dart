@@ -4,8 +4,13 @@ import 'dart:io';
 import '../../services/firestore_service.dart';
 import '../../services/cloudinary_service.dart';
 import '../../models/hostel_model.dart';
-import '../../app/theme.dart';
 import '../../widgets/loading_indicator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_places_flutter/google_places_flutter.dart';
+import 'package:geocoding/geocoding.dart' as geo;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 
 class EditHostelScreen extends StatefulWidget {
   final HostelModel hostel;
@@ -25,12 +30,17 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
   late final TextEditingController _descriptionController;
   late final TextEditingController _addressController;
   late final TextEditingController _cityController;
+  late final TextEditingController _stateController;
+  late final TextEditingController _pincodeController;
   late final TextEditingController _countryController;
   late final TextEditingController _priceController;
   late final TextEditingController _availableRoomsController;
   late final TextEditingController _ratingController;
   late final TextEditingController _totalReviewsController;
   final TextEditingController _amenityController = TextEditingController();
+  late final TextEditingController _placesSearchController;
+
+  // Multi-seater controllers
   late final TextEditingController _price1Controller;
   late final TextEditingController _price2Controller;
   late final TextEditingController _price3Controller;
@@ -39,8 +49,19 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
   late final TextEditingController _rooms3Controller;
   late final TextEditingController _flatCapacityController;
 
-  late List<String> _existingImageUrls; // Already uploaded to Cloudinary
-  final List<File> _newSelectedImages = []; // New images to upload
+  final FocusNode _placesFocusNode = FocusNode();
+  final GlobalKey _placesSearchKey = GlobalKey();
+
+  // Map state
+  GoogleMapController? _mapController;
+  LatLng? _pickedLocation;
+  late LatLng _initialPosition;
+  String? _googleMapAddress;
+  bool _gettingLocation = false;
+  bool _isMapFullScreen = false;
+
+  late List<String> _existingImageUrls;
+  final List<File> _newSelectedImages = [];
   bool _isLoading = false;
   bool _isUploading = false;
   bool _isCloudinaryReady = false;
@@ -58,6 +79,8 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
     _descriptionController = TextEditingController(text: h.description);
     _addressController = TextEditingController(text: h.address);
     _cityController = TextEditingController(text: h.city);
+    _stateController = TextEditingController(text: h.state ?? "");
+    _pincodeController = TextEditingController(text: h.pincode ?? "");
     _countryController = TextEditingController(text: h.country);
     _priceController = TextEditingController(text: h.rentPrice.toString());
     _availableRoomsController = TextEditingController(
@@ -82,10 +105,23 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
     _totalReviewsController = TextEditingController(
       text: h.totalReviews.toString(),
     );
+    _placesSearchController = TextEditingController(
+      text: h.googleMapAddress ?? h.address,
+    );
+
     _existingImageUrls = List.from(h.images);
     _amenities = List.from(h.amenities);
     _isActive = h.isActive;
     _unitType = h.unitType;
+
+    // Set initial position
+    if (h.latitude != null && h.longitude != null) {
+      _pickedLocation = LatLng(h.latitude!, h.longitude!);
+      _initialPosition = LatLng(h.latitude!, h.longitude!);
+    } else {
+      _initialPosition = const LatLng(28.6139, 77.2090); // Default Delhi
+    }
+    _googleMapAddress = h.googleMapAddress;
   }
 
   @override
@@ -94,6 +130,8 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
     _descriptionController.dispose();
     _addressController.dispose();
     _cityController.dispose();
+    _stateController.dispose();
+    _pincodeController.dispose();
     _countryController.dispose();
     _priceController.dispose();
     _price1Controller.dispose();
@@ -107,1029 +145,96 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
     _totalReviewsController.dispose();
     _amenityController.dispose();
     _flatCapacityController.dispose();
+    _placesSearchController.dispose();
+    _placesFocusNode.dispose();
+    _mapController?.dispose();
     super.dispose();
   }
 
-  Future<void> _checkCloudinaryStatus() async {
-    if (!mounted) {
-      return;
-    }
+  // ── HELPER METHODS ────────────────────────────────────────────────────────
 
+  Future<void> _checkCloudinaryStatus() async {
     setState(() {
       _isCloudinaryReady = CloudinaryService.isInitialized;
     });
-
     if (!_isCloudinaryReady) {
       try {
         await CloudinaryService.initialize();
-        if (mounted) {
+        if (mounted) setState(() => _isCloudinaryReady = true);
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    setState(() => _gettingLocation = true);
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.whileInUse ||
+          permission == LocationPermission.always) {
+        Position pos = await Geolocator.getCurrentPosition();
+        final latLng = LatLng(pos.latitude, pos.longitude);
+        _pickedLocation = latLng;
+        _mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 16));
+        await _reverseGeocode(latLng);
+      }
+    } catch (_) {}
+    setState(() => _gettingLocation = false);
+  }
+
+  Future<void> _reverseGeocode(LatLng pos) async {
+    try {
+      final marks = await geo.placemarkFromCoordinates(
+        pos.latitude,
+        pos.longitude,
+      );
+      if (marks.isNotEmpty) {
+        final p = marks.first;
+        final address =
+            "${p.street}, ${p.subLocality}, ${p.locality}, "
+            "${p.administrativeArea} ${p.postalCode}";
+        setState(() {
+          _googleMapAddress = address;
+          _cityController.text = p.locality ?? '';
+          _stateController.text = p.administrativeArea ?? '';
+          _pincodeController.text = p.postalCode ?? '';
+          _countryController.text = p.country ?? '';
+          _addressController.text = address;
+          _placesSearchController.value = TextEditingValue(
+            text: address,
+            selection: TextSelection.collapsed(offset: address.length),
+          );
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _pickImages({bool camera = false}) async {
+    try {
+      final source = camera ? ImageSource.camera : ImageSource.gallery;
+      if (camera) {
+        final XFile? file = await _picker.pickImage(
+          source: source,
+          imageQuality: 70,
+        );
+        if (file != null) {
           setState(() {
-            _isCloudinaryReady = true;
+            _newSelectedImages.add(File(file.path));
           });
         }
-      } catch (e) {
-        if (mounted) {
-          _showSnack('Image upload service not available', isError: true);
+      } else {
+        final List<XFile> files = await _picker.pickMultiImage(
+          imageQuality: 70,
+        );
+        if (files.isNotEmpty) {
+          setState(() {
+            _newSelectedImages.addAll(files.map((f) => File(f.path)));
+          });
         }
       }
-    }
-  }
-
-  // ── Image Picker Methods ─────────────────────────────────────────────
-
-  Future<void> _pickImages() async {
-    try {
-      final List<XFile> pickedFiles = await _picker.pickMultiImage(
-        maxWidth: 1200,
-        maxHeight: 1200,
-        imageQuality: 85,
-      );
-
-      if (pickedFiles.isNotEmpty) {
-        if (pickedFiles.length +
-                _existingImageUrls.length +
-                _newSelectedImages.length >
-            10) {
-          _showSnack('Maximum 10 images total allowed', isError: true);
-          return;
-        }
-
-        setState(() {
-          _newSelectedImages.addAll(pickedFiles.map((file) => File(file.path)));
-        });
-      }
-    } catch (e) {
-      _showSnack('Failed to pick images', isError: true);
-    }
-  }
-
-  Future<void> _takePhoto() async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.camera,
-        maxWidth: 1200,
-        maxHeight: 1200,
-        imageQuality: 85,
-      );
-
-      if (pickedFile != null) {
-        if (_existingImageUrls.length + _newSelectedImages.length >= 10) {
-          _showSnack('Maximum 10 images total allowed', isError: true);
-          return;
-        }
-
-        setState(() {
-          _newSelectedImages.add(File(pickedFile.path));
-        });
-      }
-    } catch (e) {
-      _showSnack('Failed to take photo', isError: true);
-    }
-  }
-
-  void _showImageSourceActionSheet() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 8),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withAlpha(20),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.photo_library, color: Colors.blue),
-                ),
-                title: const Text(
-                  'Choose from Gallery',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImages();
-                },
-              ),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withAlpha(20),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.camera_alt, color: Colors.green),
-                ),
-                title: const Text(
-                  'Take a Photo',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _takePhoto();
-                },
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _removeExistingImage(int index) {
-    setState(() {
-      _existingImageUrls.removeAt(index);
-    });
-  }
-
-  void _removeNewImage(int index) {
-    setState(() {
-      _newSelectedImages.removeAt(index);
-    });
-  }
-
-  // ── Save Method ─────────────────────────────────────────────────────
-
-  Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    if (_existingImageUrls.isEmpty && _newSelectedImages.isEmpty) {
-      _showSnack('Please add at least one image', isError: true);
-      return;
-    }
-
-    if (!_isCloudinaryReady && _newSelectedImages.isNotEmpty) {
-      await _checkCloudinaryStatus();
-      if (!_isCloudinaryReady) {
-        _showSnack('Upload service not available', isError: true);
-        return;
-      }
-    }
-
-    setState(() => _isUploading = true);
-
-    try {
-      List<String> allImageUrls = [..._existingImageUrls];
-
-      // Upload new images if any
-      if (_newSelectedImages.isNotEmpty) {
-        final uploadedUrls = await _cloudinaryService.uploadMultipleImages(
-          _newSelectedImages,
-        );
-        allImageUrls.addAll(uploadedUrls);
-      }
-
-      setState(() => _isLoading = true);
-
-      double parsedPrice = 0.0;
-      int? flatCap;
-      if (_unitType == 'flat') {
-        parsedPrice = double.tryParse(_priceController.text) ?? 0.0;
-        flatCap =
-            int.tryParse(_flatCapacityController.text) ??
-            widget.hostel.flatCapacity;
-      }
-
-      final updated = widget.hostel.copyWith(
-        name: _nameController.text.trim(),
-        description: _descriptionController.text.trim(),
-        address: _addressController.text.trim(),
-        city: _cityController.text.trim(),
-        country: _countryController.text.trim(),
-        rentPrice: parsedPrice,
-        price1Seater: _unitType == 'flat'
-            ? 0.0
-            : double.tryParse(_price1Controller.text) ?? 0.0,
-        price2Seater: _unitType == 'flat'
-            ? 0.0
-            : double.tryParse(_price2Controller.text) ?? 0.0,
-        price3Seater: _unitType == 'flat'
-            ? 0.0
-            : double.tryParse(_price3Controller.text) ?? 0.0,
-        rooms1Seater: _unitType == 'flat'
-            ? 0
-            : int.tryParse(_rooms1Controller.text) ?? 0,
-        rooms2Seater: _unitType == 'flat'
-            ? 0
-            : int.tryParse(_rooms2Controller.text) ?? 0,
-        rooms3Seater: _unitType == 'flat'
-            ? 0
-            : int.tryParse(_rooms3Controller.text) ?? 0,
-        flatCapacity: flatCap,
-        unitType: _unitType,
-        rentPeriod: _unitType == 'flat' ? 'monthly' : 'yearly',
-        availableRooms: _unitType == 'flat'
-            ? (int.tryParse(_availableRoomsController.text) ?? 1)
-            : (int.tryParse(_rooms1Controller.text) ?? 0) +
-                  (int.tryParse(_rooms2Controller.text) ?? 0) +
-                  (int.tryParse(_rooms3Controller.text) ?? 0),
-        rating: double.tryParse(_ratingController.text) ?? widget.hostel.rating,
-        totalReviews:
-            int.tryParse(_totalReviewsController.text) ??
-            widget.hostel.totalReviews,
-        images: allImageUrls,
-        amenities: _amenities,
-        isActive: _isActive,
-      );
-
-      await _firestoreService.updateHostel(updated);
-
-      if (mounted) {
-        _showSnack('Hostel updated successfully!');
-        Navigator.pop(context, true);
-      }
-    } catch (e) {
-      if (mounted) {
-        _showSnack(
-          'Update failed: ${e.toString().replaceAll('Exception:', '')}',
-          isError: true,
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isUploading = false;
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  void _showSnack(String msg, {bool isError = false}) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: isError ? Colors.red : Colors.green,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Hostel'),
-        centerTitle: true,
-        backgroundColor: AppTheme.primaryRed,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          TextButton(
-            onPressed: (_isLoading || _isUploading) ? null : _save,
-            child: Text(
-              _isUploading ? 'Uploading...' : 'Save',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: _isLoading || _isUploading
-          ? LoadingIndicator(
-              message: _isUploading
-                  ? 'Uploading images...'
-                  : 'Saving changes...',
-            )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ── Active Toggle ─────────────────────────────
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _isActive
-                            ? Colors.green.withValues(alpha: 0.08)
-                            : Colors.grey.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: _isActive
-                              ? Colors.green.withValues(alpha: 0.3)
-                              : Colors.grey.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            _isActive
-                                ? Icons.check_circle_outline
-                                : Icons.cancel_outlined,
-                            color: _isActive ? Colors.green : Colors.grey,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Listing Status',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  _isActive
-                                      ? 'Active – visible to renters'
-                                      : 'Inactive – hidden from search',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Switch(
-                            value: _isActive,
-                            onChanged: (v) => setState(() => _isActive = v),
-                            activeThumbColor: Colors.green,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    _sectionTitle('Basic Information'),
-                    const SizedBox(height: 14),
-                    _field(
-                      _nameController,
-                      'Hostel Name',
-                      'Name',
-                      validator: _req('name'),
-                    ),
-                    const SizedBox(height: 14),
-                    _field(
-                      _descriptionController,
-                      'Description (Optional)',
-                      'List amenities, rules, or details',
-                      maxLines: 4,
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Unit type selector
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Property Type',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        DropdownButtonFormField<String>(
-                          initialValue: _unitType,
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'hostel',
-                              child: Text('Hostel / PG'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'flat',
-                              child: Text('Flat'),
-                            ),
-                          ],
-                          onChanged: (v) {
-                            if (v == null) {
-                              return;
-                            }
-                            setState(() {
-                              _unitType = v;
-                            });
-                          },
-                          decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 14,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-
-                    _sectionTitle('Location'),
-                    const SizedBox(height: 14),
-                    _field(
-                      _addressController,
-                      'Address',
-                      'Street address',
-                      validator: _req('address'),
-                    ),
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _field(
-                            _cityController,
-                            'City',
-                            'City',
-                            validator: _req('city'),
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: _field(
-                            _countryController,
-                            'Country',
-                            'Country',
-                            validator: _req('country'),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    _sectionTitle('Pricing & Availability'),
-                    const SizedBox(height: 14),
-                    if (_unitType == 'flat') ...[
-                      _field(
-                        _priceController,
-                        'Price Per Month (₹)',
-                        'e.g. 5000',
-                        keyboardType: TextInputType.number,
-                        validator: _numVal('price'),
-                      ),
-                      const SizedBox(height: 14),
-                      _field(
-                        _availableRoomsController,
-                        'Available Rooms',
-                        'e.g. 1',
-                        keyboardType: TextInputType.number,
-                        validator: _intVal('rooms'),
-                      ),
-                      const SizedBox(height: 14),
-                      _field(
-                        _flatCapacityController,
-                        'Capacity (persons)',
-                        'e.g. 2',
-                        keyboardType: TextInputType.number,
-                        validator: _intVal('capacity'),
-                      ),
-                    ] else ...[
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _field(
-                              _price1Controller,
-                              '1-seater Price (Optional)',
-                              'e.g. 8000',
-                              keyboardType: TextInputType.number,
-                              validator: _optionalNumVal('1-seater price'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _field(
-                              _rooms1Controller,
-                              '1-seater Count (Optional)',
-                              'e.g. 5',
-                              keyboardType: TextInputType.number,
-                              validator: _optionalIntVal('1-seater count'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _field(
-                              _price2Controller,
-                              '2-seater Price (Optional)',
-                              'e.g. 6000',
-                              keyboardType: TextInputType.number,
-                              validator: _optionalNumVal('2-seater price'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _field(
-                              _rooms2Controller,
-                              '2-seater Count (Optional)',
-                              'e.g. 10',
-                              keyboardType: TextInputType.number,
-                              validator: _optionalIntVal('2-seater count'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _field(
-                              _price3Controller,
-                              '3-seater Price (Optional)',
-                              'e.g. 4000',
-                              keyboardType: TextInputType.number,
-                              validator: _optionalNumVal('3-seater price'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _field(
-                              _rooms3Controller,
-                              '3-seater Count (Optional)',
-                              'e.g. 8',
-                              keyboardType: TextInputType.number,
-                              validator: _optionalIntVal('3-seater count'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    const SizedBox(height: 24),
-
-                    _sectionTitle('Ratings & Reviews'),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _field(
-                            _ratingController,
-                            'Rating (0-5)',
-                            'e.g. 4.5',
-                            keyboardType: TextInputType.number,
-                            validator: (v) {
-                              if (v == null || v.isEmpty) return 'Required';
-                              final r = double.tryParse(v);
-                              if (r == null || r < 0 || r > 5) {
-                                return 'Must be 0-5';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _field(
-                            _totalReviewsController,
-                            'Total Reviews',
-                            'e.g. 10',
-                            keyboardType: TextInputType.number,
-                            validator: _intVal('total reviews'),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    _sectionTitle('Images'),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Manage images (Max 10 total)',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          '${_existingImageUrls.length + _newSelectedImages.length}/10',
-                          style: TextStyle(
-                            color:
-                                (_existingImageUrls.length +
-                                        _newSelectedImages.length) >=
-                                    10
-                                ? Colors.red
-                                : Colors.grey[600],
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-
-                    // ── Image Management Section ───────────────────
-                    Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Existing Images (Cloudinary)
-                            if (_existingImageUrls.isNotEmpty) ...[
-                              Row(
-                                children: [
-                                  Text(
-                                    'Current Images:',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.grey[800],
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Text(
-                                    '${_existingImageUrls.length}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blue,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                height: 100,
-                                child: ListView.separated(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: _existingImageUrls.length,
-                                  separatorBuilder: (_, _) =>
-                                      const SizedBox(width: 8),
-                                  itemBuilder: (context, index) {
-                                    return Stack(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          child: Image.network(
-                                            _existingImageUrls[index],
-                                            width: 100,
-                                            height: 100,
-                                            fit: BoxFit.cover,
-                                            loadingBuilder: (_, child, progress) {
-                                              if (progress == null) {
-                                                return child;
-                                              }
-                                              return Container(
-                                                width: 100,
-                                                height: 100,
-                                                color: Colors.grey[200],
-                                                child: const Center(
-                                                  child: SizedBox(
-                                                    width: 20,
-                                                    height: 20,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                          strokeWidth: 2,
-                                                        ),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                            errorBuilder: (_, _, _) =>
-                                                Container(
-                                                  width: 100,
-                                                  height: 100,
-                                                  color: Colors.grey[200],
-                                                  child: const Icon(
-                                                    Icons.broken_image,
-                                                  ),
-                                                ),
-                                          ),
-                                        ),
-                                        Positioned(
-                                          top: 4,
-                                          right: 4,
-                                          child: GestureDetector(
-                                            onTap: () =>
-                                                _removeExistingImage(index),
-                                            child: Container(
-                                              decoration: const BoxDecoration(
-                                                color: Colors.red,
-                                                shape: BoxShape.circle,
-                                              ),
-                                              padding: const EdgeInsets.all(4),
-                                              child: const Icon(
-                                                Icons.close,
-                                                color: Colors.white,
-                                                size: 16,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
-
-                            // New Selected Images
-                            if (_newSelectedImages.isNotEmpty) ...[
-                              Row(
-                                children: [
-                                  Text(
-                                    'New Images to Upload:',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.green[800],
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Text(
-                                    '${_newSelectedImages.length}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                height: 100,
-                                child: ListView.separated(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: _newSelectedImages.length,
-                                  separatorBuilder: (_, _) =>
-                                      const SizedBox(width: 8),
-                                  itemBuilder: (context, index) {
-                                    return Stack(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          child: Image.file(
-                                            _newSelectedImages[index],
-                                            width: 100,
-                                            height: 100,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (_, _, _) =>
-                                                Container(
-                                                  width: 100,
-                                                  height: 100,
-                                                  color: Colors.grey[200],
-                                                  child: const Icon(
-                                                    Icons.broken_image,
-                                                  ),
-                                                ),
-                                          ),
-                                        ),
-                                        Positioned(
-                                          top: 4,
-                                          right: 4,
-                                          child: GestureDetector(
-                                            onTap: () => _removeNewImage(index),
-                                            child: Container(
-                                              decoration: const BoxDecoration(
-                                                color: Colors.red,
-                                                shape: BoxShape.circle,
-                                              ),
-                                              padding: const EdgeInsets.all(4),
-                                              child: const Icon(
-                                                Icons.close,
-                                                color: Colors.white,
-                                                size: 16,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
-
-                            // No Images State
-                            if (_existingImageUrls.isEmpty &&
-                                _newSelectedImages.isEmpty) ...[
-                              Center(
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(20),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[50],
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        Icons.add_photo_alternate_outlined,
-                                        size: 48,
-                                        color: Colors.grey[400],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      'No images',
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Add images to showcase your hostel',
-                                      style: TextStyle(
-                                        color: Colors.grey[500],
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
-
-                            // Add Images Button
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton.icon(
-                                onPressed:
-                                    (_existingImageUrls.length +
-                                            _newSelectedImages.length) >=
-                                        10
-                                    ? null
-                                    : _showImageSourceActionSheet,
-                                icon: const Icon(Icons.add_a_photo),
-                                label: Text(
-                                  (_existingImageUrls.length +
-                                              _newSelectedImages.length) >=
-                                          10
-                                      ? 'Maximum images reached'
-                                      : 'Add More Images',
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                  side: BorderSide(
-                                    color:
-                                        (_existingImageUrls.length +
-                                                _newSelectedImages.length) >=
-                                            10
-                                        ? Colors.grey
-                                        : AppTheme.primaryRed,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    _sectionTitle('Amenities'),
-                    const SizedBox(height: 14),
-                    _amenities.isEmpty
-                        ? Text(
-                            'No amenities added',
-                            style: TextStyle(color: Colors.grey[600]),
-                          )
-                        : Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: _amenities.map((a) {
-                              return Chip(
-                                label: Text(a),
-                                deleteIcon: const Icon(Icons.close, size: 16),
-                                onDeleted: () =>
-                                    setState(() => _amenities.remove(a)),
-                                backgroundColor: AppTheme.primaryRed.withAlpha(
-                                  10,
-                                ),
-                                labelStyle: const TextStyle(
-                                  color: AppTheme.primaryRed,
-                                ),
-                                side: BorderSide.none,
-                              );
-                            }).toList(),
-                          ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _amenityController,
-                            decoration: InputDecoration(
-                              hintText: 'e.g. Swimming Pool',
-                              hintStyle: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 14,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 12,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade300,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
-                                  color: AppTheme.primaryRed,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                            onFieldSubmitted: (_) => _addAmenity(),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        ElevatedButton(
-                          onPressed: _addAmenity,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primaryRed,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 14,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Add',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Save Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: (_isLoading || _isUploading) ? null : _save,
-                        icon: const Icon(
-                          Icons.save_outlined,
-                          color: Colors.white,
-                        ),
-                        label: const Text(
-                          'Save Changes',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryRed,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            ),
-    );
+    } catch (_) {}
   }
 
   void _addAmenity() {
@@ -1142,82 +247,845 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
     }
   }
 
-  Widget _sectionTitle(String t) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: Text(
-      t,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Colors.black87,
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_existingImageUrls.isEmpty && _newSelectedImages.isEmpty) {
+      _showSnack('Please add at least one image', isError: true);
+      return;
+    }
+    if (_pickedLocation == null) {
+      _showSnack('Please select location on map', isError: true);
+      return;
+    }
+
+    setState(() => _isUploading = true);
+    try {
+      List<String> allImages = [..._existingImageUrls];
+      if (_newSelectedImages.isNotEmpty) {
+        final urls = await _cloudinaryService.uploadMultipleImages(
+          _newSelectedImages,
+        );
+        allImages.addAll(urls);
+      }
+
+      setState(() {
+        _isUploading = false;
+        _isLoading = true;
+      });
+
+      final updated = widget.hostel.copyWith(
+        name: _nameController.text.trim(),
+        description: _descriptionController.text.trim(),
+        address: _addressController.text.trim(),
+        city: _cityController.text.trim(),
+        state: _stateController.text.trim(),
+        pincode: _pincodeController.text.trim(),
+        country: _countryController.text.trim(),
+        latitude: _pickedLocation!.latitude,
+        longitude: _pickedLocation!.longitude,
+        googleMapAddress: _googleMapAddress,
+        unitType: _unitType,
+        rentPrice: double.tryParse(_priceController.text) ?? 0,
+        price1Seater: double.tryParse(_price1Controller.text) ?? 0,
+        price2Seater: double.tryParse(_price2Controller.text) ?? 0,
+        price3Seater: double.tryParse(_price3Controller.text) ?? 0,
+        rooms1Seater: int.tryParse(_rooms1Controller.text) ?? 0,
+        rooms2Seater: int.tryParse(_rooms2Controller.text) ?? 0,
+        rooms3Seater: int.tryParse(_rooms3Controller.text) ?? 0,
+        flatCapacity: int.tryParse(_flatCapacityController.text) ?? 1,
+        availableRooms: _unitType == 'flat'
+            ? (int.tryParse(_availableRoomsController.text) ?? 1)
+            : (int.tryParse(_rooms1Controller.text) ?? 0) +
+                  (int.tryParse(_rooms2Controller.text) ?? 0) +
+                  (int.tryParse(_rooms3Controller.text) ?? 0),
+        rating: double.tryParse(_ratingController.text) ?? 0.0,
+        totalReviews: int.tryParse(_totalReviewsController.text) ?? 0,
+        images: allImages,
+        amenities: _amenities,
+        isActive: _isActive,
+      );
+
+      await _firestoreService.updateHostel(updated);
+      if (mounted) {
+        Navigator.pop(context, true);
+        _showSnack('Property updated successfully!');
+      }
+    } catch (e) {
+      _showSnack('Error: $e', isError: true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showSnack(String msg, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
-    ),
-  );
+    );
+  }
+
+  // ── BUILD UI ──────────────────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading || _isUploading) {
+      return LoadingIndicator(
+        message: _isUploading ? 'Uploading images...' : 'Saving changes...',
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: CustomScrollView(
+        slivers: [
+          _buildSliverAppBar(),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildActiveToggle(),
+                    const SizedBox(height: 24),
+                    _sectionHeader('Basic Information'),
+                    _field(
+                      _nameController,
+                      'Hostel Name',
+                      'e.g. Royal Residency',
+                      validator: _valReq('name'),
+                    ),
+                    const SizedBox(height: 16),
+                    _field(
+                      _descriptionController,
+                      'Description (Optional)',
+                      'Rules, details, etc.',
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildPropertyTypeSelector(),
+                    const SizedBox(height: 24),
+
+                    _sectionHeader('Location Details'),
+                    _buildLocationPicker(),
+                    const SizedBox(height: 16),
+                    _field(
+                      _addressController,
+                      'Full Address',
+                      'Search above or enter manually',
+                      validator: _valReq('address'),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildAddressRow(
+                      _cityController,
+                      'City',
+                      _stateController,
+                      'State',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildAddressRow(
+                      _pincodeController,
+                      'Pincode',
+                      _countryController,
+                      'Country',
+                      isNum: true,
+                    ),
+                    const SizedBox(height: 32),
+
+                    _sectionHeader('Pricing & Capacity'),
+                    if (_unitType == 'flat') ...[
+                      _field(
+                        _priceController,
+                        'Monthly Rent (₹)',
+                        'e.g. 12000',
+                        keyboardType: TextInputType.number,
+                        validator: _valInt('rent'),
+                      ),
+                      const SizedBox(height: 16),
+                      _field(
+                        _availableRoomsController,
+                        'Available Rooms',
+                        'e.g. 1',
+                        keyboardType: TextInputType.number,
+                        validator: _valInt('rooms'),
+                      ),
+                      const SizedBox(height: 16),
+                      _field(
+                        _flatCapacityController,
+                        'Total Capacity (Persons)',
+                        'e.g. 3',
+                        keyboardType: TextInputType.number,
+                        validator: _valInt('capacity'),
+                      ),
+                    ] else
+                      _buildHostelPricingGrid(),
+                    const SizedBox(height: 32),
+
+                    _sectionHeader('Ratings & Stats'),
+                    _buildStatsGrid(),
+                    const SizedBox(height: 32),
+
+                    _sectionHeader('Media & Amenities'),
+                    _buildImageGallery(),
+                    const SizedBox(height: 24),
+                    _buildAmenitiesSection(),
+                    const SizedBox(height: 40),
+
+                    _buildSubmitButton(),
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSliverAppBar() {
+    return SliverAppBar(
+      pinned: true,
+      elevation: 0,
+      centerTitle: true,
+      backgroundColor: Colors.grey[50],
+      surfaceTintColor: Colors.transparent,
+      scrolledUnderElevation: 4,
+      title: const Text(
+        'Edit Hostel',
+        style: TextStyle(
+          color: Colors.black,
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
+      ),
+      leading: IconButton(
+        icon: const Icon(
+          Icons.arrow_back_ios_new,
+          color: Colors.black,
+          size: 20,
+        ),
+        onPressed: () => Navigator.pop(context),
+      ),
+    );
+  }
+
+  Widget _buildActiveToggle() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: _isActive
+            ? Colors.green.withAlpha(15)
+            : Colors.grey.withAlpha(15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _isActive
+              ? Colors.green.withAlpha(30)
+              : Colors.grey.withAlpha(30),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            _isActive ? Icons.check_circle_outline : Icons.cancel_outlined,
+            color: _isActive ? Colors.green : Colors.grey,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Listing Status',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  _isActive ? 'Visible to everyone' : 'Hidden from search',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: _isActive,
+            onChanged: (v) => setState(() => _isActive = v),
+            activeColor: Colors.green,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPropertyTypeSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Property Type',
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: _unitType,
+          items: const [
+            DropdownMenuItem(value: 'hostel', child: Text('Hostel / PG')),
+            DropdownMenuItem(value: 'flat', child: Text('Private Flat')),
+          ],
+          onChanged: (v) => setState(() => _unitType = v!),
+          decoration: _inputDecoration(''),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLocationPicker() {
+    return Column(
+      children: [
+        KeyedSubtree(
+          key: _placesSearchKey,
+          child: GooglePlaceAutoCompleteTextField(
+            textEditingController: _placesSearchController,
+            googleAPIKey: "AIzaSyCESgiM55uOFhmtWlzz4jB0RPqkwCKprd8",
+            focusNode: _placesFocusNode,
+            inputDecoration: InputDecoration(
+              hintText: 'Search location...',
+              prefixIcon: const Icon(
+                Icons.search,
+                color: Colors.blue,
+                size: 20,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              filled: true,
+              fillColor: Colors.white,
+            ),
+            debounceTime: 600,
+            countries: const ["in"],
+            isLatLngRequired: true,
+            getPlaceDetailWithLatLng: (p) {
+              if (p.lat != null && p.lng != null) {
+                final pos = LatLng(double.parse(p.lat!), double.parse(p.lng!));
+                final desc = p.description ?? "";
+                setState(() {
+                  _pickedLocation = pos;
+                  _googleMapAddress = desc;
+                  _addressController.text = desc;
+                  _placesSearchController.value = TextEditingValue(
+                    text: desc,
+                    selection: TextSelection.collapsed(offset: desc.length),
+                  );
+                });
+                _mapController?.animateCamera(
+                  CameraUpdate.newLatLngZoom(pos, 16),
+                );
+              }
+            },
+            itemClick: (p) {
+              _placesFocusNode.requestFocus();
+            },
+            boxDecoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _gettingLocation ? null : _getCurrentLocation,
+            icon: _gettingLocation
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.blue,
+                    ),
+                  )
+                : const Icon(Icons.my_location, color: Colors.blue, size: 18),
+            label: const Text(
+              'Use Current Location',
+              style: TextStyle(color: Colors.blue),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue.withAlpha(20),
+              elevation: 0,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          height: _isMapFullScreen
+              ? MediaQuery.of(context).size.height * 0.6
+              : 280,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: _initialPosition,
+                    zoom: 12,
+                  ),
+                  onMapCreated: (c) => _mapController = c,
+                  onTap: (pos) {
+                    setState(() => _pickedLocation = pos);
+                    _reverseGeocode(pos);
+                  },
+                  markers: _pickedLocation != null
+                      ? {
+                          Marker(
+                            markerId: const MarkerId('picked'),
+                            position: _pickedLocation!,
+                            draggable: true,
+                            onDragEnd: (pos) {
+                              setState(() => _pickedLocation = pos);
+                              _reverseGeocode(pos);
+                            },
+                          ),
+                        }
+                      : {},
+                  myLocationButtonEnabled: false,
+                  myLocationEnabled: true,
+                  zoomControlsEnabled: false,
+                  gestureRecognizers: {
+                    Factory<OneSequenceGestureRecognizer>(
+                      () => EagerGestureRecognizer(),
+                    ),
+                  },
+                ),
+              ),
+              Positioned(
+                top: 10,
+                right: 10,
+                child: FloatingActionButton.small(
+                  onPressed: () =>
+                      setState(() => _isMapFullScreen = !_isMapFullScreen),
+                  backgroundColor: Colors.white,
+                  child: Icon(
+                    _isMapFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHostelPricingGrid() {
+    return Column(
+      children: [
+        _seaterRow('1-Seater', _price1Controller, _rooms1Controller),
+        const SizedBox(height: 12),
+        _seaterRow('2-Seater', _price2Controller, _rooms2Controller),
+        const SizedBox(height: 12),
+        _seaterRow('3-Seater', _price3Controller, _rooms3Controller),
+      ],
+    );
+  }
+
+  Widget _seaterRow(
+    String label,
+    TextEditingController price,
+    TextEditingController count,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: _field(price, '$label Price', '₹ 0', isNum: true),
+        ),
+        const SizedBox(width: 12),
+        Expanded(flex: 1, child: _field(count, 'Rooms', '0', isNum: true)),
+      ],
+    );
+  }
+
+  Widget _buildStatsGrid() {
+    return Row(
+      children: [
+        Expanded(
+          child: _field(_ratingController, 'Rating (0-5)', '4.5', isNum: true),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: _field(
+            _totalReviewsController,
+            'Total Reviews',
+            '10',
+            isNum: true,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImageGallery() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Photos',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            Text(
+              '${_existingImageUrls.length + _newSelectedImages.length}/10',
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 110,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              // Add button
+              GestureDetector(
+                onTap:
+                    (_existingImageUrls.length + _newSelectedImages.length < 10)
+                    ? () => _showImageSourcePicker()
+                    : null,
+                child: Container(
+                  width: 110,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.grey.shade300,
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.add_a_photo_outlined,
+                    color: Colors.grey[400],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Existing Images
+              ...List.generate(_existingImageUrls.length, (i) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          _existingImageUrls[i],
+                          width: 110,
+                          height: 110,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        top: 5,
+                        right: 5,
+                        child: GestureDetector(
+                          onTap: () =>
+                              setState(() => _existingImageUrls.removeAt(i)),
+                          child: CircleAvatar(
+                            radius: 12,
+                            backgroundColor: Colors.black.withAlpha(100),
+                            child: const Icon(
+                              Icons.close,
+                              size: 14,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              // New Images
+              ...List.generate(_newSelectedImages.length, (i) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(
+                          _newSelectedImages[i],
+                          width: 110,
+                          height: 110,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        top: 5,
+                        right: 5,
+                        child: GestureDetector(
+                          onTap: () =>
+                              setState(() => _newSelectedImages.removeAt(i)),
+                          child: CircleAvatar(
+                            radius: 12,
+                            backgroundColor: Colors.red.withAlpha(200),
+                            child: const Icon(
+                              Icons.close,
+                              size: 14,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 5,
+                        left: 5,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'NEW',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showImageSourcePicker() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImages();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Camera'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImages(camera: true);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAmenitiesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Amenities',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _amenities
+              .map(
+                (a) => Chip(
+                  label: Text(a),
+                  deleteIcon: const Icon(Icons.close, size: 14),
+                  onDeleted: () => setState(() => _amenities.remove(a)),
+                  backgroundColor: Colors.blue.withAlpha(15),
+                  labelStyle: const TextStyle(color: Colors.blue, fontSize: 12),
+                  side: BorderSide.none,
+                ),
+              )
+              .toList(),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _amenityController,
+                decoration: _inputDecoration('Add amenity (e.g. WiFi)'),
+                onSubmitted: (_) => _addAmenity(),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton.filled(
+              onPressed: _addAmenity,
+              icon: const Icon(Icons.add),
+              style: IconButton.styleFrom(backgroundColor: Colors.blue),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _save,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+        ),
+        child: const Text(
+          'Save Changes',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
+        ),
+      ),
+    );
+  }
 
   Widget _field(
-    TextEditingController c,
+    TextEditingController ctrl,
     String label,
     String hint, {
     int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
+    bool isNum = false,
     String? Function(String?)? validator,
-  }) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-      ),
-      const SizedBox(height: 6),
-      TextFormField(
-        controller: c,
-        maxLines: maxLines,
-        keyboardType: keyboardType,
-        validator: validator,
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-          contentPadding: const EdgeInsets.all(14),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey.shade300),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: AppTheme.primaryRed, width: 2),
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            color: Colors.black54,
           ),
         ),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: ctrl,
+          maxLines: maxLines,
+          keyboardType: isNum ? TextInputType.number : keyboardType,
+          validator: validator,
+          decoration: _inputDecoration(hint),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAddressRow(
+    TextEditingController c1,
+    String l1,
+    TextEditingController c2,
+    String l2, {
+    bool isNum = false,
+  }) {
+    return Row(
+      children: [
+        Expanded(child: _field(c1, l1, '', isNum: isNum)),
+        const SizedBox(width: 16),
+        Expanded(child: _field(c2, l2, '', isNum: isNum)),
+      ],
+    );
+  }
+
+  InputDecoration _inputDecoration(String hint, {Widget? prefix}) {
+    return InputDecoration(
+      hintText: hint,
+      prefixIcon: prefix,
+      filled: true,
+      fillColor: Colors.grey[50],
+      contentPadding: const EdgeInsets.all(14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade300),
       ),
-    ],
-  );
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.blue, width: 1.5),
+      ),
+    );
+  }
 
-  String? Function(String?) _req(String f) =>
-      (v) => (v == null || v.trim().isEmpty) ? 'Required' : null;
-
-  String? Function(String?) _numVal(String f) => (v) {
-    if (v == null || v.isEmpty) return 'Required';
-    if (double.tryParse(v) == null) return 'Invalid number';
-    return null;
-  };
-
-  String? Function(String?) _intVal(String f) => (v) {
-    if (v == null || v.isEmpty) return 'Required';
-    if (int.tryParse(v) == null) return 'Whole number only';
-    if (int.parse(v) < 0) return 'Cannot be negative';
-    return null;
-  };
-
-  String? Function(String?) _optionalNumVal(String f) => (v) {
-    if (v == null || v.isEmpty) return null;
-    if (double.tryParse(v) == null) return 'Invalid number';
-    return null;
-  };
-
-  String? Function(String?) _optionalIntVal(String f) => (v) {
-    if (v == null || v.isEmpty) return null;
-    if (int.tryParse(v) == null) return 'Whole number only';
-    if (int.parse(v) < 0) return 'Cannot be negative';
-    return null;
-  };
+  String? Function(String?) _valReq(String name) =>
+      (v) => (v == null || v.isEmpty) ? 'Enter $name' : null;
+  String? Function(String?) _valInt(String name) =>
+      (v) => (v == null || int.tryParse(v) == null) ? 'Invalid $name' : null;
 }

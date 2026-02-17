@@ -775,7 +775,7 @@ class _LocationFilterDelegate extends SliverPersistentHeaderDelegate {
                       clipBehavior:
                           Clip.none, // Allow glow to overflow list bounds
                       itemCount: locationFilters.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 16),
+                      separatorBuilder: (_, _) => const SizedBox(width: 16),
                       itemBuilder: (context, index) {
                         final filter = locationFilters[index];
                         final name = filter['name'] as String;
@@ -828,7 +828,7 @@ class _LocationFilterDelegate extends SliverPersistentHeaderDelegate {
                                       ? Image.asset(
                                           filter['image'],
                                           fit: BoxFit.cover,
-                                          errorBuilder: (ctx, _, __) => Icon(
+                                          errorBuilder: (ctx, _, _) => Icon(
                                             Icons.location_city,
                                             color: isSelected
                                                 ? AppTheme.primaryRed

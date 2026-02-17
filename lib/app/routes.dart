@@ -61,16 +61,21 @@ class AppRoutes {
       case hotelDetail:
         String id;
         bool hide = false;
+        double? dist;
         if (settings.arguments is Map) {
           final args = settings.arguments as Map<String, dynamic>;
           id = args['hostelId'];
           hide = args['hideBookingButton'] ?? false;
+          dist = args['distance'];
         } else {
           id = settings.arguments as String;
         }
         return MaterialPageRoute(
-          builder: (context) =>
-              HotelDetailScreen(hostelId: id, hideBookingButton: hide),
+          builder: (context) => HotelDetailScreen(
+            hostelId: id,
+            hideBookingButton: hide,
+            distance: dist,
+          ),
         );
       case booking:
         final args = settings.arguments as Map<String, dynamic>;

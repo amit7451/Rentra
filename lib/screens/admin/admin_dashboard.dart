@@ -21,240 +21,262 @@ class AdminDashboard extends StatelessWidget {
     final uid = user?.uid ?? '';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F7),
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppTheme.primaryRed,
-        centerTitle: true,
-        title: Image.asset(
-          'assets/icons/app_icon.png',
-          height: 36,
-          fit: BoxFit.contain,
-          color: Colors.white,
-          colorBlendMode: BlendMode.srcIn,
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout_rounded, color: Colors.white),
-            tooltip: 'Sign Out',
-            onPressed: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  title: const Text('Sign Out'),
-                  content: const Text('Are you sure you want to sign out?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx, true),
-                      style: TextButton.styleFrom(foregroundColor: Colors.red),
-                      child: const Text('Sign Out'),
-                    ),
-                  ],
-                ),
-              );
-              if (confirm == true) {
-                await FirebaseAuth.instance.signOut();
-                if (context.mounted) {
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    AppRoutes.login,
-                    (route) => false,
-                  );
-                }
-              }
-            },
-          ),
-        ],
-      ),
+      backgroundColor: Colors.grey[50],
       body: RefreshIndicator(
         color: AppTheme.primaryRed,
         onRefresh: () async {
           await Future.delayed(const Duration(seconds: 1));
         },
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+        child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Welcome Header ──────────────────────────────────
-              _WelcomeHeader(uid: uid),
-              const SizedBox(height: 20),
-
-              // ── Top 4 Containers (Revenue, Pending, Add, My Hostels) ──
-              StreamBuilder<List<HostelModel>>(
-                stream: firestoreService.getHostelsByOwner(uid),
-                builder: (context, hostelSnap) {
-                  return StreamBuilder<List<BookingModel>>(
-                    stream: firestoreService.getBookingsForOwner(uid),
-                    builder: (context, bookingSnap) {
-                      final bookings = bookingSnap.data ?? [];
-                      final confirmed = bookings
-                          .where((b) => b.status == BookingStatus.confirmed)
-                          .toList();
-                      final pending = bookings
-                          .where((b) => b.status == BookingStatus.pending)
-                          .toList();
-                      final revenue = confirmed.fold<double>(
-                        0,
-                        (sum, b) => sum + b.totalPrice,
-                      );
-
-                      return Column(
-                        children: [
-                          // Row 1: Total Revenue & Pending Bookings
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _MetricCard(
-                                  label: 'Total Revenue',
-                                  value: '₹${_formatNumber(revenue.toInt())}',
-                                  icon: Icons.trending_up,
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF43A047),
-                                      Color(0xFF66BB6A),
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  trendLabel: '+12%',
-                                  trendUp: true,
-                                  onTap: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const AdminStatsScreen(),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: _MetricCard(
-                                  label: 'Pending Bookings',
-                                  value: '${pending.length}',
-                                  icon: Icons.hourglass_bottom_outlined,
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFFF4511E),
-                                      Color(0xFFFF7043),
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  trendLabel: '',
-                                  trendUp: null,
-                                  onTap: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const AdminBookingsScreen(
-                                        initialIndex: 0,
-                                      ),
-                                    ),
-                                  ), // Pending tab
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 14),
-                          // Row 2: Add Hostel & My Hostels
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _MetricCard(
-                                  label: 'Add Hostel',
-                                  value: 'New',
-                                  icon: Icons.add_home_work_rounded,
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFFD32F2F),
-                                      Color(0xFFEF5350),
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  trendLabel: '',
-                                  trendUp: null,
-                                  onTap: () async {
-                                    final currentUser =
-                                        FirebaseAuth.instance.currentUser;
-                                    await currentUser?.reload();
-                                    if (currentUser != null &&
-                                        !currentUser.emailVerified) {
-                                      if (context.mounted) {
-                                        showVerificationDialog(context);
-                                      }
-                                      return;
-                                    }
-
-                                    if (context.mounted) {
-                                      Navigator.pushNamed(
-                                        context,
-                                        AppRoutes.addHostel,
-                                      );
-                                    }
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: _MetricCard(
-                                  label: 'My Hostels',
-                                  value: '${hostelSnap.data?.length ?? 0}',
-                                  icon: Icons.apartment_rounded,
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF1976D2),
-                                      Color(0xFF42A5F5),
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  trendLabel: '',
-                                  trendUp: null,
-                                  onTap: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const MyHostelsScreen(),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-              ),
-              const SizedBox(height: 28),
-
-              // ── Manage Section Title ────────────────────────────
-              const Text(
-                'Manage',
+          slivers: [
+            SliverAppBar(
+              elevation: 0,
+              backgroundColor: Colors.grey[50],
+              surfaceTintColor: Colors.transparent,
+              scrolledUnderElevation: 4,
+              pinned: true,
+              centerTitle: true,
+              title: const Text(
+                'Admin Dashboard',
                 style: TextStyle(
-                  fontSize: 20,
+                  color: Colors.black,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                  letterSpacing: -0.3,
+                  fontSize: 18,
                 ),
               ),
-              const SizedBox(height: 16),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.logout_rounded, color: Colors.black),
+                  tooltip: 'Sign Out',
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        title: const Text('Sign Out'),
+                        content: const Text(
+                          'Are you sure you want to sign out?',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, true),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.red,
+                            ),
+                            child: const Text('Sign Out'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirm == true) {
+                      await FirebaseAuth.instance.signOut();
+                      if (context.mounted) {
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          AppRoutes.login,
+                          (route) => false,
+                        );
+                      }
+                    }
+                  },
+                ),
+              ],
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Welcome Header ──────────────────────────────────
+                    _WelcomeHeader(uid: uid),
+                    const SizedBox(height: 20),
 
-              // ── Bottom Grid (5 Items) ───────────────────────────
-              _FeatureGrid(uid: uid, firestoreService: firestoreService),
+                    // ── Top 4 Containers (Revenue, Pending, Add, My Hostels) ──
+                    StreamBuilder<List<HostelModel>>(
+                      stream: firestoreService.getHostelsByOwner(uid),
+                      builder: (context, hostelSnap) {
+                        return StreamBuilder<List<BookingModel>>(
+                          stream: firestoreService.getBookingsForOwner(uid),
+                          builder: (context, bookingSnap) {
+                            final bookings = bookingSnap.data ?? [];
+                            final confirmed = bookings
+                                .where(
+                                  (b) => b.status == BookingStatus.confirmed,
+                                )
+                                .toList();
+                            final pending = bookings
+                                .where((b) => b.status == BookingStatus.pending)
+                                .toList();
+                            final revenue = confirmed.fold<double>(
+                              0,
+                              (sum, b) => sum + b.totalPrice,
+                            );
 
-              const SizedBox(height: 24),
-            ],
-          ),
+                            return Column(
+                              children: [
+                                // Row 1: Total Revenue & Pending Bookings
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _MetricCard(
+                                        label: 'Total Revenue',
+                                        value:
+                                            '₹${_formatNumber(revenue.toInt())}',
+                                        icon: Icons.trending_up,
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            Color(0xFF43A047),
+                                            Color(0xFF66BB6A),
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                        trendLabel: '+12%',
+                                        trendUp: true,
+                                        onTap: () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const AdminStatsScreen(),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: _MetricCard(
+                                        label: 'Pending Bookings',
+                                        value: '${pending.length}',
+                                        icon: Icons.hourglass_bottom_outlined,
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            Color(0xFFF4511E),
+                                            Color(0xFFFF7043),
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                        trendLabel: '',
+                                        trendUp: null,
+                                        onTap: () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const AdminBookingsScreen(
+                                                  initialIndex: 0,
+                                                ),
+                                          ),
+                                        ), // Pending tab
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 14),
+                                // Row 2: Add Hostel & My Hostels
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _MetricCard(
+                                        label: 'Add Hostel',
+                                        value: 'New',
+                                        icon: Icons.add_home_work_rounded,
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            Color(0xFFD32F2F),
+                                            Color(0xFFEF5350),
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                        trendLabel: '',
+                                        trendUp: null,
+                                        onTap: () async {
+                                          final currentUser =
+                                              FirebaseAuth.instance.currentUser;
+                                          await currentUser?.reload();
+                                          if (currentUser != null &&
+                                              !currentUser.emailVerified) {
+                                            if (context.mounted) {
+                                              showVerificationDialog(context);
+                                            }
+                                            return;
+                                          }
+
+                                          if (context.mounted) {
+                                            Navigator.pushNamed(
+                                              context,
+                                              AppRoutes.addHostel,
+                                            );
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: _MetricCard(
+                                        label: 'My Hostels',
+                                        value:
+                                            '${hostelSnap.data?.length ?? 0}',
+                                        icon: Icons.apartment_rounded,
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            Color(0xFF1976D2),
+                                            Color(0xFF42A5F5),
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                        trendLabel: '',
+                                        trendUp: null,
+                                        onTap: () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const MyHostelsScreen(),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 28),
+
+                    // ── Manage Section Title ────────────────────────────
+                    const Text(
+                      'Manage',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ── Bottom Grid (5 Items) ───────────────────────────
+                    _FeatureGrid(uid: uid, firestoreService: firestoreService),
+
+                    const SizedBox(height: 24),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -20,7 +20,7 @@ class HotelCard extends StatelessWidget {
           Navigator.pushNamed(
             context,
             AppRoutes.hotelDetail,
-            arguments: hostel.id,
+            arguments: {'hostelId': hostel.id, 'distance': distance},
           );
         },
         borderRadius: BorderRadius.circular(16),

@@ -359,17 +359,18 @@ class FirestoreService {
                 .toList();
           }
 
-          // 2. Filter by search query
+          // 2. Filter by search query (Multi-word support)
           if (query != null && query.isNotEmpty) {
-            final q = query.toLowerCase();
-            filtered = filtered
-                .where(
-                  (h) =>
-                      h.name.toLowerCase().contains(q) ||
-                      h.city.toLowerCase().contains(q) ||
-                      h.country.toLowerCase().contains(q),
-                )
+            final searchWords = query
+                .toLowerCase()
+                .split(' ')
+                .where((w) => w.isNotEmpty)
                 .toList();
+            filtered = filtered.where((h) {
+              final content = "${h.name} ${h.city} ${h.country}".toLowerCase();
+              // Check if ALL search words are present in the property content
+              return searchWords.every((word) => content.contains(word));
+            }).toList();
           }
 
           // 3. Helper for starting price (Logic from HotelCard)
@@ -675,5 +676,58 @@ class FirestoreService {
 
           return hostels;
         });
+  }
+  // ==================== NOTIFICATION OPERATIONS ====================
+
+  // Save notification to Firestore
+  Future<void> saveNotification(
+    String userId,
+    Map<String, dynamic> notificationData,
+  ) async {
+    try {
+      await _firestore
+          .collection(_usersCollection)
+          .doc(userId)
+          .collection('notifications')
+          .add({
+            ...notificationData,
+            'createdAt': FieldValue.serverTimestamp(),
+            'isRead': false,
+          });
+    } catch (e) {
+      throw 'Failed to save notification: $e';
+    }
+  }
+
+  // Get user notifications stream
+  Stream<List<Map<String, dynamic>>> getUserNotifications(String userId) {
+    return _firestore
+        .collection(_usersCollection)
+        .doc(userId)
+        .collection('notifications')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            return {'id': doc.id, ...doc.data()};
+          }).toList();
+        });
+  }
+
+  // Mark notification as read
+  Future<void> markNotificationAsRead(
+    String userId,
+    String notificationId,
+  ) async {
+    try {
+      await _firestore
+          .collection(_usersCollection)
+          .doc(userId)
+          .collection('notifications')
+          .doc(notificationId)
+          .update({'isRead': true});
+    } catch (e) {
+      throw 'Failed to mark notification as read: $e';
+    }
   }
 }

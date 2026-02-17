@@ -122,7 +122,7 @@ class ProfileScreen extends StatelessWidget {
             slivers: [
               SliverAppBar(
                 elevation: 0,
-                scrolledUnderElevation: 0,
+                scrolledUnderElevation: 4,
                 surfaceTintColor: Colors.transparent,
                 pinned: true,
                 floating: false,
@@ -133,6 +133,7 @@ class ProfileScreen extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
                 ),
                 actions: [
@@ -143,38 +144,6 @@ class ProfileScreen extends StatelessWidget {
                     },
                   ),
                 ],
-                expandedHeight: 80,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Container(
-                        height: 1,
-                        width: double.infinity,
-                        clipBehavior: Clip.none,
-                        decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 15,
-                              offset: const Offset(0, 8),
-                            ),
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Divider(
-                          height: 1,
-                          thickness: 1,
-                          color: Colors.black.withOpacity(0.06),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
               SliverToBoxAdapter(
                 child: RefreshIndicator(

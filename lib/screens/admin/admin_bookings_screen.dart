@@ -40,100 +40,121 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F7),
-      appBar: AppBar(
-        title: const Text('Manage Bookings'),
-        actions: [
-          IconButton(
-            tooltip: 'Clear cancelled bookings',
-            icon: const Icon(Icons.delete_sweep_outlined),
-            onPressed: () => _confirmAndClearCancelled(context),
-          ),
-        ],
-        centerTitle: true,
-        backgroundColor: AppTheme.primaryRed,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        bottom: TabBar(
-          controller: _tabs,
-          indicatorColor: Colors.white,
-          indicatorWeight: 3,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white60,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-          tabs: const [
-            Tab(text: 'Pending'),
-            Tab(text: 'Confirmed'),
-            Tab(text: 'Cancelled'),
-          ],
-        ),
-      ),
-      body: StreamBuilder<List<HostelModel>>(
-        stream: _firestoreService.getHostelsByOwner(_uid),
-        builder: (context, hostelSnap) {
-          if (hostelSnap.connectionState == ConnectionState.waiting) {
-            return const LoadingIndicator(message: 'Loading...');
-          }
-
-          final hostels = hostelSnap.data ?? [];
-
-          if (hostels.isEmpty) {
-            return _emptyState(
-              icon: Icons.home_work_outlined,
-              message: 'No hostels found.',
-              subMessage: 'Add a hostel to start receiving bookings.',
-            );
-          }
-
-          return StreamBuilder<List<BookingModel>>(
-            stream: _firestoreService.getBookingsForOwner(_uid),
-            builder: (context, bookingSnap) {
-              if (bookingSnap.connectionState == ConnectionState.waiting) {
-                return const LoadingIndicator(message: 'Loading bookings...');
-              }
-
-              final all = bookingSnap.data ?? [];
-
-              return RefreshIndicator(
-                color: AppTheme.primaryRed,
-                onRefresh: () async =>
-                    await Future.delayed(const Duration(seconds: 1)),
-                child: TabBarView(
-                  controller: _tabs,
-                  children: [
-                    _BookingList(
-                      bookings: all
-                          .where((b) => b.status == BookingStatus.pending)
-                          .toList(),
-                      hostels: hostels,
-                      firestoreService: _firestoreService,
-                      emptyIcon: Icons.hourglass_empty,
-                      emptyMessage: 'No pending bookings',
-                    ),
-                    _BookingList(
-                      bookings: all
-                          .where((b) => b.status == BookingStatus.confirmed)
-                          .toList(),
-                      hostels: hostels,
-                      firestoreService: _firestoreService,
-                      emptyIcon: Icons.check_circle_outline,
-                      emptyMessage: 'No confirmed bookings',
-                    ),
-                    _BookingList(
-                      bookings: all
-                          .where((b) => b.status == BookingStatus.cancelled)
-                          .toList(),
-                      hostels: hostels,
-                      firestoreService: _firestoreService,
-                      emptyIcon: Icons.cancel_outlined,
-                      emptyMessage: 'No cancelled bookings',
-                    ),
-                  ],
+      backgroundColor: Colors.grey[50],
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              title: const Text(
+                'Manage Bookings',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
                 ),
-              );
-            },
-          );
+              ),
+              actions: [
+                IconButton(
+                  tooltip: 'Clear cancelled bookings',
+                  icon: const Icon(
+                    Icons.delete_sweep_outlined,
+                    color: Colors.black,
+                  ),
+                  onPressed: () => _confirmAndClearCancelled(context),
+                ),
+              ],
+              centerTitle: true,
+              backgroundColor: Colors.grey[50],
+              foregroundColor: Colors.black,
+              elevation: 0,
+              surfaceTintColor: Colors.transparent,
+              scrolledUnderElevation: 4,
+              pinned: true,
+              floating: true,
+              forceElevated: innerBoxIsScrolled,
+              bottom: TabBar(
+                controller: _tabs,
+                indicatorColor: AppTheme.primaryRed,
+                indicatorWeight: 3,
+                labelColor: AppTheme.primaryRed,
+                unselectedLabelColor: Colors.grey,
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                tabs: const [
+                  Tab(text: 'Pending'),
+                  Tab(text: 'Confirmed'),
+                  Tab(text: 'Cancelled'),
+                ],
+              ),
+            ),
+          ];
         },
+        body: StreamBuilder<List<HostelModel>>(
+          stream: _firestoreService.getHostelsByOwner(_uid),
+          builder: (context, hostelSnap) {
+            if (hostelSnap.connectionState == ConnectionState.waiting) {
+              return const LoadingIndicator(message: 'Loading...');
+            }
+
+            final hostels = hostelSnap.data ?? [];
+
+            if (hostels.isEmpty) {
+              return _emptyState(
+                icon: Icons.home_work_outlined,
+                message: 'No hostels found.',
+                subMessage: 'Add a hostel to start receiving bookings.',
+              );
+            }
+
+            return StreamBuilder<List<BookingModel>>(
+              stream: _firestoreService.getBookingsForOwner(_uid),
+              builder: (context, bookingSnap) {
+                if (bookingSnap.connectionState == ConnectionState.waiting) {
+                  return const LoadingIndicator(message: 'Loading bookings...');
+                }
+
+                final all = bookingSnap.data ?? [];
+
+                return RefreshIndicator(
+                  color: AppTheme.primaryRed,
+                  onRefresh: () async =>
+                      await Future.delayed(const Duration(seconds: 1)),
+                  child: TabBarView(
+                    controller: _tabs,
+                    children: [
+                      _BookingList(
+                        bookings: all
+                            .where((b) => b.status == BookingStatus.pending)
+                            .toList(),
+                        hostels: hostels,
+                        firestoreService: _firestoreService,
+                        emptyIcon: Icons.hourglass_empty,
+                        emptyMessage: 'No pending bookings',
+                      ),
+                      _BookingList(
+                        bookings: all
+                            .where((b) => b.status == BookingStatus.confirmed)
+                            .toList(),
+                        hostels: hostels,
+                        firestoreService: _firestoreService,
+                        emptyIcon: Icons.check_circle_outline,
+                        emptyMessage: 'No confirmed bookings',
+                      ),
+                      _BookingList(
+                        bookings: all
+                            .where((b) => b.status == BookingStatus.cancelled)
+                            .toList(),
+                        hostels: hostels,
+                        firestoreService: _firestoreService,
+                        emptyIcon: Icons.cancel_outlined,
+                        emptyMessage: 'No cancelled bookings',
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

@@ -2,11 +2,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'firestore_service.dart';
 import '../models/user_model.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'notification_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirestoreService _firestoreService = FirestoreService();
+  final NotificationService _notificationService = NotificationService();
 
   // Get current user
   User? get currentUser => _auth.currentUser;
@@ -53,6 +55,10 @@ class AuthService {
           // Save user data to Firestore
           await _firestoreService.createUser(userModel);
 
+          // Initialize OneSignal
+          _notificationService.login(user.uid);
+          _notificationService.setUserTags(role: isAdmin ? 'admin' : 'user');
+
           return userModel;
         } catch (e) {
           // Rollback: delete auth user if firestore fails
@@ -90,6 +96,9 @@ class AuthService {
     final user = userCredential.user;
 
     if (user != null) {
+      // Initialize OneSignal
+      _notificationService.login(user.uid);
+
       // 1. Check if user document exists in Firestore (Direct UID match)
       final existingUser = await _firestoreService.getUser(user.uid);
 
@@ -98,6 +107,9 @@ class AuthService {
           // Reactivate soft-deleted account (Same UID)
           await _firestoreService.reactivateUser(user.uid);
         }
+        _notificationService.setUserTags(
+          role: existingUser.isAdmin ? 'admin' : 'user',
+        );
       } else {
         // Create new user document if it doesn't exist
         final newUser = UserModel(
@@ -110,6 +122,7 @@ class AuthService {
           isAdmin: false,
         );
         await _firestoreService.createUser(newUser);
+        _notificationService.setUserTags(role: 'user');
       }
     }
 
@@ -143,6 +156,12 @@ class AuthService {
           await _firestoreService.reactivateUser(user.uid);
         }
 
+        // Initialize OneSignal
+        _notificationService.login(user.uid);
+        _notificationService.setUserTags(
+          role: userModel.isAdmin ? 'admin' : 'user',
+        );
+
         return userModel;
       }
       return null;
@@ -157,6 +176,7 @@ class AuthService {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
+      _notificationService.logout();
     } catch (e) {
       throw 'Failed to sign out. Please try again.';
     }
@@ -233,6 +253,7 @@ class AuthService {
 
     // 2. Soft delete in Firestore (update status + deactivate properties)
     await _firestoreService.softDeleteUser(user.uid);
+    _notificationService.logout(); // Logout from OneSignal
 
     // 3. Delete from Firebase Auth (Hard delete from Auth side)
     await user.delete();

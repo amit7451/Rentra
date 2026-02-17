@@ -4,7 +4,6 @@ import '../../services/firestore_service.dart';
 import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
 import '../../app/routes.dart';
-import '../../widgets/loading_indicator.dart';
 import '../../widgets/error_text.dart';
 import '../../widgets/primary_button.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -14,11 +13,13 @@ import 'package:geolocator/geolocator.dart';
 class HotelDetailScreen extends StatefulWidget {
   final String hostelId;
   final bool hideBookingButton;
+  final double? distance;
 
   const HotelDetailScreen({
     super.key,
     required this.hostelId,
     this.hideBookingButton = false,
+    this.distance,
   });
 
   @override
@@ -57,9 +58,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
       stream: firestoreService.watchHostel(widget.hostelId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: LoadingIndicator(message: 'Loading hostel details...'),
-          );
+          return _buildSkeletonLoader();
         }
 
         if (snapshot.hasError) {
@@ -191,7 +190,8 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                   ),
                                 ],
                               ),
-                              if (_currentPosition != null &&
+                              if ((widget.distance != null ||
+                                      _currentPosition != null) &&
                                   hostel.latitude != null &&
                                   hostel.longitude != null)
                                 Padding(
@@ -218,7 +218,9 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                         ),
                                         const SizedBox(width: 6),
                                         Text(
-                                          '${(Geolocator.distanceBetween(_currentPosition!.latitude, _currentPosition!.longitude, hostel.latitude!, hostel.longitude!) / 1000).toStringAsFixed(1)} km',
+                                          widget.distance != null
+                                              ? '${widget.distance!.toStringAsFixed(1)} km'
+                                              : '${(Geolocator.distanceBetween(_currentPosition!.latitude, _currentPosition!.longitude, hostel.latitude!, hostel.longitude!) / 1000).toStringAsFixed(1)} km',
                                           style: const TextStyle(
                                             color: Colors.black87,
                                             fontWeight: FontWeight.bold,
@@ -689,6 +691,168 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSkeletonLoader() {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 300,
+            backgroundColor: Colors.grey[200],
+            flexibleSpace: FlexibleSpaceBar(
+              background: _skeletonBox(height: 300, width: double.infinity),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                // Container preview type searching bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.search, color: Colors.grey[300]),
+                        const SizedBox(width: 12),
+                        Container(
+                          width: 150,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _skeletonBox(height: 32, width: 200),
+                          _skeletonBox(height: 24, width: 60),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _skeletonBox(height: 16, width: double.infinity),
+                      const SizedBox(height: 8),
+                      _skeletonBox(height: 16, width: 250),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          _skeletonBox(
+                            height: 40,
+                            width: 100,
+                            borderRadius: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          _skeletonBox(
+                            height: 40,
+                            width: 100,
+                            borderRadius: 20,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+                      _skeletonBox(height: 20, width: 120),
+                      const SizedBox(height: 16),
+                      _skeletonBox(height: 100, width: double.infinity),
+                      const SizedBox(height: 32),
+                      _skeletonBox(height: 20, width: 150),
+                      const SizedBox(height: 16),
+                      _skeletonBox(height: 200, width: double.infinity),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _skeletonBox({
+    required double height,
+    required double width,
+    double borderRadius = 8,
+  }) {
+    return Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(borderRadius),
+      ),
+      child: const _ShimmerOverlay(),
+    );
+  }
+}
+
+class _ShimmerOverlay extends StatefulWidget {
+  const _ShimmerOverlay();
+
+  @override
+  State<_ShimmerOverlay> createState() => _ShimmerOverlayState();
+}
+
+class _ShimmerOverlayState extends State<_ShimmerOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return FractionallySizedBox(
+          widthFactor: 1.0,
+          heightFactor: 1.0,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment(-1.0 + (_controller.value * 2), -0.3),
+                end: Alignment(0.0 + (_controller.value * 2), 0.3),
+                colors: [
+                  Colors.grey[200]!,
+                  Colors.grey[100]!,
+                  Colors.grey[200]!,
+                ],
+                stops: const [0.3, 0.5, 0.7],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
