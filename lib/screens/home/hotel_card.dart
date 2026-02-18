@@ -231,19 +231,19 @@ class HotelCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: (() {
                             if (hostel.unitType.toLowerCase() == 'flat') {
-                              return Colors.green.withValues(alpha: 0.08);
+                              return Colors.green.withOpacity(0.08);
                             }
                             final rooms = hostel.availableRooms;
                             if (rooms <= 0) {
-                              return AppTheme.grey.withValues(alpha: 0.1);
+                              return AppTheme.grey.withOpacity(0.1);
                             }
                             if (rooms <= 3) {
-                              return Colors.red.withValues(alpha: 0.08);
+                              return Colors.red.withOpacity(0.08);
                             }
                             if (rooms <= 5) {
-                              return Colors.amber.withValues(alpha: 0.08);
+                              return Colors.amber.withOpacity(0.08);
                             }
-                            return Colors.green.withValues(alpha: 0.08);
+                            return Colors.green.withOpacity(0.08);
                           })(),
                           borderRadius: BorderRadius.circular(20),
                         ),

@@ -271,7 +271,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryRed.withValues(alpha: 0.1),
+                            color: AppTheme.primaryRed.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -325,7 +325,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                             border: Border.all(color: AppTheme.lightGrey),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
+                                color: Colors.black.withOpacity(0.05),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -542,7 +542,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                     color: AppTheme.white,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
+                        color: Colors.black.withOpacity(0.1),
                         blurRadius: 10,
                         offset: const Offset(0, -5),
                       ),
@@ -606,7 +606,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.08),
+                color: Colors.blue.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -623,11 +623,11 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: (() {
-              if (rooms <= 0) return AppTheme.grey.withValues(alpha: 0.1);
-              if (isFlat) return Colors.green.withValues(alpha: 0.08);
-              if (rooms <= 3) return Colors.red.withValues(alpha: 0.08);
-              if (rooms <= 5) return Colors.amber.withValues(alpha: 0.08);
-              return Colors.green.withValues(alpha: 0.08);
+              if (rooms <= 0) return AppTheme.grey.withOpacity(0.1);
+              if (isFlat) return Colors.green.withOpacity(0.08);
+              if (rooms <= 3) return Colors.red.withOpacity(0.08);
+              if (rooms <= 5) return Colors.amber.withOpacity(0.08);
+              return Colors.green.withOpacity(0.08);
             })(),
             borderRadius: BorderRadius.circular(20),
           ),

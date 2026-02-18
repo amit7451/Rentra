@@ -428,7 +428,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Divider(
                           height: 1,
                           thickness: 1,
-                          color: Colors.black.withValues(alpha: 0.06),
+                          color: Colors.black.withOpacity(0.06),
                         ),
                       ),
                     ],
@@ -575,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
               gradient: isSelected
                   ? RadialGradient(
                       colors: [
-                        const Color(0xFFFFF9C4).withValues(alpha: 0.5),
+                        const Color(0xFFFFF9C4).withOpacity(0.5),
                         Colors.transparent,
                       ],
                     )
@@ -583,7 +583,7 @@ class _HomeScreenState extends State<HomeScreen> {
               boxShadow: [
                 BoxShadow(
                   color: isSelected
-                      ? const Color(0xFFFFF176).withValues(alpha: 0.3)
+                      ? const Color(0xFFFFF176).withOpacity(0.3)
                       : Colors.transparent,
                   blurRadius: isSelected ? 12 : 0,
                   spreadRadius: isSelected ? 2 : 0,
@@ -665,7 +665,7 @@ class _WishlistableCard extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
+                  color: Colors.black.withOpacity(0.3),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
