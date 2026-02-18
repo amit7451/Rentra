@@ -271,7 +271,14 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
         isActive: true,
       );
 
-      await _firestoreService.addHostel(hostel);
+      final hostelId = await _firestoreService.addHostel(hostel);
+
+      // Notify users about the new property (Broadcast)
+      _firestoreService.broadcastNewPropertyNotification(
+        hostel: hostel.copyWith(id: hostelId),
+        // maxDistanceKm: 10.0, // Example for future range filtering
+      );
+
       _showSnack('Hostel listed successfully!');
       Navigator.pop(context, true);
     } catch (e) {

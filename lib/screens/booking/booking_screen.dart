@@ -4,6 +4,7 @@ import '../../services/firestore_service.dart';
 import '../../models/booking_model.dart';
 import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
+import '../../app/routes.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/verification_dialog.dart';
 
@@ -218,7 +219,16 @@ class _BookingScreenState extends State<BookingScreen> {
         flatCapacity: hostel.flatCapacity,
       );
 
-      await _firestoreService.createBooking(booking);
+      final bookingId = await _firestoreService.createBooking(booking);
+
+      // Notify Admin
+      await _firestoreService.sendAppNotification(
+        recipientId: hostel.ownerId,
+        title: 'New Booking Request',
+        body: 'A user has requested to book ${widget.hostelName}.',
+        type: 'booking',
+        additionalData: {'bookingId': bookingId, 'hostelId': widget.hostelId},
+      );
 
       if (!mounted) {
         return;
@@ -231,7 +241,7 @@ class _BookingScreenState extends State<BookingScreen> {
         ),
       );
 
-      Navigator.pop(context);
+      Navigator.pushReplacementNamed(context, AppRoutes.bookings);
     } catch (e) {
       if (!mounted) {
         return;
@@ -397,22 +407,22 @@ class _BookingScreenState extends State<BookingScreen> {
                                         decoration: BoxDecoration(
                                           color: (() {
                                             if (rooms <= 0) {
-                                              return AppTheme.grey.withValues(
-                                                alpha: 0.1,
+                                              return AppTheme.grey.withOpacity(
+                                                0.1,
                                               );
                                             }
                                             if (rooms <= 3) {
-                                              return Colors.red.withValues(
-                                                alpha: 0.08,
+                                              return Colors.red.withOpacity(
+                                                0.08,
                                               );
                                             }
                                             if (rooms <= 5) {
-                                              return Colors.amber.withValues(
-                                                alpha: 0.08,
+                                              return Colors.amber.withOpacity(
+                                                0.08,
                                               );
                                             }
-                                            return Colors.green.withValues(
-                                              alpha: 0.08,
+                                            return Colors.green.withOpacity(
+                                              0.08,
                                             );
                                           })(),
                                           borderRadius: BorderRadius.circular(
@@ -726,7 +736,7 @@ class _BookingScreenState extends State<BookingScreen> {
           color: AppTheme.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: Colors.black.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),

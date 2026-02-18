@@ -5,9 +5,30 @@ import '../../models/booking_model.dart';
 import '../../app/theme.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/error_text.dart';
+import '../../widgets/highlight_wrapper.dart';
 
-class BookingsScreen extends StatelessWidget {
-  const BookingsScreen({super.key});
+class BookingsScreen extends StatefulWidget {
+  final String? highlightBookingId;
+  const BookingsScreen({super.key, this.highlightBookingId});
+
+  @override
+  State<BookingsScreen> createState() => _BookingsScreenState();
+}
+
+class _BookingsScreenState extends State<BookingsScreen> {
+  String? _highlightId;
+
+  @override
+  void initState() {
+    super.initState();
+    _highlightId = widget.highlightBookingId;
+
+    if (_highlightId != null) {
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted) setState(() => _highlightId = null);
+      });
+    }
+  }
 
   Color _getStatusColor(BookingStatus status) {
     switch (status) {
@@ -121,6 +142,7 @@ class BookingsScreen extends StatelessWidget {
                       context,
                       booking,
                       firestoreService,
+                      shouldHighlight: _highlightId == booking.id,
                     );
                   }, childCount: bookings.length),
                 ),
@@ -133,6 +155,19 @@ class BookingsScreen extends StatelessWidget {
   }
 
   Widget _buildBookingCard(
+    BuildContext context,
+    BookingModel booking,
+    FirestoreService firestoreService, {
+    bool shouldHighlight = false,
+  }) {
+    return HighlightWrapper(
+      shouldHighlight: shouldHighlight,
+      borderRadius: 12, // Card default radius
+      child: _buildCardContent(context, booking, firestoreService),
+    );
+  }
+
+  Widget _buildCardContent(
     BuildContext context,
     BookingModel booking,
     FirestoreService firestoreService,
@@ -429,6 +464,19 @@ class BookingsScreen extends StatelessWidget {
                       ? null
                       : reasonController.text.trim(),
                   'user',
+                );
+
+                // 1.1 Notify Admin
+                await firestoreService.sendAppNotification(
+                  recipientId: booking.adminId,
+                  title: 'Booking Cancelled 🔴',
+                  body:
+                      'The user has cancelled their booking for ${booking.hostelName}.',
+                  type: 'booking',
+                  additionalData: {
+                    'bookingId': booking.id,
+                    'status': 'cancelled',
+                  },
                 );
 
                 // 2. Restore room if it was confirmed

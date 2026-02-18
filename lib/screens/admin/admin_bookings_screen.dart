@@ -6,10 +6,16 @@ import '../../models/booking_model.dart';
 import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/highlight_wrapper.dart';
 
 class AdminBookingsScreen extends StatefulWidget {
   final int initialIndex;
-  const AdminBookingsScreen({super.key, this.initialIndex = 0});
+  final String? highlightBookingId;
+  const AdminBookingsScreen({
+    super.key,
+    this.initialIndex = 0,
+    this.highlightBookingId,
+  });
 
   @override
   State<AdminBookingsScreen> createState() => _AdminBookingsScreenState();
@@ -20,15 +26,24 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
   late final TabController _tabs;
   final _firestoreService = FirestoreService();
   final _uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+  String? _highlightId;
 
   @override
   void initState() {
     super.initState();
+    _highlightId = widget.highlightBookingId;
     _tabs = TabController(
       length: 3,
       vsync: this,
       initialIndex: widget.initialIndex,
     );
+
+    // Clear highlight after initial animation
+    if (_highlightId != null) {
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted) setState(() => _highlightId = null);
+      });
+    }
   }
 
   @override
@@ -129,6 +144,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
                         firestoreService: _firestoreService,
                         emptyIcon: Icons.hourglass_empty,
                         emptyMessage: 'No pending bookings',
+                        highlightBookingId: _highlightId,
                       ),
                       _BookingList(
                         bookings: all
@@ -138,6 +154,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
                         firestoreService: _firestoreService,
                         emptyIcon: Icons.check_circle_outline,
                         emptyMessage: 'No confirmed bookings',
+                        highlightBookingId: _highlightId,
                       ),
                       _BookingList(
                         bookings: all
@@ -147,6 +164,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
                         firestoreService: _firestoreService,
                         emptyIcon: Icons.cancel_outlined,
                         emptyMessage: 'No cancelled bookings',
+                        highlightBookingId: _highlightId,
                       ),
                     ],
                   ),
@@ -266,6 +284,7 @@ class _BookingList extends StatelessWidget {
   final FirestoreService firestoreService;
   final IconData emptyIcon;
   final String emptyMessage;
+  final String? highlightBookingId;
 
   const _BookingList({
     required this.bookings,
@@ -273,6 +292,7 @@ class _BookingList extends StatelessWidget {
     required this.firestoreService,
     required this.emptyIcon,
     required this.emptyMessage,
+    this.highlightBookingId,
   });
 
   @override
@@ -306,6 +326,7 @@ class _BookingList extends StatelessWidget {
           booking: booking,
           hostel: hostel,
           firestoreService: firestoreService,
+          shouldHighlight: highlightBookingId == booking.id,
         );
       },
     );
@@ -318,15 +339,24 @@ class _BookingCard extends StatelessWidget {
   final BookingModel booking;
   final HostelModel hostel;
   final FirestoreService firestoreService;
+  final bool shouldHighlight;
 
   const _BookingCard({
     required this.booking,
     required this.hostel,
     required this.firestoreService,
+    this.shouldHighlight = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    return HighlightWrapper(
+      shouldHighlight: shouldHighlight,
+      child: _buildCard(context),
+    );
+  }
+
+  Widget _buildCard(BuildContext context) {
     final checkIn = booking.checkInDate;
     final checkOut = booking.checkOutDate;
     final isFlat = hostel.unitType == 'flat';
@@ -352,7 +382,7 @@ class _BookingCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.07),
+            color: Colors.black.withOpacity(0.07),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -652,7 +682,7 @@ class _BookingCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.08),
+                  color: Colors.green.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -681,7 +711,7 @@ class _BookingCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.08),
+                  color: Colors.red.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Row(
@@ -796,6 +826,20 @@ class _BookingCard extends StatelessWidget {
         }
       }
 
+      // 3. Notify User
+      await firestoreService.sendAppNotification(
+        recipientId: booking.userId,
+        title: isConfirm ? 'Booking Confirmed!' : 'Booking Cancelled',
+        body: isConfirm
+            ? 'Your booking for ${booking.hostelName} has been confirmed by the owner.'
+            : 'Your booking for ${booking.hostelName} was cancelled by the owner.',
+        type: 'booking',
+        additionalData: {
+          'bookingId': booking.id,
+          'status': isConfirm ? 'confirmed' : 'cancelled',
+        },
+      );
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -833,17 +877,17 @@ class _StatusPill extends StatelessWidget {
     switch (status) {
       case BookingStatus.confirmed:
         fg = Colors.green[700]!;
-        bg = Colors.green.withValues(alpha: 0.1);
+        bg = Colors.green.withOpacity(0.1);
         icon = Icons.check_circle;
         break;
       case BookingStatus.cancelled:
         fg = Colors.red[700]!;
-        bg = Colors.red.withValues(alpha: 0.1);
+        bg = Colors.red.withOpacity(0.1);
         icon = Icons.cancel;
         break;
       default:
         fg = Colors.orange[700]!;
-        bg = Colors.orange.withValues(alpha: 0.1);
+        bg = Colors.orange.withOpacity(0.1);
         icon = Icons.hourglass_empty;
     }
 

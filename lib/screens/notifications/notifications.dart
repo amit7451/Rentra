@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/firestore_service.dart';
+import '../../services/notification_service.dart';
 import '../../app/theme.dart';
 import '../../widgets/loading_indicator.dart';
 
@@ -103,9 +104,11 @@ class NotificationsScreen extends StatelessWidget {
                   child: const Icon(Icons.delete, color: Colors.white),
                 ),
                 direction: DismissDirection.endToStart,
-                onDismissed: (direction) {
-                  // TODO: Implement delete in FirestoreService if needed,
-                  // for now just visually remove or ignore.
+                onDismissed: (direction) async {
+                  await firestoreService.deleteUserNotification(
+                    user.uid,
+                    notification['id'],
+                  );
                 },
                 child: InkWell(
                   onTap: () async {
@@ -115,23 +118,29 @@ class NotificationsScreen extends StatelessWidget {
                         notification['id'],
                       );
                     }
+                    if (context.mounted) {
+                      NotificationService().handleNotificationClick(
+                        context,
+                        notification,
+                      );
+                    }
                   },
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: isRead
                           ? Colors.white
-                          : Colors.red.withValues(alpha: 0.05),
+                          : Colors.red.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isRead
-                            ? Colors.grey.withValues(alpha: 0.2)
-                            : AppTheme.primaryRed.withValues(alpha: 0.3),
+                            ? Colors.grey.withOpacity(0.2)
+                            : AppTheme.primaryRed.withOpacity(0.3),
                       ),
                       boxShadow: [
                         if (!isRead)
                           BoxShadow(
-                            color: AppTheme.primaryRed.withValues(alpha: 0.05),
+                            color: AppTheme.primaryRed.withOpacity(0.05),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -145,7 +154,7 @@ class NotificationsScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: isRead
                                 ? Colors.grey[100]
-                                : AppTheme.primaryRed.withValues(alpha: 0.1),
+                                : AppTheme.primaryRed.withOpacity(0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(

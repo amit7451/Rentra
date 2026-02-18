@@ -156,20 +156,26 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 40),
+                const SizedBox(height: 48),
 
-                // Logo
+                // Full Width Rectangular Logo Card
                 Container(
-                  width: 100,
-                  height: 100,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryRed,
-                    borderRadius: BorderRadius.circular(25),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
                   ),
-                  child: const Icon(
-                    Icons.hotel,
-                    size: 50,
-                    color: AppTheme.white,
+                  child: Image.asset(
+                    'assets/icons/app_icon.png',
+                    height: 150,
+                    fit: BoxFit.contain,
                   ),
                 ),
 
@@ -180,20 +186,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   'Welcome Back!',
                   style: Theme.of(context).textTheme.displaySmall?.copyWith(
                     color: AppTheme.black,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
                   ),
                 ),
 
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
 
                 Text(
                   'Sign in to continue',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(color: AppTheme.grey),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppTheme.grey.withOpacity(0.8),
+                    letterSpacing: 0.2,
+                  ),
                 ),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 48),
 
                 TextFormField(
                   controller: _emailController,

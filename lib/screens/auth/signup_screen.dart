@@ -217,36 +217,43 @@ class _SignupScreenState extends State<SignupScreen> {
       backgroundColor: AppTheme.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 40),
+                const SizedBox(height: 16),
 
-                // Logo
+                // Full Width Rectangular Logo Card
                 Container(
-                  width: 100,
-                  height: 100,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryRed,
-                    borderRadius: BorderRadius.circular(25),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
                   ),
-                  child: const Icon(
-                    Icons.hotel,
-                    size: 50,
-                    color: AppTheme.white,
+                  child: Image.asset(
+                    'assets/icons/app_icon.png',
+                    height: 140,
+                    fit: BoxFit.contain,
                   ),
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
 
                 Text(
                   'Create Account',
                   style: Theme.of(context).textTheme.displaySmall?.copyWith(
                     color: AppTheme.black,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
                   ),
                 ),
 
@@ -254,10 +261,13 @@ class _SignupScreenState extends State<SignupScreen> {
 
                 Text(
                   'Sign up to get started',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(color: AppTheme.grey),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: AppTheme.grey.withOpacity(0.8),
+                    letterSpacing: 0.2,
+                  ),
                 ),
+
+                const SizedBox(height: 32),
 
                 // Replace your Logo Container with this:
                 Center(

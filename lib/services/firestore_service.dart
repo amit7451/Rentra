@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../models/hostel_model.dart';
 import '../models/booking_model.dart';
 import 'package:geolocator/geolocator.dart';
+import 'notification_service.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -240,15 +242,17 @@ class FirestoreService {
   // ==================== HOSTEL OPERATIONS ====================
 
   // Add new hostel (for admin)
-  Future<void> addHostel(HostelModel hostel) async {
+  Future<String> addHostel(HostelModel hostel) async {
     try {
       final docRef = _firestore.collection(_hostelsCollection).doc();
 
       final data = hostel.toMap();
-      data['id'] = docRef.id;
+      final id = docRef.id;
+      data['id'] = id;
       data['createdAt'] = FieldValue.serverTimestamp();
 
       await docRef.set(data);
+      return id;
     } catch (e) {
       throw 'Failed to add hostel: $e';
     }
@@ -728,6 +732,171 @@ class FirestoreService {
           .update({'isRead': true});
     } catch (e) {
       throw 'Failed to mark notification as read: $e';
+    }
+  }
+
+  // Delete a notification
+  Future<void> deleteUserNotification(
+    String userId,
+    String notificationId,
+  ) async {
+    try {
+      await _firestore
+          .collection(_usersCollection)
+          .doc(userId)
+          .collection('notifications')
+          .doc(notificationId)
+          .delete();
+    } catch (e) {
+      throw 'Failed to delete notification: $e';
+    }
+  }
+
+  /// Comprehensive notification helper
+  Future<void> sendAppNotification({
+    required String recipientId,
+    required String title,
+    required String body,
+    required String type, // 'booking', 'system', 'offer'
+    Map<String, dynamic>? additionalData,
+  }) async {
+    try {
+      // 1. Save to Firestore (In-App)
+      await saveNotification(recipientId, {
+        'title': title,
+        'body': body,
+        'type': type,
+        if (additionalData != null) ...additionalData,
+      });
+
+      // 2. Send Push Notification
+      await NotificationService().sendPushNotification(
+        playerId: recipientId,
+        title: title,
+        content: body,
+        additionalData: {
+          'type': type,
+          if (additionalData != null) ...additionalData,
+        },
+      );
+    } catch (e) {
+      debugPrint("Error in sendAppNotification: $e");
+    }
+  }
+
+  /// Broadcast notification to all users about a new property
+  Future<void> broadcastNewPropertyNotification({
+    required HostelModel hostel,
+    double? maxDistanceKm, // For future range filtering
+  }) async {
+    try {
+      final notificationService = NotificationService();
+      final currentUserId = hostel.ownerId;
+
+      // 1. Fetch all active users
+      final usersSnapshot = await _firestore
+          .collection(_usersCollection)
+          .where('accountStatus', isEqualTo: 'active')
+          .get();
+
+      final recipientIds = <String>[];
+
+      for (var userDoc in usersSnapshot.docs) {
+        final userId = userDoc.id;
+        if (userId == currentUserId) continue; // Skip the owner
+
+        // FUTURE: Range filtering logic
+        /*
+        final userData = userDoc.data();
+        final userLat = userData['latitude'] as double?;
+        final userLng = userData['longitude'] as double?;
+        
+        if (maxDistanceKm != null && 
+            hostel.latitude != null && 
+            hostel.longitude != null && 
+            userLat != null && 
+            userLng != null) {
+          final dist = Geolocator.distanceBetween(
+                hostel.latitude!, 
+                hostel.longitude!, 
+                userLat, 
+                userLng,
+              ) / 1000; // to km
+          if (dist > maxDistanceKm) continue;
+        }
+        */
+
+        recipientIds.add(userId);
+
+        // 2. Save In-App Notification (Firestore)
+        // Note: For large user bases, use a Cloud Function and Batched Writes
+        await saveNotification(userId, {
+          'title': 'New Property Added! 🏠',
+          'body':
+              '${hostel.name} is now available in ${hostel.city}. Check it out!',
+          'type': 'property',
+          'hostelId': hostel.id,
+        });
+      }
+
+      // 3. Send Batch Push Notification via OneSignal
+      if (recipientIds.isNotEmpty) {
+        await notificationService.sendPushToUsers(
+          playerIds: recipientIds,
+          title: 'New Property Alert! 🏠',
+          content:
+              '${hostel.name} is now available in ${hostel.city}. Check it out!',
+          additionalData: {'type': 'property', 'hostelId': hostel.id},
+        );
+      }
+    } catch (e) {
+      debugPrint("Error in broadcastNewPropertyNotification: $e");
+    }
+  }
+
+  /// Pre-load app data (hostels, location, etc.) during splash
+  Future<void> preLoadAppData() async {
+    try {
+      // 1. Get current position (needed for distances)
+      bool serviceEnabled;
+      LocationPermission permission;
+
+      serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (serviceEnabled) {
+        permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+        }
+
+        if (permission != LocationPermission.deniedForever &&
+            permission != LocationPermission.denied) {
+          // Use a time limit for position to avoid hanging splash if GPS is slow
+          try {
+            await Geolocator.getCurrentPosition(
+              timeLimit: const Duration(seconds: 5),
+            );
+          } catch (_) {
+            debugPrint("Location pre-load timed out or failed");
+          }
+        }
+      }
+
+      // 2. Prefetch first batch of hostels (into Firestore cache)
+      // This might fail if offline, so we wrap it
+      try {
+        await _firestore
+            .collection(_hostelsCollection)
+            .where('isActive', isEqualTo: true)
+            .limit(20)
+            .get(const GetOptions(source: Source.serverAndCache))
+            .timeout(const Duration(seconds: 5));
+      } catch (_) {
+        debugPrint("Hostel pre-fetch timed out or failed (likely offline)");
+      }
+
+      debugPrint("✅ App Data Pre-load attempt finished");
+    } catch (e) {
+      debugPrint("❌ Error during pre-load: $e");
     }
   }
 }

@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:rentra/services/cloudinary_service.dart';
-import 'package:rentra/services/notification_service.dart';
 import 'app/app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase first as it's usually needed immediately
+  // Initialize Firebase first
   await Firebase.initializeApp();
-
-  await dotenv.load(fileName: ".env");
-  await CloudinaryService.initialize();
-  await NotificationService().initialize();
 
   runApp(const MyApp());
 }

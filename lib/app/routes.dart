@@ -16,6 +16,7 @@ import '../screens/drawer/payments_screen.dart';
 import '../screens/drawer/help_support_screen.dart';
 import '../screens/drawer/privacy_policy_screen.dart';
 import '../screens/drawer/invite_earn_screen.dart';
+import '../screens/admin/admin_bookings_screen.dart';
 
 class AppRoutes {
   // static const String splash = '/';
@@ -35,6 +36,7 @@ class AppRoutes {
   static const String payments = '/payments';
   static const String helpSupport = '/help-support';
   static const String privacyPolicy = '/privacy-policy';
+  static const String adminBookings = '/admin-bookings';
   static const String inviteEarn = '/invite-earn';
 
   static Map<String, WidgetBuilder> routes = {
@@ -49,6 +51,7 @@ class AppRoutes {
     wishlist: (context) => const WishlistScreen(),
     notifications: (context) => const NotificationsScreen(),
     adminDashboard: (context) => const AdminDashboard(),
+    adminBookings: (context) => const AdminBookingsScreen(),
     addHostel: (context) => const AddHostelScreen(),
     payments: (context) => const PaymentsScreen(),
     helpSupport: (context) => const HelpSupportScreen(),
@@ -75,6 +78,20 @@ class AppRoutes {
             hostelId: id,
             hideBookingButton: hide,
             distance: dist,
+          ),
+        );
+      case bookings:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (context) =>
+              BookingsScreen(highlightBookingId: args?['highlightBookingId']),
+        );
+      case adminBookings:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (context) => AdminBookingsScreen(
+            initialIndex: args?['initialIndex'] ?? 0,
+            highlightBookingId: args?['highlightBookingId'],
           ),
         );
       case booking:

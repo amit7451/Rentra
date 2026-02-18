@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../services/cloudinary_service.dart';
+import '../services/notification_service.dart';
+import '../services/firestore_service.dart';
 import '../app/theme.dart';
 import '../app/routes.dart';
+import 'dart:async';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,37 +16,113 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
+    with TickerProviderStateMixin {
+  late AnimationController _bubbleController;
+  late Animation<double> _bubbleAnimation;
+
+  late AnimationController _zoomController;
+  late Animation<double> _zoomAnimation;
+  late Animation<double> _opacityAnimation;
+
+  String _displayText = "";
+  final String _fullText = "Feel the Home";
+  int _charIndex = 0;
+  Timer? _typewriterTimer;
 
   @override
   void initState() {
     super.initState();
 
-    _animationController = AnimationController(
+    // 1. Bubble Animation (Only for the Icon)
+    _bubbleController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+
+    _bubbleAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
+      CurvedAnimation(parent: _bubbleController, curve: Curves.easeInOut),
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    // 2. Zoom & Exit Animation (For the whole content)
+    _zoomController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000), // Slightly slower zoom
     );
 
-    _animationController.forward();
+    _zoomAnimation = Tween<double>(begin: 1.0, end: 15.0).animate(
+      CurvedAnimation(parent: _zoomController, curve: Curves.easeInExpo),
+    );
 
-    _checkAuthState();
+    _opacityAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(parent: _zoomController, curve: const Interval(0.5, 1.0)),
+    );
+
+    // 3. Start Loading Data
+    _initializeApp();
+
+    // 4. Start Typewriter
+    _startTypewriter();
   }
 
-  Future<void> _checkAuthState() async {
-    await Future.delayed(const Duration(seconds: 2));
+  Future<void> _initializeApp() async {
+    try {
+      // 1. Load environment variables first
+      await dotenv.load(fileName: ".env");
 
-    if (!mounted) {
-      return;
+      // 2. Initialize non-dependent services in parallel
+      await Future.wait([
+        CloudinaryService.initialize(),
+        NotificationService().initialize(),
+        FirestoreService().preLoadAppData().timeout(
+          const Duration(seconds: 10),
+        ),
+        // Ensure minimum splash time for smooth feel
+        Future.delayed(const Duration(seconds: 4)),
+      ]);
+    } catch (e) {
+      debugPrint("Initialization error: $e");
+    } finally {
+      if (mounted) {
+        _finishSplash();
+      }
+    }
+  }
+
+  void _startTypewriter() {
+    // Delay start slightly
+    Future.delayed(const Duration(milliseconds: 300), () {
+      _typewriterTimer = Timer.periodic(const Duration(milliseconds: 120), (
+        timer,
+      ) {
+        if (_charIndex < _fullText.length) {
+          if (mounted) {
+            setState(() {
+              _charIndex++;
+              _displayText = _fullText.substring(0, _charIndex);
+            });
+          }
+        } else {
+          timer.cancel();
+        }
+      });
+    });
+  }
+
+  Future<void> _finishSplash() async {
+    // Wait for typewriter to finish if it hasn't
+    while (_charIndex < _fullText.length) {
+      await Future.delayed(const Duration(milliseconds: 100));
     }
 
-    final user = FirebaseAuth.instance.currentUser;
+    if (!mounted) return;
 
+    // Start zoom animation
+    await _zoomController.forward();
+
+    if (!mounted) return;
+
+    // Navigate to next screen
+    final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       Navigator.of(context).pushReplacementNamed(AppRoutes.main);
     } else {
@@ -51,62 +132,61 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _bubbleController.dispose();
+    _zoomController.dispose();
+    _typewriterTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primaryRed,
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: AppTheme.white,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+      backgroundColor: AppTheme.white, // Use red as base
+      body: Stack(
+        children: [
+          Center(
+            child: AnimatedBuilder(
+              animation: Listenable.merge([_bubbleController, _zoomController]),
+              builder: (context, child) {
+                return Opacity(
+                  opacity: _opacityAnimation.value,
+                  child: Transform.scale(
+                    scale: _zoomAnimation.value,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // App Icon (with bubly scale)
+                        Transform.scale(
+                          scale: _bubbleAnimation.value,
+                          child: Image.asset(
+                            'assets/icons/app_icon.png',
+                            width: 200, // Made it bigger
+                            height: 200,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        // Tagline (No bubly scale, just typewriter & zoom)
+                        SizedBox(
+                          height: 30,
+                          child: Text(
+                            _displayText,
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w400,
+                              letterSpacing: 2,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.hotel,
-                  size: 64,
-                  color: AppTheme.primaryRed,
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Book Hostel/Flats',
-                style: TextStyle(
-                  color: AppTheme.white,
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Feel the Home',
-                style: TextStyle(
-                  color: AppTheme.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
+                  ),
+                );
+              },
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

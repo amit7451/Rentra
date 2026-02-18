@@ -1,6 +1,8 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../app/routes.dart';
 
 class NotificationService {
@@ -29,28 +31,78 @@ class NotificationService {
     // 3. Setup Click Listener (Deep Linking)
     OneSignal.Notifications.addClickListener((event) {
       final data = event.notification.additionalData;
-      _handleNotificationClick(data);
+      final context = _globalNavigatorKey.currentContext;
+      if (context != null) {
+        handleNotificationClick(context, data);
+      }
+    });
+
+    // 4. Setup Foreground Listener
+    OneSignal.Notifications.addForegroundWillDisplayListener((event) {
+      debugPrint(
+        "🔔 Notification received in foreground: ${event.notification.title}",
+      );
+      // In v5, you can't easily force it to show as a system notification here,
+      // but you can show a SnackBar or similar.
+      // To allow the system notification to show even in foreground:
+      event.notification.display();
     });
 
     debugPrint("✅ OneSignal Initialized");
   }
 
   /// Handle notification clicks
-  void _handleNotificationClick(Map<String, dynamic>? data) {
+  void handleNotificationClick(
+    BuildContext context,
+    Map<String, dynamic>? data,
+  ) {
     if (data == null) return;
 
     final type = data['type'];
-    final context = _globalNavigatorKey.currentContext;
+    final bookingId = data['bookingId'];
+    final status = data['status'];
 
-    if (context != null) {
+    if (true) {
       if (type == 'booking') {
-        // Example: Navigate to Bookings Screen
-        Navigator.pushNamed(context, AppRoutes.bookings);
+        // Check if this is for admin (new booking) or user (confirmed/cancelled)
+        // Usually, admin notifications have 'bookingId' and maybe 'hostelId'
+        // If 'status' is present, it's likely a status update for the user.
+        // If 'status' is 'pending', it's a new booking for the admin.
+
+        if (status == 'confirmed' ||
+            (status == 'cancelled' && bookingId != null)) {
+          // User side: Booking status updated
+          Navigator.pushNamed(
+            context,
+            AppRoutes.bookings,
+            arguments: {'highlightBookingId': bookingId},
+          );
+        } else {
+          // Admin side or default booking view
+          int initialIndex = 0;
+          if (status == 'cancelled') initialIndex = 2;
+
+          Navigator.pushNamed(
+            context,
+            AppRoutes.adminBookings,
+            arguments: {
+              'initialIndex': initialIndex,
+              'highlightBookingId': bookingId,
+            },
+          );
+        }
+      } else if (type == 'property') {
+        final hostelId = data['hostelId'];
+        if (hostelId != null) {
+          Navigator.pushNamed(
+            context,
+            AppRoutes.hotelDetail,
+            arguments: {'hostelId': hostelId},
+          );
+        }
       } else if (type == 'offer') {
-        // Navigate to Home or specific offer page
         Navigator.pushNamed(context, AppRoutes.home);
       } else {
-        // Default to Notifications Screen
         Navigator.pushNamed(context, AppRoutes.notifications);
       }
     }
@@ -88,6 +140,99 @@ class NotificationService {
   /// Remove specific tags
   void removeTags(List<String> keys) {
     OneSignal.User.removeTags(keys);
+  }
+
+  /// Send push notification via OneSignal REST API
+  Future<void> sendPushNotification({
+    required String playerId, // Generally the UID we logged in with
+    required String title,
+    required String content,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    final appId = dotenv.env['ONESIGNAL_APP_ID'];
+    final restApiKey = dotenv.env['ONESIGNAL_REST_API_KEY'];
+
+    if (appId == null || restApiKey == null) {
+      debugPrint("⚠️ OneSignal credentials missing");
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://onesignal.com/api/v1/notifications'),
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Authorization': 'Basic $restApiKey',
+        },
+        body: jsonEncode({
+          'app_id': appId,
+          // Use include_external_user_ids because we use OneSignal.login(uid)
+          'include_external_user_ids': [playerId],
+          'headings': {'en': title},
+          'contents': {'en': content},
+          'data': additionalData,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        debugPrint("✅ Push Notification Sent Successfully");
+      } else {
+        debugPrint("❌ Failed to send Push: ${response.body}");
+      }
+    } catch (e) {
+      debugPrint("❌ Error sending push notification: $e");
+    }
+  }
+
+  /// Send push notification to multiple users in one call
+  Future<void> sendPushToUsers({
+    required List<String> playerIds,
+    required String title,
+    required String content,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    if (playerIds.isEmpty) return;
+
+    final appId = dotenv.env['ONESIGNAL_APP_ID'];
+    final restApiKey = dotenv.env['ONESIGNAL_REST_API_KEY'];
+
+    if (appId == null || restApiKey == null) {
+      debugPrint("⚠️ OneSignal credentials missing");
+      return;
+    }
+
+    try {
+      // Chunking if list is too large (OneSignal limit is usually 2000 per call for external_ids)
+      const chunkSize = 1500;
+      for (var i = 0; i < playerIds.length; i += chunkSize) {
+        final chunk = playerIds.sublist(
+          i,
+          i + chunkSize > playerIds.length ? playerIds.length : i + chunkSize,
+        );
+
+        final response = await http.post(
+          Uri.parse('https://onesignal.com/api/v1/notifications'),
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': 'Basic $restApiKey',
+          },
+          body: jsonEncode({
+            'app_id': appId,
+            'include_external_user_ids': chunk,
+            'headings': {'en': title},
+            'contents': {'en': content},
+            'data': additionalData,
+          }),
+        );
+
+        if (response.statusCode != 200) {
+          debugPrint("❌ Failed to send Batch Push: ${response.body}");
+        }
+      }
+      debugPrint("✅ Batch Push Notifications Sent Successfully");
+    } catch (e) {
+      debugPrint("❌ Error sending batch push notification: $e");
+    }
   }
 }
 
