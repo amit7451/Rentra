@@ -7,6 +7,7 @@ import '../../app/theme.dart';
 import '../../app/routes.dart';
 import '../../widgets/loading_indicator.dart';
 import 'package:rentra/services/user_cache.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -20,78 +21,8 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  void _changePassword(BuildContext context) async {
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null || user.email == null) return;
-
-    // Check rate limit
-    try {
-      final docRef = FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid);
-      final doc = await docRef.get();
-
-      if (doc.exists) {
-        final data = doc.data();
-        final lastSent = data?['lastPasswordResetEmailSentAt'] as Timestamp?;
-
-        if (lastSent != null) {
-          final lastSentTime = lastSent.toDate();
-          final now = DateTime.now();
-          final difference = now.difference(lastSentTime);
-
-          if (difference.inMinutes < 2) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Mail already sent. Check spam folder.'),
-                  backgroundColor: Colors.orange,
-                ),
-              );
-            }
-            return;
-          }
-        }
-      }
-
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: user.email!);
-
-      // Update timestamp
-      await docRef.update({
-        'lastPasswordResetEmailSentAt': FieldValue.serverTimestamp(),
-      });
-
-      if (!context.mounted) return;
-
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text('Email Sent'),
-          content: const Text(
-            'A password reset link has been sent to your email. Please check your spam folder.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to send email: $e'),
-            backgroundColor: AppTheme.darkRed,
-          ),
-        );
-      }
-    }
+  void _changePassword(BuildContext context) {
+    Navigator.pushNamed(context, AppRoutes.changePassword);
   }
 
   @override
@@ -426,30 +357,50 @@ class ProfileScreen extends StatelessWidget {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('About Rentra'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Rentra',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text('Version (Latest):'),
-            Text(firebaseVersion, style: const TextStyle(color: AppTheme.grey)),
-            const SizedBox(height: 16),
-            const Text(
-              'Developed by:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const Text('Amit Kumar'),
-            const Text('Anurag Shrivastava'),
-            const SizedBox(height: 16),
-            const Text(
-              'Find and book amazing hostels around the world with ease. Your perfect stay is just a tap away!',
-              style: TextStyle(fontSize: 14),
-            ),
-          ],
+        content: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.8,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Rentra',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Version (Latest):',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              Text(
+                firebaseVersion,
+                style: const TextStyle(color: AppTheme.grey, fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Developed by:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              const SizedBox(height: 12),
+              _DeveloperInfo(
+                name: 'Amit Kumar',
+                linkedinUrl: 'https://www.linkedin.com/in/amit-devspace/',
+                githubUrl: 'https://github.com/amit7451',
+              ),
+              const SizedBox(height: 16),
+              _DeveloperInfo(
+                name: 'Anurag Shrivastav',
+                linkedinUrl:
+                    'https://www.linkedin.com/in/anurag-shrivastav-b7a616327/',
+                githubUrl: 'https://github.com/Anurag-spec1',
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Find and book amazing hostels around the world with ease. Your perfect stay is just a tap away!',
+                style: TextStyle(fontSize: 15, height: 1.4),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -457,6 +408,84 @@ class ProfileScreen extends StatelessWidget {
             child: const Text('Close'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DeveloperInfo extends StatelessWidget {
+  final String name;
+  final String linkedinUrl;
+  final String githubUrl;
+
+  const _DeveloperInfo({
+    required this.name,
+    required this.linkedinUrl,
+    required this.githubUrl,
+  });
+
+  Future<void> _launchUrl(String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      debugPrint('Could not launch $url');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          name,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 17),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            _SocialIcon(
+              assetPath: 'assets/images/linkedin.png',
+              iconData: Icons.link,
+              onTap: () => _launchUrl(linkedinUrl),
+              color: const Color(0xFF0077B5),
+            ),
+            const SizedBox(width: 16),
+            _SocialIcon(
+              assetPath: 'assets/images/github.png',
+              iconData: Icons.code,
+              onTap: () => _launchUrl(githubUrl),
+              color: Colors.black,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _SocialIcon extends StatelessWidget {
+  final String assetPath;
+  final IconData iconData;
+  final VoidCallback onTap;
+  final Color color;
+
+  const _SocialIcon({
+    required this.assetPath,
+    required this.iconData,
+    required this.onTap,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Image.asset(
+        assetPath,
+        width: 28,
+        height: 28,
+        errorBuilder: (context, error, stackTrace) =>
+            Icon(iconData, size: 28, color: color),
       ),
     );
   }

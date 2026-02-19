@@ -526,7 +526,7 @@ class _FeatureGrid extends StatelessWidget {
             builder: (context) => AlertDialog(
               title: const Text('Help & Support'),
               content: const Text(
-                'For assistance, please contact the support team at:\n\nsupport@rentra.com\n\nOr call us at +91 12345 67890.',
+                'For assistance, please contact the support team at:\n\namitkumarstm1507@gmail.com\n\nOr call us at +91 7323006476.',
               ),
               actions: [
                 TextButton(

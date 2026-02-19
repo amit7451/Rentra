@@ -141,7 +141,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.white, // Use red as base
+      backgroundColor: AppTheme.white, // Use white as base
       body: Stack(
         children: [
           Center(
@@ -171,7 +171,7 @@ class _SplashScreenState extends State<SplashScreen>
                           height: 30,
                           child: Text(
                             _displayText,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Colors.black,
                               fontSize: 22,
                               fontWeight: FontWeight.w400,
@@ -184,6 +184,39 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 );
               },
+            ),
+          ),
+          // Parent Company Name at Bottom
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: FadeTransition(
+              opacity: _opacityAnimation,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Powered by',
+                    style: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'techeasesolutions',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../app/theme.dart';
 
 class HelpSupportScreen extends StatelessWidget {
@@ -28,21 +29,21 @@ class HelpSupportScreen extends StatelessWidget {
               Icons.email_outlined,
               'Email',
               'amitkumarstm1507@gmail.com',
-              () {},
+              () => _launchEmail('amitkumarstm1507@gmail.com'),
             ),
             _contactItem(
               context,
               Icons.phone_outlined,
               'Phone',
-              '+91 9795292927',
-              () {},
+              '+91 7323006476',
+              () => _launchPhone('+917323006476'),
             ),
             _contactItem(
               context,
               Icons.chat_outlined,
               'WhatsApp',
-              '+91 9795292927',
-              () {},
+              '+91 7323006476',
+              () => _launchWhatsApp('+917323006476'),
             ),
             const SizedBox(height: 32),
             const Text(
@@ -51,7 +52,7 @@ class HelpSupportScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Monday - Saturday: 9:00 AM - 7:00 PM\nSunday: Closed',
+              '24*7',
               style: TextStyle(color: AppTheme.grey, height: 1.5),
             ),
           ],
@@ -110,5 +111,34 @@ class HelpSupportScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _launchEmail(String email) async {
+    final Uri emailLaunchUri = Uri(
+      scheme: 'mailto',
+      path: email,
+      queryParameters: {'subject': 'Support Request - Rentra'},
+    );
+    if (!await launchUrl(emailLaunchUri)) {
+      debugPrint('Could not launch email');
+    }
+  }
+
+  Future<void> _launchPhone(String phone) async {
+    final Uri phoneLaunchUri = Uri(scheme: 'tel', path: phone);
+    if (!await launchUrl(phoneLaunchUri)) {
+      debugPrint('Could not launch phone dialer');
+    }
+  }
+
+  Future<void> _launchWhatsApp(String phone) async {
+    // Remove plus sign and spaces for WhatsApp API
+    final String cleanPhone = phone.replaceAll(RegExp(r'[\s+]'), '');
+    final Uri whatsappUri = Uri.parse(
+      "https://wa.me/$cleanPhone?text=Hi Rentra Support, I need help with...",
+    );
+    if (!await launchUrl(whatsappUri, mode: LaunchMode.externalApplication)) {
+      debugPrint('Could not launch WhatsApp');
+    }
   }
 }

@@ -16,6 +16,7 @@ import '../screens/drawer/payments_screen.dart';
 import '../screens/drawer/help_support_screen.dart';
 import '../screens/drawer/privacy_policy_screen.dart';
 import '../screens/drawer/invite_earn_screen.dart';
+import 'package:rentra/screens/profile/change_password_screen.dart';
 import '../screens/admin/admin_bookings_screen.dart';
 
 class AppRoutes {
@@ -38,6 +39,7 @@ class AppRoutes {
   static const String privacyPolicy = '/privacy-policy';
   static const String adminBookings = '/admin-bookings';
   static const String inviteEarn = '/invite-earn';
+  static const String changePassword = '/change-password';
 
   static Map<String, WidgetBuilder> routes = {
     // splash: (context) => const SplashScreen(),
@@ -57,6 +59,7 @@ class AppRoutes {
     helpSupport: (context) => const HelpSupportScreen(),
     privacyPolicy: (context) => const PrivacyPolicyScreen(),
     inviteEarn: (context) => const InviteEarnScreen(),
+    changePassword: (context) => const ChangePasswordScreen(),
   };
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {

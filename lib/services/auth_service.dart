@@ -16,6 +16,18 @@ class AuthService {
   // Auth state changes stream
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
+  // Check if user has a password linked
+  bool get hasPassword =>
+      _auth.currentUser?.providerData.any((p) => p.providerId == 'password') ??
+      false;
+
+  // Check if user is a Google user
+  bool get isGoogleUser =>
+      _auth.currentUser?.providerData.any(
+        (p) => p.providerId == 'google.com',
+      ) ??
+      false;
+
   // Sign up with email and password
   Future<UserModel?> signUp({
     required String email,
@@ -203,6 +215,38 @@ class AuthService {
       }
     } catch (e) {
       throw 'Failed to update profile. Please try again.';
+    }
+  }
+
+  // Update password directly (after re-authentication)
+  Future<void> updatePassword(String newPassword) async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await user.updatePassword(newPassword);
+      }
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    } catch (e) {
+      throw 'Failed to update password. Please try again.';
+    }
+  }
+
+  // Link Email/Password to existing account (for Google users)
+  Future<void> linkEmailPassword(String email, String password) async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        final credential = EmailAuthProvider.credential(
+          email: email,
+          password: password,
+        );
+        await user.linkWithCredential(credential);
+      }
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    } catch (e) {
+      throw 'Failed to set password. Please try again.';
     }
   }
 
