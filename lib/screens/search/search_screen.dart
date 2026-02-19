@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart'; // Add this to pubspec.yaml
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 // Import your app files
 import '../../services/firestore_service.dart';
 import '../../models/hostel_model.dart';
@@ -28,7 +29,7 @@ class _SearchScreenState extends State<SearchScreen> {
   bool _isDisposed = false;
 
   // Google API Key
-  final String _googleApiKey = "AIzaSyCESgiM55uOFhmtWlzz4jB0RPqkwCKprd8";
+  final String _googleApiKey = dotenv.get('GOOGLE_MAPS_API_KEY');
   final _uuid = const Uuid();
   String _sessionToken = '12345';
 
@@ -98,8 +99,7 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() => _isLoadingSuggestions = true);
 
     final request =
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json?'
-        'input=$input&key=$_googleApiKey&sessiontoken=$_sessionToken&components=country:in';
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&key=$_googleApiKey&sessiontoken=$_sessionToken&components=country:in';
 
     try {
       final response = await http.get(Uri.parse(request));

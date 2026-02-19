@@ -3,6 +3,7 @@ import '../services/notification_service.dart';
 import 'theme.dart';
 import 'routes.dart';
 import '../screens/splash_screen.dart';
+import '../widgets/connectivity_wrapper.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -17,6 +18,9 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {'/': (context) => const SplashScreen(), ...AppRoutes.routes},
       onGenerateRoute: AppRoutes.onGenerateRoute,
+      builder: (context, child) {
+        return ConnectivityWrapper(child: child);
+      },
     );
   }
 }

@@ -153,10 +153,28 @@ class _HomeScreenState extends State<HomeScreen> {
       final permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         final requested = await Geolocator.requestPermission();
-        if (requested != LocationPermission.always &&
-            requested != LocationPermission.whileInUse) {
+        if (requested == LocationPermission.denied) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Location permission is required to find hostels near you.',
+                ),
+              ),
+            );
+          }
+          return;
+        } else if (requested == LocationPermission.deniedForever) {
+          if (mounted) {
+            _showPermissionDialog();
+          }
           return;
         }
+      } else if (permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          _showPermissionDialog();
+        }
+        return;
       }
 
       final position = await Geolocator.getCurrentPosition(
@@ -670,6 +688,31 @@ class _HomeScreenState extends State<HomeScreen> {
             height: 2,
             width: isSelected ? 60 : 0,
             color: Colors.black87,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Location Permission Required'),
+        content: const Text(
+          'Location permission is permanently denied. Please enable it in app settings to use this feature.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Geolocator.openAppSettings();
+            },
+            child: const Text('Open Settings'),
           ),
         ],
       ),

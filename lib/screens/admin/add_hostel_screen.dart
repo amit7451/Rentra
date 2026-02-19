@@ -13,6 +13,7 @@ import 'package:google_places_flutter/google_places_flutter.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AddHostelScreen extends StatefulWidget {
   const AddHostelScreen({super.key});
@@ -463,7 +464,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
           key: _placesSearchKey,
           child: GooglePlaceAutoCompleteTextField(
             textEditingController: _placesSearchController,
-            googleAPIKey: "AIzaSyCESgiM55uOFhmtWlzz4jB0RPqkwCKprd8",
+            googleAPIKey: dotenv.get('GOOGLE_MAPS_API_KEY'),
             focusNode: _placesFocusNode,
             inputDecoration: InputDecoration(
               hintText: 'Search location...',

@@ -16,6 +16,12 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
 android {
     namespace = "com.rentra.app.rentra"
     compileSdk = flutter.compileSdkVersion
@@ -39,6 +45,9 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        
+        // Inject Google Maps Key from local.properties
+        manifestPlaceholders["googleMapsKey"] = localProperties.getProperty("google.maps.key", "")
     }
 
     signingConfigs {

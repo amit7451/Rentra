@@ -363,17 +363,13 @@ class FirestoreService {
                 .toList();
           }
 
-          // 2. Filter by search query (Multi-word support)
+          // 2. Filter by search query
           if (query != null && query.isNotEmpty) {
-            final searchWords = query
-                .toLowerCase()
-                .split(' ')
-                .where((w) => w.isNotEmpty)
-                .toList();
-            filtered = filtered.where((h) {
-              final content = "${h.name} ${h.city} ${h.country}".toLowerCase();
-              // Check if ALL search words are present in the property content
-              return searchWords.every((word) => content.contains(word));
+            filtered = filtered.where((hostel) {
+              final searchQuery = query.toLowerCase();
+              return hostel.name.toLowerCase().contains(searchQuery) ||
+                  hostel.city.toLowerCase().contains(searchQuery) ||
+                  hostel.country.toLowerCase().contains(searchQuery);
             }).toList();
           }
 
