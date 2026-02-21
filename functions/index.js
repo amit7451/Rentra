@@ -10,7 +10,7 @@ exports.createRazorpayOrder = onCall({ invoker: "public" }, async (request) => {
     const { amount, receipt } = request.data;
 
     if (!request.auth) {
-        throw new HttpsError("failed-precondition", `Auth missing. Provided token: ${request.rawRequest ? request.rawRequest.headers.authorization : 'unknown'} AppCheck: ${request.app ? 'present' : 'missing'}`);
+        throw new HttpsError("failed-precondition", "User must be authenticated.");
     }
 
     if (!amount || amount < 1) {
@@ -42,7 +42,7 @@ exports.verifyPaymentSignature = onCall({ invoker: "public" }, async (request) =
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, bookingId } = request.data;
 
     if (!request.auth) {
-        throw new HttpsError("failed-precondition", `Auth missing. Provided token: ${request.rawRequest ? request.rawRequest.headers.authorization : 'unknown'} AppCheck: ${request.app ? 'present' : 'missing'}`);
+        throw new HttpsError("failed-precondition", "User must be authenticated.");
     }
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {

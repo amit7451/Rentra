@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/firestore_service.dart';
 import '../../models/booking_model.dart';
 import '../../app/theme.dart';
+import '../../app/routes.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/error_text.dart';
 import '../../widgets/highlight_wrapper.dart';
@@ -172,250 +173,278 @@ class _BookingsScreenState extends State<BookingsScreen> {
     BookingModel booking,
     FirestoreService firestoreService,
   ) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Hostel name and status
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    booking.hostelName,
-                    style: Theme.of(context).textTheme.titleLarge,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(
-                      booking.status,
-                    ).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    _getStatusText(booking.status),
-                    style: TextStyle(
-                      color: _getStatusColor(booking.status),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+    return InkWell(
+      onTap: () {
+        Navigator.pushNamed(
+          context,
+          AppRoutes.paymentStatus,
+          arguments: {
+            'bookingId': booking.id,
+            'status': booking.paymentStatus == 'successful'
+                ? 'success'
+                : 'failed',
+            'hostelId': booking.hostelId,
+          },
+        );
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Hostel name and status
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      booking.hostelName,
+                      style: Theme.of(context).textTheme.titleLarge,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            // Check-in and check-out
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Start date',
-                        style: Theme.of(context).textTheme.bodySmall,
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color:
+                          (booking.paymentStatus == 'failed'
+                                  ? Colors.red
+                                  : _getStatusColor(booking.status))
+                              .withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      booking.paymentStatus == 'failed'
+                          ? 'Payment Failed'
+                          : _getStatusText(booking.status),
+                      style: TextStyle(
+                        color: booking.paymentStatus == 'failed'
+                            ? Colors.red
+                            : _getStatusColor(booking.status),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.calendar_today,
-                            size: 16,
-                            color: AppTheme.primaryRed,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${booking.checkInDate.day}/${booking.checkInDate.month}/${booking.checkInDate.year}',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'End date',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.calendar_today,
-                            size: 16,
-                            color: AppTheme.primaryRed,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${booking.checkOutDate.day}/${booking.checkOutDate.month}/${booking.checkOutDate.year}',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            // Seater/Capacity and nights
-            Row(
-              children: [
-                Icon(
-                  booking.selectedSeater == 0
-                      ? Icons.home_work_outlined
-                      : Icons.airline_seat_individual_suite_outlined,
-                  size: 16,
-                  color: AppTheme.grey,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  booking.selectedSeater == 0
-                      ? (booking.flatCapacity != null
-                            ? 'Flat (Capacity: ${booking.flatCapacity})'
-                            : 'Flat')
-                      : '${booking.selectedSeater} Seater',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
-
-            const Divider(height: 24),
-
-            // Total price
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Booking Price',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                Text(
-                  '₹${booking.totalPrice.toStringAsFixed(0)}',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: AppTheme.primaryRed,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-
-            // Cancel button (only for pending/confirmed bookings)
-            if (booking.status == BookingStatus.pending ||
-                booking.status == BookingStatus.confirmed) ...[
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {
-                    _showCancelDialog(context, booking, firestoreService);
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.darkRed,
-                    side: const BorderSide(color: AppTheme.darkRed),
-                  ),
-                  child: const Text('Cancel Booking'),
-                ),
+                ],
               ),
-            ],
 
-            // Cancellation info and Delete button
-            if (booking.status == BookingStatus.cancelled) ...[
               const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.withValues(alpha: 0.1)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+              // Check-in and check-out
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Cancelled by ${booking.cancelledBy == 'admin' ? 'Owner' : 'You'}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            color: Colors.red,
-                          ),
+                          'Start date',
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
-                        GestureDetector(
-                          onTap: () async {
-                            final ok = await showDialog<bool>(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                title: const Text('Delete Record'),
-                                content: const Text(
-                                  'Remove this cancelled booking from your list?',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(ctx, false),
-                                    child: const Text('Cancel'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(ctx, true),
-                                    child: const Text(
-                                      'Delete',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                            if (ok == true) {
-                              await firestoreService.deleteBooking(booking.id);
-                            }
-                          },
-                          child: const Icon(
-                            Icons.delete_outline,
-                            color: Colors.red,
-                            size: 18,
-                          ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.calendar_today,
+                              size: 16,
+                              color: AppTheme.primaryRed,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${booking.checkInDate.day}/${booking.checkInDate.month}/${booking.checkInDate.year}',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    if (booking.cancellationReason != null &&
-                        booking.cancellationReason!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        'Reason: ${booking.cancellationReason}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.red[800],
-                          fontStyle: FontStyle.italic,
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'End date',
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
-                      ),
-                    ],
-                  ],
-                ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.calendar_today,
+                              size: 16,
+                              color: AppTheme.primaryRed,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${booking.checkOutDate.day}/${booking.checkOutDate.month}/${booking.checkOutDate.year}',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
+
+              const SizedBox(height: 12),
+
+              // Seater/Capacity and nights
+              Row(
+                children: [
+                  Icon(
+                    booking.selectedSeater == 0
+                        ? Icons.home_work_outlined
+                        : Icons.airline_seat_individual_suite_outlined,
+                    size: 16,
+                    color: AppTheme.grey,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    booking.selectedSeater == 0
+                        ? (booking.flatCapacity != null
+                              ? 'Flat (Capacity: ${booking.flatCapacity})'
+                              : 'Flat')
+                        : '${booking.selectedSeater} Seater',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+
+              const Divider(height: 24),
+
+              // Total price
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Booking Price',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  Text(
+                    '₹${booking.totalPrice.toStringAsFixed(0)}',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: AppTheme.primaryRed,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+
+              // Cancel button (only for pending/confirmed bookings)
+              if (booking.status == BookingStatus.pending ||
+                  booking.status == BookingStatus.confirmed) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      _showCancelDialog(context, booking, firestoreService);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.darkRed,
+                      side: const BorderSide(color: AppTheme.darkRed),
+                    ),
+                    child: const Text('Cancel Booking'),
+                  ),
+                ),
+              ],
+
+              // Cancellation info and Delete button
+              if (booking.status == BookingStatus.cancelled) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Colors.red.withValues(alpha: 0.1),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Cancelled by ${booking.cancelledBy == 'admin' ? 'Owner' : 'You'}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: Colors.red,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              final ok = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: const Text('Delete Record'),
+                                  content: const Text(
+                                    'Remove this cancelled booking from your list?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(ctx, false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      child: const Text(
+                                        'Delete',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (ok == true) {
+                                await firestoreService.deleteBooking(
+                                  booking.id,
+                                );
+                              }
+                            },
+                            child: const Icon(
+                              Icons.delete_outline,
+                              color: Colors.red,
+                              size: 18,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (booking.cancellationReason != null &&
+                          booking.cancellationReason!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'Reason: ${booking.cancellationReason}',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Colors.red[800],
+                                fontStyle: FontStyle.italic,
+                              ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

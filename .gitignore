@@ -49,3 +49,17 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Flutter plugins
+.flutter-plugins
+
+# Firebase/Functions
+functions/node_modules/
+functions/.env
+functions/.env.*
+.firebase/
+firebase-debug.log
+
+# Google Services Keys
+google-services.json
+GoogleService-Info.plist

@@ -36,7 +36,8 @@ service cloud.firestore {
                      request.auth.uid == resource.data.adminId;
       allow create: if request.auth.uid != null && 
                        request.auth.uid == request.resource.data.userId;
-      allow update: if request.auth.uid == resource.data.adminId;
+      allow update: if request.auth.uid == resource.data.adminId ||
+                       request.auth.uid == resource.data.userId;
       allow delete: if request.auth.uid == resource.data.userId || 
                        request.auth.uid == resource.data.adminId;
     }

@@ -18,6 +18,8 @@ import '../screens/drawer/privacy_policy_screen.dart';
 import '../screens/drawer/invite_earn_screen.dart';
 import 'package:rentra/screens/profile/change_password_screen.dart';
 import '../screens/admin/admin_bookings_screen.dart';
+import '../screens/admin/admin_booking_details_screen.dart';
+import '../screens/booking/payment_status_screen.dart';
 
 class AppRoutes {
   // static const String splash = '/';
@@ -40,6 +42,8 @@ class AppRoutes {
   static const String adminBookings = '/admin-bookings';
   static const String inviteEarn = '/invite-earn';
   static const String changePassword = '/change-password';
+  static const String paymentStatus = '/payment-status';
+  static const String adminBookingDetails = '/admin-booking-details';
 
   static Map<String, WidgetBuilder> routes = {
     // splash: (context) => const SplashScreen(),
@@ -105,6 +109,21 @@ class AppRoutes {
             hostelName: args['hostelName'],
             baseFee: (args['pricePerNight'] as num).toDouble(),
             rentPeriod: (args['rentPeriod'] as String?) ?? 'yearly',
+          ),
+        );
+      case adminBookingDetails:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (context) =>
+              AdminBookingDetailsScreen(bookingId: args?['bookingId'] ?? ''),
+        );
+      case paymentStatus:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (context) => PaymentStatusScreen(
+            bookingId: args['bookingId'],
+            status: args['status'],
+            hostelId: args['hostelId'],
           ),
         );
       default:

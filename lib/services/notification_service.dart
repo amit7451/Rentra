@@ -70,6 +70,8 @@ class NotificationService {
         // If 'status' is 'pending', it's a new booking for the admin.
 
         if (status == 'confirmed' ||
+            status == 'payment_success' ||
+            status == 'payment_failed' ||
             (status == 'cancelled' && bookingId != null)) {
           // User side: Booking status updated
           Navigator.pushNamed(
@@ -78,9 +80,10 @@ class NotificationService {
             arguments: {'highlightBookingId': bookingId},
           );
         } else {
-          // Admin side or default booking view
+          // Admin side: New booking or other update
           int initialIndex = 0;
-          if (status == 'cancelled') initialIndex = 2;
+          if (status == 'cancelled')
+            initialIndex = 2; // For admin cancellation tab if you have one
 
           Navigator.pushNamed(
             context,

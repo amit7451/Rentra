@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../services/firestore_service.dart';
 import '../../models/booking_model.dart';
 import '../../models/hostel_model.dart';
@@ -39,8 +42,16 @@ class _BookingScreenState extends State<BookingScreen> {
   int _selectedSeater = 1; // 1,2 or 3 for hostel; ignored for flat
   bool _isLoading = false;
 
+  late Razorpay _razorpay;
+  String? _currentBookingId;
+
+  // Registration fee config — change these when going live
+  double get _originalAmount => 500.0;
+  double get _payableAmount => 100.0;
+
   @override
   void dispose() {
+    _razorpay.clear();
     _specialRequestsController.dispose();
     super.dispose();
   }
@@ -48,7 +59,147 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   void initState() {
     super.initState();
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
     _loadHostel();
+  }
+
+  // ── Payment helpers ──────────────────────────────────────────────────────
+
+  Future<void> _notifyPaymentStatus(bool isSuccess) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || _hostel == null) return;
+
+    try {
+      // 1. Notify the User (always)
+      await _firestoreService.sendAppNotification(
+        recipientId: user.uid,
+        title: isSuccess ? 'Payment Successful 🎉' : 'Payment Failed ❌',
+        body: isSuccess
+            ? 'Your booking for ${widget.hostelName} is confirmed.'
+            : 'Your payment for ${widget.hostelName} failed. Please try again.',
+        type: 'booking',
+        additionalData: {
+          'bookingId': _currentBookingId ?? '',
+          'status': isSuccess ? 'payment_success' : 'payment_failed',
+        },
+      );
+
+      // 2. Notify the Owner ONLY if the payment is successful
+      if (isSuccess) {
+        await _firestoreService.sendAppNotification(
+          recipientId: _hostel!.ownerId,
+          title: 'New Booking Request 🏠',
+          body: '${user.displayName ?? 'A user'} booked ${widget.hostelName}.',
+          type: 'booking',
+          additionalData: {
+            'bookingId': _currentBookingId ?? '',
+            'status': 'pending', // Keeps routing to AdminBookingsScreen
+            'hostelId': widget.hostelId,
+          },
+        );
+      }
+    } catch (e) {
+      debugPrint('Failed to send notification: $e');
+    }
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    try {
+      // Verify signature via Cloud Function
+      final result = await FirebaseFunctions.instance
+          .httpsCallable('verifyPaymentSignature')
+          .call({
+            'razorpay_order_id': response.orderId,
+            'razorpay_payment_id': response.paymentId,
+            'razorpay_signature': response.signature,
+            'bookingId': _currentBookingId,
+          });
+
+      if (result.data['success'] == true) {
+        // Fallback direct update in case Cloud Function missed it
+        await _firestoreService.updatePaymentStatus(
+          bookingId: _currentBookingId!,
+          status: 'successful',
+          orderId: response.orderId,
+          paymentId: response.paymentId,
+        );
+        await _notifyPaymentStatus(true);
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(
+          context,
+          AppRoutes.paymentStatus,
+          arguments: {
+            'bookingId': _currentBookingId,
+            'status': 'success',
+            'hostelId': widget.hostelId,
+          },
+        );
+      } else {
+        throw 'Invalid signature';
+      }
+    } catch (e) {
+      if (_currentBookingId != null) {
+        try {
+          await _firestoreService.updatePaymentStatus(
+            bookingId: _currentBookingId!,
+            status: 'failed',
+          );
+          await _firestoreService.updateBookingStatus(
+            _currentBookingId!,
+            BookingStatus.cancelled,
+          );
+        } catch (_) {}
+      }
+      await _notifyPaymentStatus(false);
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.paymentStatus,
+        arguments: {
+          'bookingId': _currentBookingId,
+          'status': 'failed',
+          'hostelId': widget.hostelId,
+        },
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) async {
+    if (_currentBookingId != null) {
+      try {
+        await _firestoreService.updatePaymentStatus(
+          bookingId: _currentBookingId!,
+          status: 'failed',
+        );
+        await _firestoreService.updateBookingStatus(
+          _currentBookingId!,
+          BookingStatus.cancelled,
+        );
+      } catch (_) {}
+    }
+    await _notifyPaymentStatus(false);
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    Navigator.pushReplacementNamed(
+      context,
+      AppRoutes.paymentStatus,
+      arguments: {
+        'bookingId': _currentBookingId,
+        'status': 'failed',
+        'hostelId': widget.hostelId,
+      },
+    );
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    // Optional: handle external wallet selection
   }
 
   Future<void> _loadHostel() async {
@@ -220,40 +371,56 @@ class _BookingScreenState extends State<BookingScreen> {
       );
 
       final bookingId = await _firestoreService.createBooking(booking);
+      _currentBookingId = bookingId;
 
-      // Notify Admin
-      await _firestoreService.sendAppNotification(
-        recipientId: hostel.ownerId,
-        title: 'New Booking Request',
-        body: 'A user has requested to book ${widget.hostelName}.',
-        type: 'booking',
-        additionalData: {'bookingId': bookingId, 'hostelId': widget.hostelId},
-      );
+      // Ensure minimum Razorpay amount is ₹1
+      double amountToPay = _payableAmount < 1.0 ? 1.0 : _payableAmount;
 
-      if (!mounted) {
-        return;
-      }
+      // Create Razorpay order via Cloud Function
+      final result = await FirebaseFunctions.instance
+          .httpsCallable('createRazorpayOrder')
+          .call({'amount': amountToPay, 'receipt': bookingId});
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Booking created successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      final String orderId = result.data['orderId'];
 
-      Navigator.pushReplacementNamed(context, AppRoutes.bookings);
+      final options = {
+        'key': dotenv.env['RAZORPAY_KEY_ID'],
+        'amount': (amountToPay * 100).toInt(),
+        'name': 'Rentra',
+        'description': 'Registration fee for ${widget.hostelName}',
+        'order_id': orderId,
+        'prefill': {
+          'contact': user.phoneNumber ?? '',
+          'email': user.email ?? '',
+        },
+        'notes': {'booking_id': bookingId},
+      };
+
+      // _isLoading stays true while Razorpay checkout is open
+      _razorpay.open(options);
     } catch (e) {
-      if (!mounted) {
-        return;
+      if (_currentBookingId != null) {
+        try {
+          // If order creation or something fails before checkout opens, mark as failed/cancelled
+          await _firestoreService.updatePaymentStatus(
+            bookingId: _currentBookingId!,
+            status: 'failed',
+          );
+          await _firestoreService.updateBookingStatus(
+            _currentBookingId!,
+            BookingStatus.cancelled,
+          );
+        } catch (_) {}
       }
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to create booking: $e'),
+          content: Text('Failed to initiate payment: $e'),
           backgroundColor: AppTheme.darkRed,
         ),
       );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -743,11 +910,76 @@ class _BookingScreenState extends State<BookingScreen> {
           ],
         ),
         child: SafeArea(
-          child: PrimaryButton(
-            text: 'Confirm Booking',
-            onPressed: _handleBooking,
-            isLoading: _isLoading,
-            icon: Icons.check_circle_outline,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Price chip
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryRed.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: AppTheme.primaryRed.withOpacity(0.2),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Booking Fee',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Limited time offer!',
+                          style: TextStyle(
+                            color: Colors.green,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          '₹${_originalAmount.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            decoration: TextDecoration.lineThrough,
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '₹${(_payableAmount < 1.0 ? 1.0 : _payableAmount).toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            color: AppTheme.primaryRed,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              PrimaryButton(
+                text:
+                    'Pay ₹${(_payableAmount < 1.0 ? 1.0 : _payableAmount).toStringAsFixed(0)} & Book',
+                onPressed: _handleBooking,
+                isLoading: _isLoading,
+                icon: Icons.lock_outline,
+              ),
+            ],
           ),
         ),
       ),

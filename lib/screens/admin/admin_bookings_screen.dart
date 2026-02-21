@@ -5,6 +5,7 @@ import '../../services/firestore_service.dart';
 import '../../models/booking_model.dart';
 import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
+import '../../app/routes.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/highlight_wrapper.dart';
 
@@ -127,7 +128,9 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
                   return const LoadingIndicator(message: 'Loading bookings...');
                 }
 
-                final all = bookingSnap.data ?? [];
+                final all = (bookingSnap.data ?? [])
+                    .where((b) => b.paymentStatus != 'failed')
+                    .toList();
 
                 return RefreshIndicator(
                   color: AppTheme.primaryRed,
@@ -352,7 +355,16 @@ class _BookingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return HighlightWrapper(
       shouldHighlight: shouldHighlight,
-      child: _buildCard(context),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.pushNamed(
+            context,
+            AppRoutes.adminBookingDetails,
+            arguments: {'bookingId': booking.id},
+          );
+        },
+        child: _buildCard(context),
+      ),
     );
   }
 

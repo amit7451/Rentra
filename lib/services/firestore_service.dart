@@ -549,6 +549,25 @@ class FirestoreService {
     }
   }
 
+  // Update payment-related fields (called after Razorpay success/failure)
+  Future<void> updatePaymentStatus({
+    required String bookingId,
+    required String status, // 'successful' or 'failed'
+    String? orderId,
+    String? paymentId,
+  }) async {
+    try {
+      await _firestore.collection(_bookingsCollection).doc(bookingId).update({
+        'paymentStatus': status,
+        if (orderId != null) 'razorpayOrderId': orderId,
+        if (paymentId != null) 'razorpayPaymentId': paymentId,
+        'paymentVerifiedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw 'Failed to update payment status: $e';
+    }
+  }
+
   // Cancel booking
   Future<void> cancelBooking(
     String bookingId,

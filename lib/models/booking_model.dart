@@ -18,6 +18,11 @@ class BookingModel {
   final int? selectedSeater; // 1, 2, or 3 for hostels; null or 0 for flats
   final int? flatCapacity; // Added capacity for flats
 
+  // Payment info
+  final String? paymentStatus; // 'successful', 'failed', null (pending)
+  final String? razorpayOrderId;
+  final String? razorpayPaymentId;
+
   BookingModel({
     required this.id,
     required this.userId,
@@ -35,6 +40,9 @@ class BookingModel {
     this.cancelledBy,
     this.selectedSeater,
     this.flatCapacity,
+    this.paymentStatus,
+    this.razorpayOrderId,
+    this.razorpayPaymentId,
   });
 
   int get numberOfNights {
@@ -59,6 +67,9 @@ class BookingModel {
       'cancelledBy': cancelledBy,
       'selectedSeater': selectedSeater,
       'flatCapacity': flatCapacity,
+      'paymentStatus': paymentStatus,
+      'razorpayOrderId': razorpayOrderId,
+      'razorpayPaymentId': razorpayPaymentId,
     };
   }
 
@@ -85,6 +96,9 @@ class BookingModel {
       cancelledBy: map['cancelledBy'],
       selectedSeater: map['selectedSeater'],
       flatCapacity: map['flatCapacity'],
+      paymentStatus: map['paymentStatus'],
+      razorpayOrderId: map['razorpayOrderId'],
+      razorpayPaymentId: map['razorpayPaymentId'],
     );
   }
 
@@ -105,6 +119,9 @@ class BookingModel {
     String? cancelledBy,
     int? selectedSeater,
     int? flatCapacity,
+    String? paymentStatus,
+    String? razorpayOrderId,
+    String? razorpayPaymentId,
   }) {
     return BookingModel(
       id: id ?? this.id,
@@ -123,6 +140,9 @@ class BookingModel {
       cancelledBy: cancelledBy ?? this.cancelledBy,
       selectedSeater: selectedSeater ?? this.selectedSeater,
       flatCapacity: flatCapacity ?? this.flatCapacity,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+      razorpayOrderId: razorpayOrderId ?? this.razorpayOrderId,
+      razorpayPaymentId: razorpayPaymentId ?? this.razorpayPaymentId,
     );
   }
 }
