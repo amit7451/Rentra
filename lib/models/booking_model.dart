@@ -17,6 +17,7 @@ class BookingModel {
   final String? cancelledBy; // 'user' or 'admin'
   final int? selectedSeater; // 1, 2, or 3 for hostels; null or 0 for flats
   final int? flatCapacity; // Added capacity for flats
+  final double? bookingFee; // Amount paid as registration fee
 
   // Payment info
   final String? paymentStatus; // 'successful', 'failed', null (pending)
@@ -40,6 +41,7 @@ class BookingModel {
     this.cancelledBy,
     this.selectedSeater,
     this.flatCapacity,
+    this.bookingFee,
     this.paymentStatus,
     this.razorpayOrderId,
     this.razorpayPaymentId,
@@ -67,6 +69,7 @@ class BookingModel {
       'cancelledBy': cancelledBy,
       'selectedSeater': selectedSeater,
       'flatCapacity': flatCapacity,
+      'bookingFee': bookingFee,
       'paymentStatus': paymentStatus,
       'razorpayOrderId': razorpayOrderId,
       'razorpayPaymentId': razorpayPaymentId,
@@ -96,6 +99,7 @@ class BookingModel {
       cancelledBy: map['cancelledBy'],
       selectedSeater: map['selectedSeater'],
       flatCapacity: map['flatCapacity'],
+      bookingFee: (map['bookingFee'] ?? 0.0).toDouble(),
       paymentStatus: map['paymentStatus'],
       razorpayOrderId: map['razorpayOrderId'],
       razorpayPaymentId: map['razorpayPaymentId'],
@@ -119,6 +123,7 @@ class BookingModel {
     String? cancelledBy,
     int? selectedSeater,
     int? flatCapacity,
+    double? bookingFee,
     String? paymentStatus,
     String? razorpayOrderId,
     String? razorpayPaymentId,
@@ -140,6 +145,7 @@ class BookingModel {
       cancelledBy: cancelledBy ?? this.cancelledBy,
       selectedSeater: selectedSeater ?? this.selectedSeater,
       flatCapacity: flatCapacity ?? this.flatCapacity,
+      bookingFee: bookingFee ?? this.bookingFee,
       paymentStatus: paymentStatus ?? this.paymentStatus,
       razorpayOrderId: razorpayOrderId ?? this.razorpayOrderId,
       razorpayPaymentId: razorpayPaymentId ?? this.razorpayPaymentId,

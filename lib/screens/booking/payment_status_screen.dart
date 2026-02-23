@@ -315,8 +315,8 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
                           ),
                           Text(
                             isSuccess
-                                ? '₹50'
-                                : 'Failed', // Fixed registration fee or Failed
+                                ? '₹${_booking!.bookingFee?.toStringAsFixed(0) ?? '0'}'
+                                : 'Failed', // Dynamic registration fee or Failed
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,

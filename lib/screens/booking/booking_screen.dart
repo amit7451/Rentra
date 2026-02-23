@@ -351,6 +351,9 @@ class _BookingScreenState extends State<BookingScreen> {
       final hostel = await _firestoreService.getHostel(widget.hostelId);
       if (hostel == null) throw 'Hostel not found';
 
+      // Ensure minimum Razorpay amount is ₹1
+      double amountToPay = _payableAmount < 1.0 ? 1.0 : _payableAmount;
+
       final booking = BookingModel(
         id: '',
         userId: user.uid,
@@ -368,13 +371,11 @@ class _BookingScreenState extends State<BookingScreen> {
             : _specialRequestsController.text.trim(),
         selectedSeater: hostel.unitType == 'flat' ? 0 : _selectedSeater,
         flatCapacity: hostel.flatCapacity,
+        bookingFee: amountToPay,
       );
 
       final bookingId = await _firestoreService.createBooking(booking);
       _currentBookingId = bookingId;
-
-      // Ensure minimum Razorpay amount is ₹1
-      double amountToPay = _payableAmount < 1.0 ? 1.0 : _payableAmount;
 
       // Create Razorpay order via Cloud Function
       final result = await FirebaseFunctions.instance

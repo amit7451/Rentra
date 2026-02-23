@@ -325,13 +325,33 @@ class _BookingsScreenState extends State<BookingsScreen> {
 
               const Divider(height: 24),
 
-              // Total price
+              // Registration fee and Total price
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Booking Price',
-                    style: Theme.of(context).textTheme.bodyLarge,
+                    'Registration Paid',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                  ),
+                  Text(
+                    '₹${booking.bookingFee?.toStringAsFixed(0) ?? '0'}',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Total Rent', // Changed from Booking Price to be clearer
+                    style: Theme.of(
+                      context,
+                    ).textTheme.headlineSmall?.copyWith(fontSize: 16),
                   ),
                   Text(
                     '₹${booking.totalPrice.toStringAsFixed(0)}',

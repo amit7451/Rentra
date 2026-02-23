@@ -5,7 +5,6 @@ const crypto = require("crypto");
 
 admin.initializeApp();
 
-// Create Razorpay Order
 exports.createRazorpayOrder = onCall({ invoker: "public" }, async (request) => {
     const { amount, receipt } = request.data;
 
@@ -37,7 +36,7 @@ exports.createRazorpayOrder = onCall({ invoker: "public" }, async (request) => {
     }
 });
 
-// Verify Payment Signature
+
 exports.verifyPaymentSignature = onCall({ invoker: "public" }, async (request) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, bookingId } = request.data;
 

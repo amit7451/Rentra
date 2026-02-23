@@ -215,6 +215,10 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
                       'Payment Processed',
                       _fmt(_booking!.bookingDate),
                     ),
+                    _detailRow(
+                      'Booking Fee Paid',
+                      '₹${_booking!.bookingFee?.toStringAsFixed(0) ?? '0'}',
+                    ),
                     const Divider(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -519,6 +523,7 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
             selectedSeater: _booking!.selectedSeater,
             flatCapacity: _booking!.flatCapacity,
             paymentStatus: _booking!.paymentStatus,
+            bookingFee: _booking!.bookingFee,
             razorpayOrderId: _booking!.razorpayOrderId,
             razorpayPaymentId: _booking!.razorpayPaymentId,
           );
