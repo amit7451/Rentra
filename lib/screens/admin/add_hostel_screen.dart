@@ -59,7 +59,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
 
   // State Variables
   final List<File> _selectedImages = [];
-  List<String> _amenities = ['WiFi', 'Laundry'];
+  final List<String> _amenities = ['WiFi', 'Laundry'];
   bool _isLoading = false;
   bool _isUploading = false;
   bool _isCloudinaryReady = false;
@@ -445,7 +445,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _unitType,
+          initialValue: _unitType,
           items: const [
             DropdownMenuItem(value: 'hostel', child: Text('Hostel / PG')),
             DropdownMenuItem(value: 'flat', child: Text('Private Flat')),
@@ -770,7 +770,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: _selectedImages.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 10),
+                    separatorBuilder: (_, _) => const SizedBox(width: 10),
                     itemBuilder: (ctx, i) => Stack(
                       children: [
                         ClipRRect(

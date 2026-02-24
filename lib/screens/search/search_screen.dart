@@ -48,7 +48,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   // Filters
   String _selectedUnitType = 'all';
-  String _sortBy = 'distance'; // Default for map-like search
+  final String _sortBy = 'distance'; // Default for map-like search
   double _filterRadius = 5.0;
 
   // Debounce for typing
@@ -120,8 +120,9 @@ class _SearchScreenState extends State<SearchScreen> {
     } catch (e) {
       debugPrint("Error fetching suggestions: $e");
     } finally {
-      if (mounted && !_isDisposed)
+      if (mounted && !_isDisposed) {
         setState(() => _isLoadingSuggestions = false);
+      }
     }
   }
 
@@ -164,8 +165,9 @@ class _SearchScreenState extends State<SearchScreen> {
         }
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() => _errorMessage = "Could not fetch location details");
+      }
     }
   }
 

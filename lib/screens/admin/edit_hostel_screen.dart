@@ -517,7 +517,7 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
           Switch(
             value: _isActive,
             onChanged: (v) => setState(() => _isActive = v),
-            activeColor: Colors.green,
+            activeThumbColor: Colors.green,
           ),
         ],
       ),
@@ -534,7 +534,7 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _unitType,
+          initialValue: _unitType,
           items: const [
             DropdownMenuItem(value: 'hostel', child: Text('Hostel / PG')),
             DropdownMenuItem(value: 'flat', child: Text('Private Flat')),

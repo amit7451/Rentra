@@ -82,8 +82,9 @@ class NotificationService {
         } else {
           // Admin side: New booking or other update
           int initialIndex = 0;
-          if (status == 'cancelled')
+          if (status == 'cancelled') {
             initialIndex = 2; // For admin cancellation tab if you have one
+          }
 
           Navigator.pushNamed(
             context,

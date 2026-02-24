@@ -559,8 +559,8 @@ class FirestoreService {
     try {
       await _firestore.collection(_bookingsCollection).doc(bookingId).update({
         'paymentStatus': status,
-        if (orderId != null) 'razorpayOrderId': orderId,
-        if (paymentId != null) 'razorpayPaymentId': paymentId,
+        'razorpayOrderId': ?orderId,
+        'razorpayPaymentId': ?paymentId,
         'paymentVerifiedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
