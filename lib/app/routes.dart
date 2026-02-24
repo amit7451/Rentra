@@ -20,6 +20,7 @@ import 'package:rentra/screens/profile/change_password_screen.dart';
 import '../screens/admin/admin_bookings_screen.dart';
 import '../screens/admin/admin_booking_details_screen.dart';
 import '../screens/booking/payment_status_screen.dart';
+import '../screens/notifications/notification_settings_screen.dart';
 
 class AppRoutes {
   // static const String splash = '/';
@@ -44,6 +45,7 @@ class AppRoutes {
   static const String changePassword = '/change-password';
   static const String paymentStatus = '/payment-status';
   static const String adminBookingDetails = '/admin-booking-details';
+  static const String notificationSettings = '/notification-settings';
 
   static Map<String, WidgetBuilder> routes = {
     // splash: (context) => const SplashScreen(),
@@ -64,6 +66,7 @@ class AppRoutes {
     privacyPolicy: (context) => const PrivacyPolicyScreen(),
     inviteEarn: (context) => const InviteEarnScreen(),
     changePassword: (context) => const ChangePasswordScreen(),
+    notificationSettings: (context) => const NotificationSettingsScreen(),
   };
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {

@@ -63,3 +63,15 @@ firebase-debug.log
 # Google Services Keys
 google-services.json
 GoogleService-Info.plist
+
+# Keys and Secrets
+*.jks
+*.keystore
+*.jks
+*.p12
+*.key
+*.pem
+key.properties
+local.properties
+.env
+.env.*

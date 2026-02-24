@@ -500,7 +500,7 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
             ? 'Your booking at ${_booking!.hostelName} has been confirmed securely.'
             : 'Your booking at ${_booking!.hostelName} was cancelled by the owner.',
         type: 'booking',
-        additionalData: {'bookingId': _booking!.id, 'status': 'status_update'},
+        additionalData: {'bookingId': _booking!.id, 'status': newStatus.name},
       );
 
       if (mounted) {

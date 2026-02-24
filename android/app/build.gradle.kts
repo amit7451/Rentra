@@ -10,12 +10,14 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+// 🔐 Load keystore properties (SAFE & CORRECT PATH)
 val keystoreProperties = Properties()
-val keystorePropertiesFile = rootProject.file("app/key.properties")
+val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+// 🌍 Load local properties (maps key etc.)
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
@@ -37,38 +39,41 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.rentra.app.rentra"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        
-        // Inject Google Maps Key from local.properties
-        manifestPlaceholders["googleMapsKey"] = localProperties.getProperty("google.maps.key", "")
+
+        // Google Maps API key from local.properties
+        manifestPlaceholders["googleMapsKey"] =
+            localProperties.getProperty("google.maps.key", "")
     }
 
+    // 🔐 Signing config (defensive & production-safe)
     signingConfigs {
         create("release") {
             val keystoreFilePath = keystoreProperties.getProperty("storeFile", "")
             if (keystoreFilePath.isNotEmpty()) {
-                keyAlias = keystoreProperties.getProperty("keyAlias", "")
-                keyPassword = keystoreProperties.getProperty("keyPassword", "")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
                 storeFile = file(keystoreFilePath)
-                storePassword = keystoreProperties.getProperty("storePassword", "")
+                storePassword = keystoreProperties.getProperty("storePassword")
             }
         }
     }
 
     buildTypes {
         release {
+            // ✅ Use release key if present, otherwise fall back safely
             if (signingConfigs.getByName("release").storeFile != null) {
                 signingConfig = signingConfigs.getByName("release")
             } else {
                 signingConfig = signingConfigs.getByName("debug")
             }
+
+            isMinifyEnabled = true
+            isShrinkResources = true
         }
     }
 }
@@ -76,11 +81,11 @@ android {
 flutter {
     source = "../.."
 }
+
 dependencies {
-    // Import the BoM for the Firebase platform
+    // Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:34.8.0"))
 
-    // Add the dependency for the Firebase Authentication library
-    // When using the BoM, you don't specify versions in Firebase library dependencies
+    // Firebase Auth
     implementation("com.google.firebase:firebase-auth")
 }

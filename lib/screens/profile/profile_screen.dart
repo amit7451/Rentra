@@ -155,7 +155,7 @@ class ProfileScreen extends StatelessWidget {
                                 onTap: () {
                                   Navigator.pushNamed(
                                     context,
-                                    AppRoutes.notifications,
+                                    AppRoutes.notificationSettings,
                                   );
                                 },
                               ),

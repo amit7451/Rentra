@@ -17,6 +17,11 @@ service cloud.firestore {
       allow create: if request.auth.uid != null;
     }
 
+    // ==================== SETTINGS ====================
+    match /users/{userId}/settings/{settingId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+
     // ==================== HOSTELS ====================
     // Anyone can read active hostels
     // Only owners can write to their hostels
