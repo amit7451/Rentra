@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:uuid/uuid.dart'; // Add this to pubspec.yaml
+import 'package:uuid/uuid.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-// Import your app files
 import '../../services/firestore_service.dart';
 import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
