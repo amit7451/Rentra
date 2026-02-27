@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/firestore_service.dart';
 import '../../models/booking_model.dart';
 import '../../models/hostel_model.dart';
@@ -803,6 +804,94 @@ class _BookingScreenState extends State<BookingScreen> {
                 ),
 
                 const SizedBox(height: 32),
+
+                // Saved Payment Methods
+                StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(FirebaseAuth.instance.currentUser?.uid)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) return const SizedBox.shrink();
+
+                    final userData =
+                        snapshot.data?.data() as Map<String, dynamic>?;
+                    final savedMethods =
+                        userData?['savedPaymentMethods'] as List<dynamic>?;
+
+                    if (savedMethods == null || savedMethods.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Preferred Payment Method',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 100,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: savedMethods.length,
+                            itemBuilder: (context, index) {
+                              final method = savedMethods[index];
+                              final isCard = method['type'] == 'card';
+
+                              return Container(
+                                width: 150,
+                                margin: const EdgeInsets.only(right: 12),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.white,
+                                  border: Border.all(color: AppTheme.lightGrey),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      isCard
+                                          ? Icons.credit_card
+                                          : Icons.account_balance_wallet,
+                                      color: AppTheme.primaryRed,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      method['nickname'] ?? '',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    Text(
+                                      isCard
+                                          ? '**** ${method['last4']}'
+                                          : method['upiId'] ?? '',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: AppTheme.grey,
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    );
+                  },
+                ),
 
                 if (_rentalUnits > 0)
                   Card(

@@ -914,4 +914,58 @@ class FirestoreService {
       debugPrint("❌ Error during pre-load: $e");
     }
   }
+
+  // ==================== PAYMENT METHOD OPERATIONS ====================
+
+  // Save payment method
+  Future<void> savePaymentMethod(
+    String userId,
+    Map<String, dynamic> method,
+  ) async {
+    try {
+      await _firestore.collection(_usersCollection).doc(userId).update({
+        'savedPaymentMethods': FieldValue.arrayUnion([method]),
+      });
+    } catch (e) {
+      throw 'Failed to save payment method: $e';
+    }
+  }
+
+  // Delete payment method
+  Future<void> deletePaymentMethod(
+    String userId,
+    Map<String, dynamic> method,
+  ) async {
+    try {
+      await _firestore.collection(_usersCollection).doc(userId).update({
+        'savedPaymentMethods': FieldValue.arrayRemove([method]),
+      });
+    } catch (e) {
+      throw 'Failed to delete payment method: $e';
+    }
+  }
+
+  // ==================== TRANSACTION HISTORY ====================
+
+  // Get failed or cancelled transactions for a user
+  Stream<List<BookingModel>> getFailedUserTransactions(String userId) {
+    return _firestore
+        .collection(_bookingsCollection)
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map((snapshot) {
+          final bookings = snapshot.docs
+              .map((doc) => BookingModel.fromMap({...doc.data(), 'id': doc.id}))
+              .where(
+                (booking) =>
+                    booking.paymentStatus == 'failed' ||
+                    booking.status == BookingStatus.cancelled,
+              )
+              .toList();
+
+          // Sort by bookingDate descending
+          bookings.sort((a, b) => b.bookingDate.compareTo(a.bookingDate));
+          return bookings;
+        });
+  }
 }

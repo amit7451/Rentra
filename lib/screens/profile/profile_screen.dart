@@ -170,7 +170,7 @@ class ProfileScreen extends StatelessWidget {
                                 onTap: () {
                                   Navigator.pushNamed(
                                     context,
-                                    AppRoutes.payments,
+                                    AppRoutes.paymentMethods,
                                   );
                                 },
                               ),
@@ -285,11 +285,24 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Text(
-                          'Version 1.0.0',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall?.copyWith(color: AppTheme.grey),
+                        FutureBuilder<DocumentSnapshot>(
+                          future: FirebaseFirestore.instance
+                              .collection('app_config')
+                              .doc('android')
+                              .get(),
+                          builder: (context, snapshot) {
+                            String version = 'Loading...';
+                            if (snapshot.hasData && snapshot.data!.exists) {
+                              version =
+                                  snapshot.data!.get('latest_version') ??
+                                  '1.1.0';
+                            }
+                            return Text(
+                              'Version $version',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: AppTheme.grey),
+                            );
+                          },
                         ),
                         const SizedBox(height: 32),
                       ],

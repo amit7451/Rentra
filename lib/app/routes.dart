@@ -21,6 +21,7 @@ import '../screens/admin/admin_bookings_screen.dart';
 import '../screens/admin/admin_booking_details_screen.dart';
 import '../screens/booking/payment_status_screen.dart';
 import '../screens/notifications/notification_settings_screen.dart';
+import '../screens/profile/saved_payment_methods_screen.dart';
 
 class AppRoutes {
   // static const String splash = '/';
@@ -46,6 +47,7 @@ class AppRoutes {
   static const String paymentStatus = '/payment-status';
   static const String adminBookingDetails = '/admin-booking-details';
   static const String notificationSettings = '/notification-settings';
+  static const String paymentMethods = '/payment-methods';
 
   static Map<String, WidgetBuilder> routes = {
     // splash: (context) => const SplashScreen(),
@@ -67,6 +69,7 @@ class AppRoutes {
     inviteEarn: (context) => const InviteEarnScreen(),
     changePassword: (context) => const ChangePasswordScreen(),
     notificationSettings: (context) => const NotificationSettingsScreen(),
+    paymentMethods: (context) => const SavedPaymentMethodsScreen(),
   };
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {

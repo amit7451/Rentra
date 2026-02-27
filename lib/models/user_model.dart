@@ -14,6 +14,8 @@ class UserModel {
   final bool isActive;
   final DateTime? deletedAt;
 
+  final List<Map<String, dynamic>>? savedPaymentMethods;
+
   UserModel({
     required this.uid,
     required this.email,
@@ -27,6 +29,7 @@ class UserModel {
     this.accountStatus = 'active',
     this.isActive = true,
     this.deletedAt,
+    this.savedPaymentMethods,
   });
 
   Map<String, dynamic> toMap() {
@@ -43,6 +46,7 @@ class UserModel {
       'accountStatus': accountStatus,
       'isActive': isActive,
       'deletedAt': deletedAt?.millisecondsSinceEpoch,
+      'savedPaymentMethods': savedPaymentMethods,
     };
   }
 
@@ -60,6 +64,9 @@ class UserModel {
       accountStatus: map['accountStatus'] ?? 'active',
       isActive: map['isActive'] ?? true,
       deletedAt: _parseDate(map['deletedAt']),
+      savedPaymentMethods: map['savedPaymentMethods'] != null
+          ? List<Map<String, dynamic>>.from(map['savedPaymentMethods'])
+          : null,
     );
   }
 
@@ -83,6 +90,7 @@ class UserModel {
     String? accountStatus,
     bool? isActive,
     DateTime? deletedAt,
+    List<Map<String, dynamic>>? savedPaymentMethods,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -97,6 +105,7 @@ class UserModel {
       accountStatus: accountStatus ?? this.accountStatus,
       isActive: isActive ?? this.isActive,
       deletedAt: deletedAt ?? this.deletedAt,
+      savedPaymentMethods: savedPaymentMethods ?? this.savedPaymentMethods,
     );
   }
 }
