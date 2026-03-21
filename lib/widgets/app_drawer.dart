@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 import '../app/theme.dart';
 import '../app/routes.dart';
@@ -163,16 +164,44 @@ class AppDrawer extends StatelessWidget {
                         child: const Text('Cancel'),
                       ),
                       TextButton(
-                        onPressed: () {
+                        onPressed: () async {
                           Navigator.pop(ctx);
+                          
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text(
-                                'Request sent. Wait for approval to list your property.',
-                              ),
-                              behavior: SnackBarBehavior.floating,
+                              content: Text('Sending request...'),
                             ),
                           );
+                          
+                          try {
+                            final currentName = userDoc.data()?['name'] ?? currentUser?.displayName ?? 'Unknown Name';
+                            final currentEmail = currentUser?.email ?? 'Unknown Email';
+                            
+                            await FirebaseFunctions.instance.httpsCallable('requestAdminAccess').call({
+                              'name': currentName,
+                              'email': currentEmail,
+                            });
+                            
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Request sent! Wait for approval to list your property.'),
+                                  behavior: SnackBarBehavior.floating,
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to send request: $e'),
+                                  behavior: SnackBarBehavior.floating,
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
                         },
                         child: const Text('Request'),
                       ),
