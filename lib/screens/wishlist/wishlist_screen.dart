@@ -428,11 +428,13 @@ class _WishlistCardState extends State<_WishlistCard> {
                         color: Colors.grey[600],
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        '${h.address}, ${h.city}',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Expanded(
+                        child: Text(
+                          '${h.address}, ${h.city}',
+                          style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
