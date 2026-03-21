@@ -108,19 +108,25 @@ exports.requestAdminAccess = onCall({ invoker: "public" }, async (request) => {
     const approveUrl = `https://us-central1-${projectId}.cloudfunctions.net/approveAdminAccess?uid=${uid}`;
 
     const mailOptions = {
-        from: process.env.EMAIL_USER,
+        from: `"${name}" <${process.env.EMAIL_USER}>`, // Still must be your email to send
         to: "amitkumarstm1507@gmail.com",
-        subject: "New Admin Request for Rentra App",
+        replyTo: email, // This allows you to click 'Reply' and talk to the user directly
+        subject: `Admin Request: ${name}`,
         html: `
-            <h2>New Admin Request</h2>
-            <p>User with email: <strong>${email}</strong></p>
-            <p>Name: <strong>${name}</strong></p>
-            <p>is requesting to be the admin.</p>
-            <br/>
-            <p>Click the button below if you want to allow this request:</p>
-            <a href="${approveUrl}" style="padding: 10px 20px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px; display: inline-block;">Yes</a>
-            <br/><br/>
-            <p>If you don't allow, then simply ignore this email.</p>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+                <h2 style="color: #333;">New Admin Request</h2>
+                <p>Hello Amit,</p>
+                <p>A user is requesting admin access to list their property on Rentra.</p>
+                <hr style="border: 0; border-top: 1px solid #eee;" />
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <hr style="border: 0; border-top: 1px solid #eee;" />
+                <br/>
+                <p>Click the button below to <strong>Approve</strong> this user:</p>
+                <a href="${approveUrl}" style="padding: 12px 25px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Approve User</a>
+                <br/><br/>
+                <p style="color: #777; font-size: 12px;">If you do not recognize this user or want to deny access, simply ignore this email.</p>
+            </div>
         `
     };
 
