@@ -16,3 +16,4 @@ A broker-free rental marketplace app built using Flutter and Firebase.
 - Firebase (Auth, Firestore, Cloud Functions – Node.js)
 - Google Maps API
 - Cloudinary
+- Google Cloud
