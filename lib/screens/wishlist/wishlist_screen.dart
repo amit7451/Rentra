@@ -131,21 +131,21 @@ class WishlistScreen extends StatelessWidget {
                                 vertical: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryRed.withOpacity(0.07),
+                                color: AppTheme.primaryTeal.withOpacity(0.07),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Row(
                                 children: [
                                   const Icon(
                                     Icons.favorite,
-                                    color: AppTheme.primaryRed,
+                                    color: AppTheme.primaryTeal,
                                     size: 18,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
                                     '${wishlisted.length} saved propert${wishlisted.length == 1 ? 'y' : 'ies'}',
                                     style: const TextStyle(
-                                      color: AppTheme.primaryRed,
+                                      color: AppTheme.primaryTeal,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -187,13 +187,13 @@ class _EmptyWishlist extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
-              color: AppTheme.primaryRed.withOpacity(0.07),
+              color: AppTheme.primaryTeal.withOpacity(0.07),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.favorite_border,
               size: 64,
-              color: AppTheme.primaryRed,
+              color: AppTheme.primaryTeal,
             ),
           ),
           const SizedBox(height: 24),
@@ -223,7 +223,7 @@ class _EmptyWishlist extends StatelessWidget {
               style: TextStyle(color: Colors.white),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryRed,
+              backgroundColor: AppTheme.primaryTeal,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -338,12 +338,12 @@ class _WishlistCardState extends State<_WishlistCard> {
                                 height: 18,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: AppTheme.primaryRed,
+                                  color: AppTheme.primaryTeal,
                                 ),
                               )
                             : const Icon(
                                 Icons.favorite,
-                                color: AppTheme.primaryRed,
+                                color: AppTheme.primaryTeal,
                                 size: 20,
                               ),
                       ),

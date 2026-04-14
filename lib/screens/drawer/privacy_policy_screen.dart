@@ -173,7 +173,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.email_outlined,
-                    color: AppTheme.primaryRed,
+                    color: AppTheme.primaryTeal,
                     size: 20,
                   ),
                   SizedBox(width: 12),

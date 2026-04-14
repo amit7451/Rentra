@@ -73,7 +73,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.primaryTeal),
             child: const Text('Next'),
           ),
         ],
@@ -164,7 +164,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 TextButton(
                   onPressed: canDelete ? () => Navigator.pop(ctx, true) : null,
                   style: TextButton.styleFrom(
-                    foregroundColor: canDelete ? Colors.red : Colors.grey,
+                    foregroundColor: canDelete ? AppTheme.primaryTeal : Colors.grey,
                   ),
                   child: const Text('Permanently Delete'),
                 ),
@@ -196,7 +196,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Deletion failed: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.primaryTeal,
           ),
         );
       }
@@ -276,7 +276,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   CircleAvatar(
                     radius: 60,
-                    backgroundColor: AppTheme.primaryRed.withOpacity(0.1),
+                    backgroundColor: AppTheme.primaryTeal.withOpacity(0.1),
                     backgroundImage: _imageFile != null
                         ? FileImage(_imageFile!)
                         : (widget.userModel.photoUrl != null
@@ -289,7 +289,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ? const Icon(
                             Icons.person,
                             size: 60,
-                            color: AppTheme.primaryRed,
+                            color: AppTheme.primaryTeal,
                           )
                         : null,
                   ),
@@ -298,7 +298,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     right: 0,
                     child: CircleAvatar(
                       radius: 20,
-                      backgroundColor: AppTheme.primaryRed,
+                      backgroundColor: AppTheme.primaryTeal,
                       child: IconButton(
                         icon: const Icon(
                           Icons.camera_alt,

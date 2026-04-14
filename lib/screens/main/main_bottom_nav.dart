@@ -1,4 +1,5 @@
-import 'dart:async';
+﻿import 'dart:async';
+import 'dart:ui'; // for ImageFilter
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -29,8 +30,6 @@ class _MainBottomNavState extends State<MainBottomNav> {
   bool _isAdmin = false;
   bool _isLoading = true;
 
-  // ---------------- INIT ----------------
-
   @override
   void initState() {
     super.initState();
@@ -39,9 +38,7 @@ class _MainBottomNavState extends State<MainBottomNav> {
     _currentIndex = widget.initialIndex;
 
     _authSub = FirebaseAuth.instance.authStateChanges().listen((user) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       if (user == null) {
         setState(() {
@@ -55,23 +52,17 @@ class _MainBottomNavState extends State<MainBottomNav> {
     });
   }
 
-  // ---------------- DISPOSE ----------------
-
   @override
   void dispose() {
     _authSub.cancel();
     super.dispose();
   }
 
-  // ---------------- ADMIN CHECK ----------------
-
   Future<void> _checkAdminStatus(String uid) async {
     try {
       final doc = await _firestore.collection('users').doc(uid).get();
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       final isAdmin = doc.data()?['isAdmin'] == true;
 
@@ -79,15 +70,12 @@ class _MainBottomNavState extends State<MainBottomNav> {
         _isAdmin = isAdmin;
         _isLoading = false;
 
-        // Safety: reset index if admin tab disappears
         if (!_isAdmin && _currentIndex > 3) {
           _currentIndex = 0;
         }
       });
     } catch (e) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       debugPrint('Error checking admin status: $e');
       setState(() {
@@ -97,8 +85,6 @@ class _MainBottomNavState extends State<MainBottomNav> {
       });
     }
   }
-
-  // ---------------- SCREENS ----------------
 
   List<Widget> get _screens {
     final screens = <Widget>[
@@ -115,37 +101,35 @@ class _MainBottomNavState extends State<MainBottomNav> {
     return screens;
   }
 
-  // ---------------- NAV ITEMS ----------------
-
-  List<BottomNavigationBarItem> get _navItems {
-    final items = const [
-      BottomNavigationBarItem(
-        icon: Icon(Icons.home_outlined),
-        activeIcon: Icon(Icons.home),
+  List<_NavBarItem> get _navItems {
+    final items = [
+      _NavBarItem(
+        icon: Icons.home_outlined,
+        activeIcon: Icons.home,
         label: 'Home',
       ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.search_outlined),
-        activeIcon: Icon(Icons.search),
+      _NavBarItem(
+        icon: Icons.search_outlined,
+        activeIcon: Icons.search,
         label: 'Search',
       ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.book_outlined),
-        activeIcon: Icon(Icons.book),
+      _NavBarItem(
+        icon: Icons.book_outlined,
+        activeIcon: Icons.book,
         label: 'Bookings',
       ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.person_outlined),
-        activeIcon: Icon(Icons.person),
+      _NavBarItem(
+        icon: Icons.person_outlined,
+        activeIcon: Icons.person,
         label: 'Profile',
       ),
-    ].toList();
+    ];
 
     if (_isAdmin) {
       items.add(
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.admin_panel_settings_outlined),
-          activeIcon: Icon(Icons.admin_panel_settings),
+        _NavBarItem(
+          icon: Icons.admin_panel_settings_outlined,
+          activeIcon: Icons.admin_panel_settings,
           label: 'Admin',
         ),
       );
@@ -153,8 +137,6 @@ class _MainBottomNavState extends State<MainBottomNav> {
 
     return items;
   }
-
-  // ---------------- BUILD ----------------
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +146,7 @@ class _MainBottomNavState extends State<MainBottomNav> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(color: AppTheme.primaryRed),
+              CircularProgressIndicator(color: AppTheme.primaryTeal),
               const SizedBox(height: 16),
               const Text(
                 'Checking user permissions...',
@@ -177,37 +159,130 @@ class _MainBottomNavState extends State<MainBottomNav> {
     }
 
     final screens = _screens;
-
-    // Extra safety (never crash)
     if (_currentIndex >= screens.length) {
       _currentIndex = 0;
     }
 
     return Scaffold(
+      extendBody: true,
       body: IndexedStack(index: _currentIndex, children: screens),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(1),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
+      bottomNavigationBar: null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.fromLTRB(25, 0, 25, 25),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(42),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              height: 85,
+              decoration: BoxDecoration(
+                color: AppTheme.darkTeal.withAlpha(200),
+                borderRadius: BorderRadius.circular(35),
+                border: Border.all(
+                  color: Colors.white.withAlpha(40),
+                  width: 1.5,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(_navItems.length, (index) {
+                  final item = _navItems[index];
+                  final isSelected = _currentIndex == index;
+
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() => _currentIndex = index);
+                    },
+                    behavior: HitTestBehavior.opaque,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 350),
+                      curve: Curves.fastOutSlowIn,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isSelected ? 18.0 : 12.0,
+                        vertical: 10.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppTheme.accentTeal.withAlpha(60)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 350),
+                            curve: Curves.fastOutSlowIn,
+                            padding: EdgeInsets.all(isSelected ? 8.0 : 0.0),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? AppTheme.accentTeal
+                                  : Colors.transparent,
+                              shape: BoxShape.circle,
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                        color: AppTheme.accentTeal.withAlpha(
+                                          120,
+                                        ),
+                                        blurRadius: 10,
+                                        spreadRadius: 2,
+                                      ),
+                                    ]
+                                  : [],
+                            ),
+                            child: AnimatedScale(
+                              scale: isSelected ? 1.1 : 1.0,
+                              duration: const Duration(milliseconds: 350),
+                              curve: Curves.fastOutSlowIn,
+                              child: Icon(
+                                isSelected ? item.activeIcon : item.icon,
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppTheme.lightGrey.withAlpha(180),
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                          if (isSelected) ...[
+                            const SizedBox(width: 8),
+                            AnimatedOpacity(
+                              opacity: isSelected ? 1.0 : 0.0,
+                              duration: const Duration(milliseconds: 350),
+                              child: Text(
+                                item.label,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ),
             ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() => _currentIndex = index);
-          },
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: AppTheme.primaryRed,
-          unselectedItemColor: AppTheme.grey,
-          selectedFontSize: 12,
-          unselectedFontSize: 12,
-          items: _navItems,
+          ),
         ),
       ),
     );
   }
+}
+
+class _NavBarItem {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+
+  _NavBarItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+  });
 }

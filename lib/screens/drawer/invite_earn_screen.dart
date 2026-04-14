@@ -120,13 +120,13 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
                           width: 150,
                           height: 150,
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryRed.withValues(alpha: 0.1),
+                            color: AppTheme.primaryTeal.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
                             Icons.card_giftcard_rounded,
                             size: 80,
-                            color: AppTheme.primaryRed,
+                            color: AppTheme.primaryTeal,
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -173,7 +173,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
                               IconButton(
                                 icon: const Icon(
                                   Icons.copy,
-                                  color: AppTheme.primaryRed,
+                                  color: AppTheme.primaryTeal,
                                 ),
                                 onPressed: _copyToClipboard,
                               ),
@@ -222,7 +222,7 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: AppTheme.primaryRed, size: 28),
+        Icon(icon, color: AppTheme.primaryTeal, size: 28),
         const SizedBox(width: 16),
         Expanded(
           child: Column(

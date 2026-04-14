@@ -326,7 +326,7 @@ class _BookingScreenState extends State<BookingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select dates'),
-          backgroundColor: AppTheme.darkRed,
+          backgroundColor: AppTheme.darkTeal,
         ),
       );
       return;
@@ -336,7 +336,7 @@ class _BookingScreenState extends State<BookingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Invalid booking: Price cannot be zero'),
-          backgroundColor: AppTheme.darkRed,
+          backgroundColor: AppTheme.darkTeal,
         ),
       );
       return;
@@ -420,7 +420,7 @@ class _BookingScreenState extends State<BookingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to initiate payment: $e'),
-          backgroundColor: AppTheme.darkRed,
+          backgroundColor: AppTheme.darkTeal,
         ),
       );
     }
@@ -510,7 +510,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                             .textTheme
                                             .bodyLarge
                                             ?.copyWith(
-                                              color: AppTheme.primaryRed,
+                                              color: AppTheme.primaryTeal,
                                               fontWeight: FontWeight.bold,
                                             ),
                                       );
@@ -581,7 +581,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                               );
                                             }
                                             if (rooms <= 3) {
-                                              return Colors.red.withOpacity(
+                                              return AppTheme.primaryTeal.withOpacity(
                                                 0.08,
                                               );
                                             }
@@ -618,7 +618,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                                 return Colors.green;
                                               }
                                               if (rooms <= 3) {
-                                                return AppTheme.primaryRed;
+                                                return AppTheme.primaryTeal;
                                               }
                                               if (rooms <= 5) {
                                                 return Colors.orange;
@@ -664,7 +664,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       children: [
                         const Icon(
                           Icons.calendar_today,
-                          color: AppTheme.primaryRed,
+                          color: AppTheme.primaryTeal,
                         ),
                         const SizedBox(width: 12),
                         Text(
@@ -696,7 +696,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       children: [
                         const Icon(
                           Icons.calendar_today,
-                          color: AppTheme.primaryRed,
+                          color: AppTheme.primaryTeal,
                         ),
                         const SizedBox(width: 12),
                         Text(
@@ -857,7 +857,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                       isCard
                                           ? Icons.credit_card
                                           : Icons.account_balance_wallet,
-                                      color: AppTheme.primaryRed,
+                                      color: AppTheme.primaryTeal,
                                       size: 20,
                                     ),
                                     const SizedBox(height: 8),
@@ -966,7 +966,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                     .textTheme
                                     .headlineMedium
                                     ?.copyWith(
-                                      color: AppTheme.primaryRed,
+                                      color: AppTheme.primaryTeal,
                                       fontWeight: FontWeight.bold,
                                     ),
                               ),
@@ -1007,10 +1007,10 @@ class _BookingScreenState extends State<BookingScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryRed.withOpacity(0.05),
+                  color: AppTheme.primaryTeal.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: AppTheme.primaryRed.withOpacity(0.2),
+                    color: AppTheme.primaryTeal.withOpacity(0.2),
                   ),
                 ),
                 child: Row(
@@ -1053,7 +1053,7 @@ class _BookingScreenState extends State<BookingScreen> {
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
-                            color: AppTheme.primaryRed,
+                            color: AppTheme.primaryTeal,
                           ),
                         ),
                       ],

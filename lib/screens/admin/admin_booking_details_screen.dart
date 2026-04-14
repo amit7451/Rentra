@@ -64,7 +64,7 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
     if (_isLoading) {
       return const Scaffold(
         body: Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryRed),
+          child: CircularProgressIndicator(color: AppTheme.primaryTeal),
         ),
       );
     }
@@ -235,7 +235,7 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryRed,
+                            color: AppTheme.primaryTeal,
                           ),
                         ),
                       ],
@@ -269,7 +269,7 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
                       children: [
                         CircleAvatar(
                           radius: 24,
-                          backgroundColor: AppTheme.primaryRed.withOpacity(0.1),
+                          backgroundColor: AppTheme.primaryTeal.withOpacity(0.1),
                           backgroundImage:
                               (_user!.photoUrl?.isNotEmpty ?? false)
                               ? NetworkImage(_user!.photoUrl!)
@@ -277,7 +277,7 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
                           child: (_user!.photoUrl?.isEmpty ?? true)
                               ? const Icon(
                                   Icons.person,
-                                  color: AppTheme.primaryRed,
+                                  color: AppTheme.primaryTeal,
                                   size: 24,
                                 )
                               : null,
@@ -343,7 +343,7 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
                                     const Icon(
                                       Icons.phone,
                                       size: 18,
-                                      color: AppTheme.primaryRed,
+                                      color: AppTheme.primaryTeal,
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
@@ -384,7 +384,7 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
                                     Icon(
                                       Icons.email,
                                       size: 18,
-                                      color: AppTheme.primaryRed,
+                                      color: AppTheme.primaryTeal,
                                     ),
                                     SizedBox(width: 8),
                                     Text(
@@ -442,8 +442,8 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
                   Expanded(
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.primaryRed,
-                        side: const BorderSide(color: AppTheme.primaryRed),
+                        foregroundColor: AppTheme.primaryTeal,
+                        side: const BorderSide(color: AppTheme.primaryTeal),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -538,7 +538,7 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
             ),
             backgroundColor: newStatus == BookingStatus.confirmed
                 ? Colors.green
-                : Colors.red,
+                : AppTheme.primaryTeal,
           ),
         );
       }
@@ -547,7 +547,7 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to update status: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.primaryTeal,
         ),
       );
     }
@@ -579,7 +579,7 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
       case BookingStatus.confirmed:
         return Colors.green;
       case BookingStatus.cancelled:
-        return Colors.red;
+        return AppTheme.primaryTeal;
       case BookingStatus.completed:
         return Colors.blue;
     }

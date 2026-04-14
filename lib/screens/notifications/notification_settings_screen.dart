@@ -181,10 +181,10 @@ class _NotificationSettingsScreenState
       secondary: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppTheme.primaryRed.withOpacity(0.1),
+          color: AppTheme.primaryTeal.withOpacity(0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: AppTheme.primaryRed, size: 20),
+        child: Icon(icon, color: AppTheme.primaryTeal, size: 20),
       ),
       title: Text(
         title,
@@ -194,7 +194,7 @@ class _NotificationSettingsScreenState
         subtitle,
         style: TextStyle(fontSize: 13, color: Colors.grey[600]),
       ),
-      activeColor: AppTheme.primaryRed,
+      activeColor: AppTheme.primaryTeal,
     );
   }
 }

@@ -93,7 +93,7 @@ class _VerificationDialogState extends State<VerificationDialog>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to send email: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.primaryTeal,
           ),
         );
       }
@@ -118,13 +118,13 @@ class _VerificationDialogState extends State<VerificationDialog>
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryRed.withOpacity(0.1),
+                  color: AppTheme.primaryTeal.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.mark_email_unread_outlined,
                   size: 48,
-                  color: AppTheme.primaryRed,
+                  color: AppTheme.primaryTeal,
                 ),
               ),
               const SizedBox(height: 20),
@@ -167,7 +167,7 @@ class _VerificationDialogState extends State<VerificationDialog>
                 child: ElevatedButton(
                   onPressed: _isSending ? null : _sendVerificationEmail,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryRed,
+                    backgroundColor: AppTheme.primaryTeal,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -219,7 +219,7 @@ class _VerificationDialogState extends State<VerificationDialog>
           height: 24,
           alignment: Alignment.center,
           decoration: const BoxDecoration(
-            color: AppTheme.primaryRed,
+            color: AppTheme.primaryTeal,
             shape: BoxShape.circle,
           ),
           child: Text(

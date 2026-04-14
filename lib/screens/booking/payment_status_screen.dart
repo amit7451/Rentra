@@ -107,7 +107,7 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
           automaticallyImplyLeading: false,
         ),
         body: const Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryRed),
+          child: CircularProgressIndicator(color: AppTheme.primaryTeal),
         ),
       );
     }
@@ -153,12 +153,12 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
                 decoration: BoxDecoration(
                   color: isSuccess
                       ? Colors.green.withOpacity(0.1)
-                      : Colors.red.withOpacity(0.1),
+                      : AppTheme.primaryTeal.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
                     color: isSuccess
                         ? Colors.green.withOpacity(0.5)
-                        : Colors.red.withOpacity(0.5),
+                        : AppTheme.primaryTeal.withOpacity(0.5),
                     width: 2,
                   ),
                 ),
@@ -167,7 +167,7 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
                     Icon(
                       isSuccess ? Icons.check_circle : Icons.cancel,
                       size: 80,
-                      color: isSuccess ? Colors.green : Colors.red,
+                      color: isSuccess ? Colors.green : AppTheme.primaryTeal,
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -175,7 +175,7 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: isSuccess ? Colors.green : Colors.red,
+                            color: isSuccess ? Colors.green : AppTheme.primaryTeal,
                           ),
                       textAlign: TextAlign.center,
                     ),
@@ -320,7 +320,7 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
-                              color: AppTheme.primaryRed,
+                              color: AppTheme.primaryTeal,
                             ),
                           ),
                         ],
@@ -355,7 +355,7 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
                           children: [
                             CircleAvatar(
                               radius: 24,
-                              backgroundColor: AppTheme.primaryRed.withOpacity(
+                              backgroundColor: AppTheme.primaryTeal.withOpacity(
                                 0.1,
                               ),
                               backgroundImage:
@@ -365,7 +365,7 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
                               child: (_owner!.photoUrl?.isEmpty ?? true)
                                   ? const Icon(
                                       Icons.person,
-                                      color: AppTheme.primaryRed,
+                                      color: AppTheme.primaryTeal,
                                       size: 22,
                                     )
                                   : null,
@@ -410,7 +410,7 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
                                           Icon(
                                             Icons.phone,
                                             size: 18,
-                                            color: AppTheme.primaryRed,
+                                            color: AppTheme.primaryTeal,
                                           ),
                                           SizedBox(width: 8),
                                           Text(
@@ -450,7 +450,7 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
                                           Icon(
                                             Icons.email,
                                             size: 18,
-                                            color: AppTheme.primaryRed,
+                                            color: AppTheme.primaryTeal,
                                           ),
                                           SizedBox(width: 8),
                                           Text(

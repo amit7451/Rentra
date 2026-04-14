@@ -90,9 +90,9 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
               forceElevated: innerBoxIsScrolled,
               bottom: TabBar(
                 controller: _tabs,
-                indicatorColor: AppTheme.primaryRed,
+                indicatorColor: AppTheme.primaryTeal,
                 indicatorWeight: 3,
-                labelColor: AppTheme.primaryRed,
+                labelColor: AppTheme.primaryTeal,
                 unselectedLabelColor: Colors.grey,
                 labelStyle: const TextStyle(fontWeight: FontWeight.bold),
                 tabs: const [
@@ -133,7 +133,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
                     .toList();
 
                 return RefreshIndicator(
-                  color: AppTheme.primaryRed,
+                  color: AppTheme.primaryTeal,
                   onRefresh: () async =>
                       await Future.delayed(const Duration(seconds: 1)),
                   child: TabBarView(
@@ -195,7 +195,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryTeal),
             child: const Text('Delete'),
           ),
         ],
@@ -239,7 +239,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to clear cancelled bookings: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.primaryTeal,
           ),
         );
       }
@@ -499,7 +499,7 @@ class _BookingCard extends StatelessWidget {
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
-                                color: Colors.red,
+                                color: AppTheme.primaryTeal,
                               ),
                             ),
                             if (booking.cancellationReason != null &&
@@ -507,7 +507,7 @@ class _BookingCard extends StatelessWidget {
                               Text(
                                 'Reason: ${booking.cancellationReason}',
                                 style: TextStyle(
-                                  color: Colors.red[800],
+                                  color: AppTheme.darkTeal,
                                   fontSize: 12,
                                   fontStyle: FontStyle.italic,
                                 ),
@@ -533,7 +533,7 @@ class _BookingCard extends StatelessWidget {
                                   onPressed: () => Navigator.pop(ctx, true),
                                   child: const Text(
                                     'Delete',
-                                    style: TextStyle(color: Colors.red),
+                                    style: TextStyle(color: AppTheme.primaryTeal),
                                   ),
                                 ),
                               ],
@@ -545,7 +545,7 @@ class _BookingCard extends StatelessWidget {
                         },
                         icon: const Icon(
                           Icons.delete_outline,
-                          color: Colors.red,
+                          color: AppTheme.primaryTeal,
                           size: 20,
                         ),
                         tooltip: 'Delete record',
@@ -575,7 +575,7 @@ class _BookingCard extends StatelessWidget {
                           context,
                           label: 'Deny',
                           icon: Icons.cancel_outlined,
-                          color: Colors.red[700]!,
+                          color: AppTheme.darkTeal,
                           onTap: () =>
                               _changeStatus(context, BookingStatus.cancelled),
                         ),
@@ -723,16 +723,16 @@ class _BookingCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.08),
+                  color: AppTheme.primaryTeal.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.warning_outlined, size: 16, color: Colors.red),
+                    Icon(Icons.warning_outlined, size: 16, color: AppTheme.primaryTeal),
                     SizedBox(width: 8),
                     Text(
                       'No rooms available!',
-                      style: TextStyle(fontSize: 13, color: Colors.red),
+                      style: TextStyle(fontSize: 13, color: AppTheme.primaryTeal),
                     ),
                   ],
                 ),
@@ -748,7 +748,7 @@ class _BookingCard extends StatelessWidget {
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: isConfirm ? Colors.green : Colors.red,
+              backgroundColor: isConfirm ? Colors.green : AppTheme.primaryTeal,
             ),
             child: Text(
               isConfirm ? 'Confirm' : 'Yes, Cancel',
@@ -867,7 +867,7 @@ class _BookingCard extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Action failed: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.primaryTeal,
           ),
         );
       }
@@ -893,8 +893,8 @@ class _StatusPill extends StatelessWidget {
         icon = Icons.check_circle;
         break;
       case BookingStatus.cancelled:
-        fg = Colors.red[700]!;
-        bg = Colors.red.withOpacity(0.1);
+        fg = AppTheme.darkTeal;
+        bg = AppTheme.primaryTeal.withOpacity(0.1);
         icon = Icons.cancel;
         break;
       default:

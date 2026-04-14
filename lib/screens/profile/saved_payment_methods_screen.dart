@@ -114,7 +114,7 @@ class _SavedPaymentMethodsScreenState extends State<SavedPaymentMethodsScreen> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryRed,
+                    backgroundColor: AppTheme.primaryTeal,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: const Text(
@@ -152,7 +152,7 @@ class _SavedPaymentMethodsScreenState extends State<SavedPaymentMethodsScreen> {
       ),
       selected: isSelected,
       onSelected: (_) => onSelect(val),
-      selectedColor: AppTheme.primaryRed,
+      selectedColor: AppTheme.primaryTeal,
       backgroundColor: Colors.grey[200],
     );
   }
@@ -200,7 +200,7 @@ class _SavedPaymentMethodsScreenState extends State<SavedPaymentMethodsScreen> {
                     icon: const Icon(Icons.add),
                     label: const Text('Add Method'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryRed,
+                      backgroundColor: AppTheme.primaryTeal,
                       foregroundColor: Colors.white,
                     ),
                   ),
@@ -221,12 +221,12 @@ class _SavedPaymentMethodsScreenState extends State<SavedPaymentMethodsScreen> {
                 ),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: AppTheme.primaryRed.withOpacity(0.1),
+                    backgroundColor: AppTheme.primaryTeal.withOpacity(0.1),
                     child: Icon(
                       method.type == 'card'
                           ? Icons.credit_card
                           : Icons.account_balance_wallet,
-                      color: AppTheme.primaryRed,
+                      color: AppTheme.primaryTeal,
                     ),
                   ),
                   title: Text(
@@ -250,7 +250,7 @@ class _SavedPaymentMethodsScreenState extends State<SavedPaymentMethodsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addPaymentMethod,
-        backgroundColor: AppTheme.primaryRed,
+        backgroundColor: AppTheme.primaryTeal,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -274,7 +274,7 @@ class _SavedPaymentMethodsScreenState extends State<SavedPaymentMethodsScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.primaryTeal),
             child: const Text('Remove'),
           ),
         ],

@@ -98,7 +98,7 @@ class NotificationsScreen extends StatelessWidget {
               return Dismissible(
                 key: Key(notification['id']),
                 background: Container(
-                  color: Colors.red,
+                  color: AppTheme.primaryTeal,
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.only(right: 20),
                   child: const Icon(Icons.delete, color: Colors.white),
@@ -130,17 +130,17 @@ class NotificationsScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isRead
                           ? Colors.white
-                          : Colors.red.withOpacity(0.05),
+                          : AppTheme.primaryTeal.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isRead
                             ? Colors.grey.withOpacity(0.2)
-                            : AppTheme.primaryRed.withOpacity(0.3),
+                            : AppTheme.primaryTeal.withOpacity(0.3),
                       ),
                       boxShadow: [
                         if (!isRead)
                           BoxShadow(
-                            color: AppTheme.primaryRed.withOpacity(0.05),
+                            color: AppTheme.primaryTeal.withOpacity(0.05),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -154,12 +154,12 @@ class NotificationsScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: isRead
                                 ? Colors.grey[100]
-                                : AppTheme.primaryRed.withOpacity(0.1),
+                                : AppTheme.primaryTeal.withOpacity(0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             _getIconForType(notification['type']),
-                            color: isRead ? Colors.grey : AppTheme.primaryRed,
+                            color: isRead ? Colors.grey : AppTheme.primaryTeal,
                             size: 20,
                           ),
                         ),

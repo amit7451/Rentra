@@ -211,7 +211,7 @@ class HotelCard extends StatelessWidget {
                             '₹${hostel.startingPrice.toStringAsFixed(0)}',
                             style: Theme.of(context).textTheme.headlineMedium
                                 ?.copyWith(
-                                  color: AppTheme.primaryRed,
+                                  color: AppTheme.primaryTeal,
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
@@ -238,7 +238,7 @@ class HotelCard extends StatelessWidget {
                               return AppTheme.grey.withOpacity(0.1);
                             }
                             if (rooms <= 3) {
-                              return Colors.red.withOpacity(0.08);
+                              return AppTheme.primaryTeal.withOpacity(0.08);
                             }
                             if (rooms <= 5) {
                               return Colors.amber.withOpacity(0.08);
@@ -260,7 +260,7 @@ class HotelCard extends StatelessWidget {
                               }
                               final rooms = hostel.availableRooms;
                               if (rooms <= 0) return AppTheme.grey;
-                              if (rooms <= 3) return AppTheme.primaryRed;
+                              if (rooms <= 3) return AppTheme.primaryTeal;
                               if (rooms <= 5) return Colors.orange;
                               return Colors.green;
                             })(),

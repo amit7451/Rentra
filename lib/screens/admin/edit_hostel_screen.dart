@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../app/theme.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../services/firestore_service.dart';
@@ -323,7 +324,7 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg),
-        backgroundColor: isError ? Colors.red : Colors.green,
+        backgroundColor: isError ? AppTheme.primaryTeal : Colors.green,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -855,7 +856,7 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
                               setState(() => _newSelectedImages.removeAt(i)),
                           child: CircleAvatar(
                             radius: 12,
-                            backgroundColor: Colors.red.withAlpha(200),
+                            backgroundColor: AppTheme.primaryTeal.withAlpha(200),
                             child: const Icon(
                               Icons.close,
                               size: 14,

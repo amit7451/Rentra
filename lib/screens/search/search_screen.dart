@@ -346,7 +346,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   // Filter Button
                   Container(
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryRed,
+                      color: AppTheme.primaryTeal,
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
@@ -377,7 +377,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     Center(
                       child: Text(
                         _errorMessage!,
-                        style: const TextStyle(color: Colors.red),
+                        style: const TextStyle(color: AppTheme.primaryTeal),
                       ),
                     )
                   else if (_selectedLocation == null &&
@@ -427,9 +427,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                 onPressed: _loadMore,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white,
-                                  foregroundColor: AppTheme.primaryRed,
+                                  foregroundColor: AppTheme.primaryTeal,
                                   side: const BorderSide(
-                                    color: AppTheme.primaryRed,
+                                    color: AppTheme.primaryTeal,
                                   ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
@@ -569,7 +569,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       Text(
                         '${_filterRadius.round()} km',
                         style: const TextStyle(
-                          color: AppTheme.primaryRed,
+                          color: AppTheme.primaryTeal,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -580,7 +580,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     min: 1.0,
                     max: 10.0,
                     divisions: 9,
-                    activeColor: AppTheme.primaryRed,
+                    activeColor: AppTheme.primaryTeal,
                     onChanged: (val) {
                       setModalState(() => _filterRadius = val);
                     },
@@ -621,7 +621,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryRed,
+                        backgroundColor: AppTheme.primaryTeal,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
@@ -669,10 +669,10 @@ class _FilterChip extends StatelessWidget {
       label: Text(label),
       selected: isSelected,
       onSelected: onSelected,
-      selectedColor: AppTheme.primaryRed.withOpacity(0.1),
-      checkmarkColor: AppTheme.primaryRed,
+      selectedColor: AppTheme.primaryTeal.withOpacity(0.1),
+      checkmarkColor: AppTheme.primaryTeal,
       labelStyle: TextStyle(
-        color: isSelected ? AppTheme.primaryRed : Colors.black,
+        color: isSelected ? AppTheme.primaryTeal : Colors.black,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
       ),
       backgroundColor: Colors.grey[100],

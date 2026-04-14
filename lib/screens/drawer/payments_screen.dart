@@ -89,7 +89,7 @@ class PaymentsScreen extends StatelessWidget {
                                   decoration: BoxDecoration(
                                     color: isCancelled
                                         ? Colors.orange.withOpacity(0.1)
-                                        : Colors.red.withOpacity(0.1),
+                                        : AppTheme.primaryTeal.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -97,7 +97,7 @@ class PaymentsScreen extends StatelessWidget {
                                     style: TextStyle(
                                       color: isCancelled
                                           ? Colors.orange[800]
-                                          : AppTheme.primaryRed,
+                                          : AppTheme.primaryTeal,
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                     ),

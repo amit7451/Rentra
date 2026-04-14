@@ -294,7 +294,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg),
-        backgroundColor: isError ? Colors.red : Colors.green,
+        backgroundColor: isError ? AppTheme.primaryTeal : Colors.green,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -737,7 +737,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
             Text(
               '${_selectedImages.length}/10',
               style: TextStyle(
-                color: _selectedImages.length >= 10 ? Colors.red : Colors.grey,
+                color: _selectedImages.length >= 10 ? AppTheme.primaryTeal : Colors.grey,
                 fontSize: 12,
               ),
             ),
@@ -790,7 +790,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
                                 setState(() => _selectedImages.removeAt(i)),
                             child: const CircleAvatar(
                               radius: 10,
-                              backgroundColor: Colors.red,
+                              backgroundColor: AppTheme.primaryTeal,
                               child: Icon(
                                 Icons.close,
                                 size: 12,
@@ -879,16 +879,16 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
                     a,
                     style: const TextStyle(
                       fontSize: 12,
-                      color: AppTheme.primaryRed,
+                      color: AppTheme.primaryTeal,
                     ),
                   ),
                   deleteIcon: const Icon(
                     Icons.close,
                     size: 14,
-                    color: AppTheme.primaryRed,
+                    color: AppTheme.primaryTeal,
                   ),
                   onDeleted: () => setState(() => _amenities.remove(a)),
-                  backgroundColor: AppTheme.primaryRed.withAlpha(10),
+                  backgroundColor: AppTheme.primaryTeal.withAlpha(10),
                   side: BorderSide.none,
                 ),
               )
@@ -908,7 +908,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
             ElevatedButton(
               onPressed: _addAmenity,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryRed,
+                backgroundColor: AppTheme.primaryTeal,
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
               child: const Text('Add', style: TextStyle(color: Colors.white)),
@@ -927,13 +927,13 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
             ? null
             : _submit,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.primaryRed,
+          backgroundColor: AppTheme.primaryTeal,
           padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           elevation: 4,
-          shadowColor: AppTheme.primaryRed.withAlpha(50),
+          shadowColor: AppTheme.primaryTeal.withAlpha(50),
         ),
         child: const Text(
           'Submit Listing',
@@ -1035,7 +1035,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppTheme.primaryRed, width: 1.5),
+          borderSide: const BorderSide(color: AppTheme.primaryTeal, width: 1.5),
         ),
         filled: true,
         fillColor: Colors.white,

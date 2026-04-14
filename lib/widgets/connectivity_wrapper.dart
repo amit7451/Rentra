@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import '../app/theme.dart';
 import '../services/connectivity_service.dart';
 
 class ConnectivityWrapper extends StatefulWidget {
@@ -64,7 +65,7 @@ class _ConnectivityWrapperState extends State<ConnectivityWrapper> {
       children: [
         if (_isOffline)
           Material(
-            color: Colors.redAccent,
+            color: AppTheme.accentTeal,
             child: SafeArea(
               // Ensure it doesn't go under status bar notch
               top: false,

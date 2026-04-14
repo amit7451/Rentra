@@ -23,7 +23,7 @@ class AdminDashboard extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: RefreshIndicator(
-        color: AppTheme.primaryRed,
+        color: AppTheme.primaryTeal,
         onRefresh: () async {
           await Future.delayed(const Duration(seconds: 1));
         },
@@ -68,7 +68,7 @@ class AdminDashboard extends StatelessWidget {
                           TextButton(
                             onPressed: () => Navigator.pop(ctx, true),
                             style: TextButton.styleFrom(
-                              foregroundColor: Colors.red,
+                              foregroundColor: AppTheme.primaryTeal,
                             ),
                             child: const Text('Sign Out'),
                           ),
@@ -343,7 +343,7 @@ class _WelcomeHeader extends StatelessWidget {
             ),
             CircleAvatar(
               radius: 26,
-              backgroundColor: AppTheme.primaryRed,
+              backgroundColor: AppTheme.primaryTeal,
               backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
               child: photoUrl == null
                   ? Text(
@@ -423,13 +423,13 @@ class _MetricCard extends StatelessWidget {
                             ? Icons.arrow_upward_rounded
                             : Icons.arrow_downward_rounded,
                         size: 12,
-                        color: trendUp! ? Colors.green : Colors.red,
+                        color: trendUp! ? Colors.green : AppTheme.primaryTeal,
                       ),
                       Text(
                         trendLabel,
                         style: TextStyle(
                           fontSize: 11,
-                          color: trendUp! ? Colors.green : Colors.red,
+                          color: trendUp! ? Colors.green : AppTheme.primaryTeal,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

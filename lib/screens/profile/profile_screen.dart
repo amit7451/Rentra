@@ -78,7 +78,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               SliverToBoxAdapter(
                 child: RefreshIndicator(
-                  color: AppTheme.primaryRed,
+                  color: AppTheme.primaryTeal,
                   onRefresh: () async =>
                       await Future.delayed(const Duration(seconds: 1)),
                   child: SingleChildScrollView(
@@ -88,7 +88,7 @@ class ProfileScreen extends StatelessWidget {
                         const SizedBox(height: 20),
                         CircleAvatar(
                           radius: 60,
-                          backgroundColor: AppTheme.primaryRed,
+                          backgroundColor: AppTheme.primaryTeal,
                           child: userModel.photoUrl != null
                               ? ClipOval(
                                   child: Image.network(
@@ -128,7 +128,7 @@ class ProfileScreen extends StatelessWidget {
                               ListTile(
                                 leading: const Icon(
                                   Icons.person_outline,
-                                  color: AppTheme.primaryRed,
+                                  color: AppTheme.primaryTeal,
                                 ),
                                 title: const Text('Edit Profile'),
                                 trailing: const Icon(Icons.chevron_right),
@@ -138,7 +138,7 @@ class ProfileScreen extends StatelessWidget {
                               ListTile(
                                 leading: const Icon(
                                   Icons.lock_outline,
-                                  color: AppTheme.primaryRed,
+                                  color: AppTheme.primaryTeal,
                                 ),
                                 title: const Text('Change Password'),
                                 trailing: const Icon(Icons.chevron_right),
@@ -148,7 +148,7 @@ class ProfileScreen extends StatelessWidget {
                               ListTile(
                                 leading: const Icon(
                                   Icons.notifications_outlined,
-                                  color: AppTheme.primaryRed,
+                                  color: AppTheme.primaryTeal,
                                 ),
                                 title: const Text('Notifications'),
                                 trailing: const Icon(Icons.chevron_right),
@@ -163,7 +163,7 @@ class ProfileScreen extends StatelessWidget {
                               ListTile(
                                 leading: const Icon(
                                   Icons.payment_outlined,
-                                  color: AppTheme.primaryRed,
+                                  color: AppTheme.primaryTeal,
                                 ),
                                 title: const Text('Payment Methods'),
                                 trailing: const Icon(Icons.chevron_right),
@@ -184,7 +184,7 @@ class ProfileScreen extends StatelessWidget {
                               ListTile(
                                 leading: const Icon(
                                   Icons.language_outlined,
-                                  color: AppTheme.primaryRed,
+                                  color: AppTheme.primaryTeal,
                                 ),
                                 title: const Text('Language'),
                                 trailing: Row(
@@ -213,7 +213,7 @@ class ProfileScreen extends StatelessWidget {
                                             title: const Text('English'),
                                             trailing: const Icon(
                                               Icons.check,
-                                              color: AppTheme.primaryRed,
+                                              color: AppTheme.primaryTeal,
                                             ),
                                             onTap: () => Navigator.pop(ctx),
                                           ),
@@ -227,7 +227,7 @@ class ProfileScreen extends StatelessWidget {
                               ListTile(
                                 leading: const Icon(
                                   Icons.help_outline,
-                                  color: AppTheme.primaryRed,
+                                  color: AppTheme.primaryTeal,
                                 ),
                                 title: const Text('Help & Support'),
                                 trailing: const Icon(Icons.chevron_right),
@@ -242,7 +242,7 @@ class ProfileScreen extends StatelessWidget {
                               ListTile(
                                 leading: const Icon(
                                   Icons.privacy_tip_outlined,
-                                  color: AppTheme.primaryRed,
+                                  color: AppTheme.primaryTeal,
                                 ),
                                 title: const Text('Privacy Policy'),
                                 trailing: const Icon(Icons.chevron_right),
@@ -257,7 +257,7 @@ class ProfileScreen extends StatelessWidget {
                               ListTile(
                                 leading: const Icon(
                                   Icons.info_outline,
-                                  color: AppTheme.primaryRed,
+                                  color: AppTheme.primaryTeal,
                                 ),
                                 title: const Text('About'),
                                 trailing: const Icon(Icons.chevron_right),
@@ -278,8 +278,8 @@ class ProfileScreen extends StatelessWidget {
                             icon: const Icon(Icons.logout),
                             label: const Text('Logout'),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: AppTheme.darkRed,
-                              side: const BorderSide(color: AppTheme.darkRed),
+                              foregroundColor: AppTheme.darkTeal,
+                              side: const BorderSide(color: AppTheme.darkTeal),
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
                           ),
@@ -343,7 +343,7 @@ class ProfileScreen extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Failed to logout: $e'),
-                      backgroundColor: AppTheme.darkRed,
+                      backgroundColor: AppTheme.darkTeal,
                     ),
                   );
                 }

@@ -20,7 +20,7 @@ class MyHostelsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: RefreshIndicator(
-        color: AppTheme.primaryRed,
+        color: AppTheme.primaryTeal,
         onRefresh: () async => await Future.delayed(const Duration(seconds: 1)),
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -60,7 +60,7 @@ class MyHostelsScreen extends StatelessWidget {
                           const Icon(
                             Icons.error_outline,
                             size: 48,
-                            color: Colors.red,
+                            color: AppTheme.primaryTeal,
                           ),
                           const SizedBox(height: 12),
                           Text(
@@ -84,7 +84,7 @@ class MyHostelsScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(24),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryRed.withValues(
+                              color: AppTheme.primaryTeal.withValues(
                                 alpha: 0.08,
                               ),
                               shape: BoxShape.circle,
@@ -92,7 +92,7 @@ class MyHostelsScreen extends StatelessWidget {
                             child: const Icon(
                               Icons.home_work_outlined,
                               size: 60,
-                              color: AppTheme.primaryRed,
+                              color: AppTheme.primaryTeal,
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -293,8 +293,8 @@ class _HostelCard extends StatelessWidget {
                               return _infoChip(
                                 '₹${displayPrice.toStringAsFixed(0)}/${hostel.rentPeriod == 'monthly' ? 'mo' : 'yr'}',
                                 Icons.payments_outlined,
-                                AppTheme.primaryRed.withValues(alpha: 0.1),
-                                AppTheme.primaryRed,
+                                AppTheme.primaryTeal.withValues(alpha: 0.1),
+                                AppTheme.primaryTeal,
                               );
                             },
                           ),
@@ -369,7 +369,7 @@ class _HostelCard extends StatelessWidget {
                   child: _actionButton(
                     label: 'Edit',
                     icon: Icons.edit_outlined,
-                    color: AppTheme.primaryRed,
+                    color: AppTheme.primaryTeal,
                     outlined: true,
                     onTap: () => Navigator.push(
                       context,
@@ -481,10 +481,10 @@ class _HostelCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.red[300]!),
+          border: Border.all(color: AppTheme.lightTeal),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(Icons.delete_outline, color: Colors.red[600], size: 20),
+        child: Icon(Icons.delete_outline, color: AppTheme.darkTeal, size: 20),
       ),
     );
   }
@@ -505,7 +505,7 @@ class _HostelCard extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryTeal),
             child: const Text('Delete', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -528,7 +528,7 @@ class _HostelCard extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Delete failed: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.primaryTeal,
           ),
         );
       }

@@ -17,7 +17,7 @@ class AdminStatsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: RefreshIndicator(
-        color: AppTheme.primaryRed,
+        color: AppTheme.primaryTeal,
         onRefresh: () async => await Future.delayed(const Duration(seconds: 1)),
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -266,7 +266,7 @@ class _StatsBody extends StatelessWidget {
                           ? Colors.green
                           : occupancyRate > 0.4
                           ? Colors.orange
-                          : AppTheme.primaryRed,
+                          : AppTheme.primaryTeal,
                     ),
                   ),
                 ),
@@ -379,7 +379,7 @@ class _StatCard extends StatelessWidget {
                       ? Icons.arrow_upward_rounded
                       : Icons.arrow_downward_rounded,
                   size: 16,
-                  color: trendUp! ? Colors.green : Colors.red,
+                  color: trendUp! ? Colors.green : AppTheme.primaryTeal,
                 ),
             ],
           ),
@@ -461,7 +461,7 @@ class _BookingBreakdown extends StatelessWidget {
           const SizedBox(height: 12),
           _bar('Pending', pending, total, Colors.orange),
           const SizedBox(height: 12),
-          _bar('Cancelled', cancelled, total, Colors.red),
+          _bar('Cancelled', cancelled, total, AppTheme.primaryTeal),
         ],
       ),
     );

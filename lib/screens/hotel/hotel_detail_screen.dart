@@ -213,7 +213,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                       children: [
                                         const Icon(
                                           Icons.near_me,
-                                          color: AppTheme.primaryRed,
+                                          color: AppTheme.primaryTeal,
                                           size: 16,
                                         ),
                                         const SizedBox(width: 6),
@@ -251,7 +251,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                         children: [
                           const Icon(
                             Icons.location_on,
-                            color: AppTheme.primaryRed,
+                            color: AppTheme.primaryTeal,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
@@ -271,7 +271,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryRed.withOpacity(0.1),
+                            color: AppTheme.primaryTeal.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -294,7 +294,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                         .textTheme
                                         .displaySmall
                                         ?.copyWith(
-                                          color: AppTheme.primaryRed,
+                                          color: AppTheme.primaryTeal,
                                           fontWeight: FontWeight.bold,
                                         ),
                                   ),
@@ -504,7 +504,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                         label: const Text('Navigate'),
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.white,
-                                          foregroundColor: AppTheme.primaryRed,
+                                          foregroundColor: AppTheme.primaryTeal,
                                           elevation: 2,
                                           padding: const EdgeInsets.symmetric(
                                             horizontal: 12,
@@ -625,7 +625,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
             color: (() {
               if (rooms <= 0) return AppTheme.grey.withOpacity(0.1);
               if (isFlat) return Colors.green.withOpacity(0.08);
-              if (rooms <= 3) return Colors.red.withOpacity(0.08);
+              if (rooms <= 3) return AppTheme.primaryTeal.withOpacity(0.08);
               if (rooms <= 5) return Colors.amber.withOpacity(0.08);
               return Colors.green.withOpacity(0.08);
             })(),
@@ -639,7 +639,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
               color: (() {
                 if (rooms <= 0) return AppTheme.grey;
                 if (isFlat) return Colors.green;
-                if (rooms <= 3) return AppTheme.primaryRed;
+                if (rooms <= 3) return AppTheme.primaryTeal;
                 if (rooms <= 5) return Colors.orange;
                 return Colors.green;
               })(),
@@ -677,7 +677,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
             child: Text(
               '₹${price.toStringAsFixed(0)}',
               style: const TextStyle(
-                color: AppTheme.primaryRed,
+                color: AppTheme.primaryTeal,
                 fontWeight: FontWeight.bold,
               ),
             ),

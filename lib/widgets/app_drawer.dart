@@ -64,7 +64,7 @@ class AppDrawer extends StatelessWidget {
                       children: [
                         CircleAvatar(
                           radius: 28,
-                          backgroundColor: AppTheme.primaryRed,
+                          backgroundColor: AppTheme.primaryTeal,
                           backgroundImage: photoUrl != null
                               ? NetworkImage(photoUrl)
                               : null,
@@ -197,7 +197,7 @@ class AppDrawer extends StatelessWidget {
                                 SnackBar(
                                   content: Text('Failed to send request: $e'),
                                   behavior: SnackBarBehavior.floating,
-                                  backgroundColor: Colors.red,
+                                  backgroundColor: AppTheme.primaryTeal,
                                 ),
                               );
                             }
@@ -275,7 +275,7 @@ class AppDrawer extends StatelessWidget {
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, true),
-                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                      style: TextButton.styleFrom(foregroundColor: AppTheme.primaryTeal),
                       child: const Text('Logout'),
                     ),
                   ],
@@ -308,12 +308,12 @@ class AppDrawer extends StatelessWidget {
     bool isLogout = false,
   }) {
     return ListTile(
-      leading: Icon(icon, color: isLogout ? Colors.red : AppTheme.primaryRed),
+      leading: Icon(icon, color: isLogout ? AppTheme.primaryTeal : AppTheme.primaryTeal),
       title: Text(
         title,
         style: TextStyle(
           fontSize: 15,
-          color: isLogout ? Colors.red : AppTheme.black,
+          color: isLogout ? AppTheme.primaryTeal : AppTheme.black,
           fontWeight: FontWeight.w500,
         ),
       ),

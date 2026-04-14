@@ -21,14 +21,14 @@ class ErrorText extends StatelessWidget {
           children: [
             const Icon(
               Icons.error_outline,
-              color: AppTheme.darkRed,
+              color: AppTheme.darkTeal,
               size: 64,
             ),
             const SizedBox(height: 16),
             Text(
               message,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.darkRed,
+                color: AppTheme.darkTeal,
               ),
               textAlign: TextAlign.center,
             ),
@@ -39,7 +39,7 @@ class ErrorText extends StatelessWidget {
                 icon: const Icon(Icons.refresh),
                 label: const Text('Retry'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryRed,
+                  backgroundColor: AppTheme.primaryTeal,
                 ),
               ),
             ],

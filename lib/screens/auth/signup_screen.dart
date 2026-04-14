@@ -201,7 +201,7 @@ class _SignupScreenState extends State<SignupScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString()),
-          backgroundColor: AppTheme.darkRed,
+          backgroundColor: AppTheme.darkTeal,
         ),
       );
     } finally {
@@ -275,7 +275,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     children: [
                       CircleAvatar(
                         radius: 50,
-                        backgroundColor: AppTheme.primaryRed.withOpacity(0.1),
+                        backgroundColor: AppTheme.primaryTeal.withOpacity(0.1),
                         backgroundImage: _profileImage != null
                             ? FileImage(_profileImage!)
                             : null,
@@ -283,7 +283,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             ? const Icon(
                                 Icons.person,
                                 size: 50,
-                                color: AppTheme.primaryRed,
+                                color: AppTheme.primaryTeal,
                               )
                             : null,
                       ),
@@ -291,7 +291,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         bottom: 0,
                         right: 0,
                         child: CircleAvatar(
-                          backgroundColor: AppTheme.primaryRed,
+                          backgroundColor: AppTheme.primaryTeal,
                           radius: 18,
                           child: IconButton(
                             icon: const Icon(

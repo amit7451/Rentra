@@ -49,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString()),
-          backgroundColor: AppTheme.darkRed,
+          backgroundColor: AppTheme.darkTeal,
         ),
       );
     } finally {
@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Google Sign-In failed: $e'),
-            backgroundColor: AppTheme.darkRed,
+            backgroundColor: AppTheme.darkTeal,
           ),
         );
       }

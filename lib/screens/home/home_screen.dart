@@ -1,5 +1,8 @@
+﻿import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:geocoding/geocoding.dart';
 import '../../services/firestore_service.dart';
 import '../../services/wishlist_service.dart';
 import '../../models/hostel_model.dart';
@@ -13,6 +16,10 @@ import 'package:geolocator/geolocator.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/verification_dialog.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// HomeScreen
+// ─────────────────────────────────────────────────────────────────────────────
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -25,14 +32,16 @@ class _HomeScreenState extends State<HomeScreen> {
   final _wishlistService = WishlistService();
   late final String _uid;
 
-  String _selectedUnitType = 'hostel'; // 'hostel' or 'flat'
+  String _selectedUnitType = 'hostel';
   bool _isVerified = true;
 
   // Location
   String _selectedLocationFilter = 'Live Location';
   Position? _currentPosition;
+  String _liveLocality = '';
+  String _liveSubLocality = '';
+  bool _isFetchingLocation = false;
 
-  // Optimized Streams to prevent infinite rebuild loops
   Stream<List<HostelModel>>? _hostelsStream;
   Stream<List<String>>? _wishlistStream;
 
@@ -82,13 +91,14 @@ class _HomeScreenState extends State<HomeScreen> {
     },
   ];
 
+  // ── Lifecycle ───────────────────────────────────────────────────────────────
+
   @override
   void initState() {
     super.initState();
     _uid = FirebaseAuth.instance.currentUser?.uid ?? '';
     _initStreams();
 
-    // Delay initial checks to let the UI render and avoid blocking startup
     Future.delayed(const Duration(seconds: 1), () {
       if (mounted) {
         _checkVerification();
@@ -143,10 +153,10 @@ class _HomeScreenState extends State<HomeScreen> {
       stream = _firestoreService.getHostels(unitType: _selectedUnitType);
     }
 
-    setState(() {
-      _hostelsStream = stream;
-    });
+    setState(() => _hostelsStream = stream);
   }
+
+  // ── Location ────────────────────────────────────────────────────────────────
 
   Future<void> _getCurrentLocation() async {
     try {
@@ -165,15 +175,11 @@ class _HomeScreenState extends State<HomeScreen> {
           }
           return;
         } else if (requested == LocationPermission.deniedForever) {
-          if (mounted) {
-            _showPermissionDialog();
-          }
+          if (mounted) _showPermissionDialog();
           return;
         }
       } else if (permission == LocationPermission.deniedForever) {
-        if (mounted) {
-          _showPermissionDialog();
-        }
+        if (mounted) _showPermissionDialog();
         return;
       }
 
@@ -183,13 +189,51 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       if (mounted) {
-        setState(() {
-          _currentPosition = position;
-        });
+        setState(() => _currentPosition = position);
         _updateHostelsStream();
+        await _fetchLiveLocation(position: position);
       }
     } catch (e) {
       debugPrint('Location error handled: $e');
+    }
+  }
+
+  Future<void> _fetchLiveLocation({Position? position}) async {
+    if (_isFetchingLocation) return;
+    setState(() => _isFetchingLocation = true);
+
+    try {
+      final targetPosition = position ?? _currentPosition;
+      if (targetPosition == null) return;
+
+      final placemarks = await placemarkFromCoordinates(
+        targetPosition.latitude,
+        targetPosition.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        final locality = (place.subLocality?.isNotEmpty ?? false)
+            ? place.subLocality!
+            : (place.locality?.isNotEmpty ?? false)
+            ? place.locality!
+            : 'Current Location';
+        final subLine = [
+          place.administrativeArea ?? '',
+          place.country ?? '',
+        ].where((v) => v.trim().isNotEmpty).join(', ');
+        setState(() {
+          _liveLocality = locality;
+          _liveSubLocality = subLine;
+        });
+      }
+    } catch (_) {
+      setState(() {
+        _liveLocality = 'Current Location';
+        _liveSubLocality = '';
+      });
+    } finally {
+      if (mounted) setState(() => _isFetchingLocation = false);
     }
   }
 
@@ -198,137 +242,23 @@ class _HomeScreenState extends State<HomeScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         await user.reload();
-        if (mounted) {
-          setState(() {
-            _isVerified = user.emailVerified;
-          });
-        }
+        if (mounted) setState(() => _isVerified = user.emailVerified);
       }
     } catch (e) {
       debugPrint('Verification error: $e');
     }
   }
 
+  // ── Build ───────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       drawer: AppDrawer(),
-      appBar: AppBar(
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        surfaceTintColor: Colors.transparent,
-        backgroundColor: Colors.grey[50],
-        toolbarHeight:
-            60, // Increased to fit the large logo and remove secondary gaps
-        centerTitle: true,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black87),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-        title: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 0.0),
-          child: Image.asset(
-            'assets/icons/app_icon.png',
-            height: 100, // Maximum height for a "major" horizontal feel
-            width: 200, // Wide enough for a full horizontal logo branding
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) =>
-                const Icon(Icons.apartment, color: Colors.black87, size: 40),
-          ),
-        ),
-        actions: [
-          StreamBuilder<List<String>>(
-            stream: _wishlistStream,
-            builder: (context, snap) {
-              final count = snap.data?.length ?? 0;
-              return Stack(
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.favorite_border,
-                      color: Colors.black87,
-                    ),
-                    onPressed: () =>
-                        Navigator.pushNamed(context, AppRoutes.wishlist),
-                  ),
-                  if (count > 0)
-                    Positioned(
-                      right: 6,
-                      top: 6,
-                      child: Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryRed,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1.5),
-                        ),
-                        child: Text(
-                          '$count',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-          StreamBuilder<List<Map<String, dynamic>>>(
-            stream: _firestoreService.getUserNotifications(_uid),
-            builder: (context, snapshot) {
-              final unreadCount = (snapshot.data ?? [])
-                  .where((n) => n['isRead'] == false)
-                  .length;
-              return Stack(
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.notifications_none,
-                      color: Colors.black87,
-                    ),
-                    onPressed: () =>
-                        Navigator.pushNamed(context, AppRoutes.notifications),
-                  ),
-                  if (unreadCount > 0)
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryRed,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1.5),
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 14,
-                          minHeight: 14,
-                        ),
-                        child: Text(
-                          unreadCount > 9 ? '9+' : '$unreadCount',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 8,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
+      appBar: _buildGlassAppBar(),
       body: RefreshIndicator(
-        color: AppTheme.primaryRed,
+        color: AppTheme.primaryTeal,
         onRefresh: () async {
           await _checkVerification();
           await _getCurrentLocation();
@@ -340,6 +270,7 @@ class _HomeScreenState extends State<HomeScreen> {
             parent: ClampingScrollPhysics(),
           ),
           slivers: [
+            // ── Email Verification Banner ────────────────────────────────
             if (!_isVerified)
               SliverToBoxAdapter(
                 child: GestureDetector(
@@ -350,16 +281,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       vertical: 10,
                       horizontal: 16,
                     ),
-                    decoration: const BoxDecoration(color: Colors.amber),
+                    color: const Color(0xFFFFC107),
                     child: Row(
-                      children: [
-                        const Icon(
+                      children: const [
+                        Icon(
                           Icons.warning_amber_rounded,
                           color: Colors.black87,
                           size: 20,
                         ),
-                        const SizedBox(width: 10),
-                        const Expanded(
+                        SizedBox(width: 10),
+                        Expanded(
                           child: Text(
                             'Email not verified. Tap to verify now.',
                             style: TextStyle(
@@ -369,7 +300,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                        const Icon(
+                        Icon(
                           Icons.chevron_right,
                           color: Colors.black54,
                           size: 20,
@@ -380,141 +311,95 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
+            // ── Hero Search Panel ────────────────────────────────────────
             SliverAppBar(
               elevation: 0,
               scrolledUnderElevation: 0,
               surfaceTintColor: Colors.transparent,
-              pinned: false,
-              floating: true,
-              primary:
-                  false, // Prevents gap/padding duplication between AppBar and SliverAppBar
+              pinned: true,
+              floating: false,
+              primary: true,
+              toolbarHeight: 85,
               automaticallyImplyLeading: false,
-              expandedHeight: 160,
-              backgroundColor: Colors.grey[50],
+              expandedHeight: 85,
+              backgroundColor: Colors.transparent,
               flexibleSpace: FlexibleSpaceBar(
-                background: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      // ─── 1. Redesigned Search Bar ─────────────────
-                      GestureDetector(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SearchScreen(),
-                          ),
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(30),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.08),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.search,
-                                color: Colors.black87,
-                                size: 26,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                _selectedUnitType == 'hostel'
-                                    ? 'Search for hostels/pgs'
-                                    : 'Search for flats',
-                                style: const TextStyle(
-                                  color: Colors.black54,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // ─── 2. Image-Based Category Toggles ──────────
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildCategoryItem(
-                              id: 'hostel',
-                              label: 'Hostels',
-                              assetPath: 'assets/images/hostel.png',
-                              fallbackIcon: Icons.apartment,
-                            ),
-                          ),
-                          Expanded(
-                            child: _buildCategoryItem(
-                              id: 'flat',
-                              label: 'Flats',
-                              assetPath: 'assets/images/flat.png',
-                              fallbackIcon: Icons.home_work_outlined,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      // ─── 3. Soft Divider with Shadow ──────────────
-                      Container(
-                        height: 1,
-                        width: double.infinity,
-                        clipBehavior: Clip.none,
-                        decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 15,
-                              offset: const Offset(0, 8),
-                            ),
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
+                background: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
+                  ),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            const Color(0xFF123A3C).withOpacity(0.9),
+                            const Color(0xFF184A4C).withOpacity(0.95),
                           ],
                         ),
-                        child: Divider(
-                          height: 1,
-                          thickness: 1,
-                          color: Colors.black.withOpacity(0.06),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.08),
+                          width: 0.6,
                         ),
                       ),
-                    ],
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: _GlassSearchBar(
+                          hint: _selectedUnitType == 'hostel'
+                              ? 'Search hostels, PGs…'
+                              : 'Search flats…',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SearchScreen(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
 
-            // ── Location Filter Shrinking Header ───────────────────
+            // ── Location Filter Row ──────────────────────────────────────
             SliverPersistentHeader(
               pinned: true,
               delegate: _LocationFilterDelegate(
                 locationFilters: _locationFilters,
                 selectedFilter: _selectedLocationFilter,
+                currentPosition: _currentPosition,
                 onFilterSelected: (name) {
-                  setState(() {
-                    _selectedLocationFilter = name;
-                  });
-                  _updateHostelsStream(); // Update stream on filter change
+                  setState(() => _selectedLocationFilter = name);
+                  _updateHostelsStream();
                   if (name == 'Live Location' && _currentPosition == null) {
                     _getCurrentLocation();
                   }
                 },
-                currentPosition: _currentPosition,
               ),
             ),
 
+            // ── Category Toggle ──────────────────────────────────────────
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: _CategoryToggle(
+                  selected: _selectedUnitType,
+                  onChanged: (id) async {
+                    setState(() => _selectedUnitType = id);
+                    await Future.delayed(const Duration(milliseconds: 50));
+                    _updateHostelsStream();
+                  },
+                ),
+              ),
+            ),
+
+            // ── Section Title ────────────────────────────────────────────
             SliverPersistentHeader(
               pinned: true,
               delegate: _StickyTitleDelegate(
@@ -524,6 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
+            // ── Hostel List ──────────────────────────────────────────────
             StreamBuilder<List<HostelModel>>(
               stream: _hostelsStream,
               builder: (context, snapshot) {
@@ -533,7 +419,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: LoadingIndicator(message: 'Loading hostels...'),
                   );
                 }
-
                 if (snapshot.hasError) {
                   return SliverToBoxAdapter(
                     child: ErrorText(
@@ -557,18 +442,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   stream: _wishlistStream,
                   builder: (context, wishlistSnap) {
                     final wishlistIds = wishlistSnap.data ?? [];
-                    var filteredList = _selectedUnitType == 'all'
-                        ? hostels
-                        : hostels
-                              .where((h) => h.unitType == _selectedUnitType)
-                              .toList();
-
-                    if (filteredList.length > 10) {
-                      filteredList = filteredList.take(10).toList();
-                    }
+                    var filteredList = hostels
+                        .where((h) => h.unitType == _selectedUnitType)
+                        .take(10)
+                        .toList();
 
                     return SliverPadding(
-                      padding: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.only(bottom: 24),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate((context, index) {
                           final hostel = filteredList[index];
@@ -585,7 +465,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ) /
                                 1000;
                           }
-
                           return _WishlistableCard(
                             hostel: hostel,
                             isWishlisted: wishlistIds.contains(hostel.id),
@@ -606,90 +485,194 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCategoryItem({
-    required String id,
-    required String label,
-    required String assetPath,
-    required IconData fallbackIcon,
-  }) {
-    final isSelected = _selectedUnitType == id;
-    return GestureDetector(
-      onTap: () async {
-        setState(() => _selectedUnitType = id);
-        // Small delay to let the toggle animation start before changing data
-        await Future.delayed(const Duration(milliseconds: 50));
-        _updateHostelsStream();
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 1. Decoration Layer: Safe from overshooting (Prevents negative blurRadius crash)
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: isSelected
-                  ? RadialGradient(
+  PreferredSizeWidget _buildGlassAppBar() {
+    final bool isLive = _selectedLocationFilter == 'Live Location';
+
+    final String displayTitle = isLive
+        ? (_liveLocality.isNotEmpty ? _liveLocality : 'Locating…')
+        : _selectedLocationFilter;
+
+    final String displaySub = isLive ? _liveSubLocality : '';
+
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(110),
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+          ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 19),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                       colors: [
-                        const Color(0xFFFFF9C4).withOpacity(0.5),
-                        Colors.transparent,
+                        const Color(0xFF123A3C).withOpacity(0.6),
+                        const Color(0xFF184A4C).withOpacity(0.95),
                       ],
-                    )
-                  : null,
-              boxShadow: [
-                BoxShadow(
-                  color: isSelected
-                      ? const Color(0xFFFFF176).withOpacity(0.3)
-                      : Colors.transparent,
-                  blurRadius: isSelected ? 12 : 0,
-                  spreadRadius: isSelected ? 2 : 0,
-                ),
-              ],
-            ),
-            // 2. Animation Layer: Elastic Bouncy Effect
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 600),
-              curve: Curves.elasticOut,
-              transform: Matrix4.translationValues(
-                0.0,
-                isSelected ? -8.0 : 0.0,
-                0.0,
-              )..scale(isSelected ? 1.25 : 1.0, isSelected ? 1.25 : 1.0),
-              alignment: Alignment.center,
-              child: Opacity(
-                opacity: isSelected ? 1.0 : 0.6,
-                child: Image.asset(
-                  assetPath,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => Icon(
-                    fallbackIcon,
-                    size: 24,
-                    color: isSelected ? Colors.black87 : Colors.black45,
+                    ),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.12),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: SizedBox(
+                    height: 80,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        children: [
+                          /// Location icon
+                          const _GlassChip(
+                            child: Icon(
+                              Icons.location_on_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+
+                          const SizedBox(width: 10),
+
+                          /// Location text
+                          Expanded(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: _showLocationSheet,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 3),
+
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          displayTitle,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: -0.2,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Icon(
+                                        Icons.keyboard_arrow_down_rounded,
+                                        color: Colors.white.withOpacity(0.55),
+                                        size: 16,
+                                      ),
+                                    ],
+                                  ),
+
+                                  if (displaySub.isNotEmpty) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      displaySub,
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.42),
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          /// Wishlist button
+                          StreamBuilder<List<String>>(
+                            stream: _wishlistStream,
+                            builder: (context, snap) {
+                              return _AppBarButton(
+                                count: snap.data?.length ?? 0,
+                                icon: Icons.favorite_border_rounded,
+                                onTap: () => Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.wishlist,
+                                ),
+                              );
+                            },
+                          ),
+
+                          const SizedBox(width: 8),
+
+                          /// Notifications button
+                          StreamBuilder<List<Map<String, dynamic>>>(
+                            stream: _firestoreService.getUserNotifications(
+                              _uid,
+                            ),
+                            builder: (context, snapshot) {
+                              final int unread = (snapshot.data ?? [])
+                                  .where((n) => n['isRead'] == false)
+                                  .length;
+
+                              return _AppBarButton(
+                                count: unread,
+                                icon: Icons.notifications_outlined,
+                                onTap: () => Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.notifications,
+                                ),
+                              );
+                            },
+                          ),
+
+                          const SizedBox(width: 8),
+
+                          /// Avatar / Drawer
+                          Builder(
+                            builder: (ctx) => _AvatarButton(
+                              onTap: () => Scaffold.of(ctx).openDrawer(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color: isSelected ? Colors.black87 : Colors.black54,
-            ),
-          ),
-          const SizedBox(height: 6), // Adjusted for floating space
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            height: 2,
-            width: isSelected ? 60 : 0,
-            color: Colors.black87,
-          ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+
+  /// Bottom sheet to pick a different city / switch to live location.
+  void _showLocationSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _LocationPickerSheet(
+        locationFilters: _locationFilters,
+        selectedFilter: _selectedLocationFilter,
+        onSelected: (name) {
+          setState(() => _selectedLocationFilter = name);
+          _updateHostelsStream();
+          if (name == 'Live Location' && _currentPosition == null) {
+            _getCurrentLocation();
+          }
+        },
       ),
     );
   }
@@ -697,10 +680,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showPermissionDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Location Permission Required'),
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Location Access Required'),
         content: const Text(
-          'Location permission is permanently denied. Please enable it in app settings to use this feature.',
+          'Location permission is permanently denied. Please enable it in app settings.',
         ),
         actions: [
           TextButton(
@@ -719,6 +703,700 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Glass Search Bar
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _GlassSearchBar extends StatelessWidget {
+  final String hint;
+  final VoidCallback onTap;
+
+  const _GlassSearchBar({required this.hint, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF1E3437).withOpacity(0.9),
+                  const Color(0xFF243C40).withOpacity(0.95),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.12),
+                width: 0.7,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 14,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.search_rounded,
+                  color: Colors.white.withOpacity(0.55),
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  hint,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.45),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pulsing Live Badge
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _LiveBadge extends StatefulWidget {
+  const _LiveBadge();
+
+  @override
+  State<_LiveBadge> createState() => _LiveBadgeState();
+}
+
+class _LiveBadgeState extends State<_LiveBadge>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+    _anim = Tween<double>(
+      begin: 1.0,
+      end: 0.28,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+      decoration: BoxDecoration(
+        color: const Color(0xFF34C759).withOpacity(0.16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFF34C759).withOpacity(0.35),
+          width: 0.6,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedBuilder(
+            animation: _anim,
+            builder: (_, __) => Opacity(
+              opacity: _anim.value,
+              child: Container(
+                width: 5,
+                height: 5,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF34C759),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          const Text(
+            'Live',
+            style: TextStyle(
+              color: Color(0xFF34C759),
+              fontSize: 9.5,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Glass Chip (icon container)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _GlassChip extends StatelessWidget {
+  final Widget child;
+  const _GlassChip({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withOpacity(0.16), width: 0.6),
+      ),
+      child: Center(child: child),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AppBar Action Button (icon + red badge)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _AppBarButton extends StatelessWidget {
+  final IconData icon;
+  final int count;
+  final VoidCallback onTap;
+
+  const _AppBarButton({
+    required this.icon,
+    required this.count,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.10),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.16),
+                width: 0.6,
+              ),
+            ),
+            child: Icon(icon, color: Colors.white, size: 19),
+          ),
+          if (count > 0)
+            Positioned(
+              top: -4,
+              right: -4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF3B30),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFF184A4C),
+                    width: 1.5,
+                  ),
+                ),
+                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                child: Text(
+                  count > 9 ? '9+' : '$count',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.1,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Avatar / Drawer Button
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _AvatarButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _AvatarButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.10),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withOpacity(0.16), width: 0.6),
+        ),
+        child: Center(
+          child: CircleAvatar(
+            radius: 13,
+            backgroundColor: Colors.white.withOpacity(0.88),
+            child: const Icon(
+              Icons.person_rounded,
+              color: Color(0xFF184A4C),
+              size: 15,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Category Toggle (Hostels / Flats)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _CategoryToggle extends StatelessWidget {
+  final String selected;
+  final void Function(String) onChanged;
+
+  const _CategoryToggle({required this.selected, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black.withOpacity(0.06)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _ToggleOption(
+              id: 'hostel',
+              label: 'Hostels',
+              selected: selected,
+              onChanged: onChanged,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: _ToggleOption(
+              id: 'flat',
+              label: 'Flats',
+              selected: selected,
+              onChanged: onChanged,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ToggleOption extends StatelessWidget {
+  final String id;
+  final String label;
+  final String selected;
+  final void Function(String) onChanged;
+
+  const _ToggleOption({
+    required this.id,
+    required this.label,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = selected == id;
+    return GestureDetector(
+      onTap: () => onChanged(id),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF184A4C) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF184A4C).withOpacity(0.25),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [],
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.4,
+            color: isSelected ? Colors.white : const Color(0xFF184A4C),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Location Filter Sliver Header
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _LocationFilterDelegate extends SliverPersistentHeaderDelegate {
+  final List<Map<String, dynamic>> locationFilters;
+  final String selectedFilter;
+  final Position? currentPosition;
+  final void Function(String) onFilterSelected;
+
+  _LocationFilterDelegate({
+    required this.locationFilters,
+    required this.selectedFilter,
+    required this.currentPosition,
+    required this.onFilterSelected,
+  });
+
+  @override
+  double get minExtent => 0;
+  @override
+  double get maxExtent => 120;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final t = (shrinkOffset / maxExtent).clamp(0.0, 1.0);
+    final opacity = (1.0 - t * 1.5).clamp(0.0, 1.0);
+    final scale = (1.0 - t * 0.5).clamp(0.0, 1.0);
+    final translateY = -shrinkOffset * 0.4;
+
+    return Container(
+      height: maxExtent,
+      color: Colors.grey[50]!.withOpacity(1.0 - t),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Opacity(
+              opacity: opacity,
+              child: Transform.translate(
+                offset: Offset(0, translateY),
+                child: Transform.scale(
+                  scale: scale,
+                  alignment: Alignment.topCenter,
+                  child: SizedBox(
+                    height: 110,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                      scrollDirection: Axis.horizontal,
+                      clipBehavior: Clip.none,
+                      itemCount: locationFilters.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 16),
+                      itemBuilder: (context, index) {
+                        final filter = locationFilters[index];
+                        final name = filter['name'] as String;
+                        final isSelected = selectedFilter == name;
+
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            GestureDetector(
+                              onTap: () => onFilterSelected(name),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 280),
+                                width: 68,
+                                height: 68,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? Colors.amber.withOpacity(0.55)
+                                        : Colors.grey.shade200,
+                                    width: 2.0,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: isSelected
+                                          ? const Color(
+                                              0xFFFFF176,
+                                            ).withOpacity(0.55)
+                                          : Colors.black.withOpacity(0.04),
+                                      blurRadius: isSelected ? 12 : 6,
+                                      spreadRadius: isSelected ? 2 : 0,
+                                      offset: isSelected
+                                          ? Offset.zero
+                                          : const Offset(0, 2),
+                                    ),
+                                    if (isSelected)
+                                      BoxShadow(
+                                        color: const Color(
+                                          0xFFFFF59D,
+                                        ).withOpacity(0.3),
+                                        blurRadius: 18,
+                                        spreadRadius: 5,
+                                      ),
+                                  ],
+                                ),
+                                child: ClipOval(
+                                  child: filter['image'] != null
+                                      ? Image.asset(
+                                          filter['image'],
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Icon(
+                                            Icons.location_city,
+                                            color: isSelected
+                                                ? AppTheme.primaryTeal
+                                                : Colors.black54,
+                                            size: 28,
+                                          ),
+                                        )
+                                      : Icon(
+                                          filter['icon'] ?? Icons.location_city,
+                                          color: isSelected
+                                              ? AppTheme.primaryTeal
+                                              : Colors.black87,
+                                          size: 28,
+                                        ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              name,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: isSelected
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                color: isSelected
+                                    ? Colors.black87
+                                    : Colors.black45,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _LocationFilterDelegate old) =>
+      selectedFilter != old.selectedFilter ||
+      currentPosition != old.currentPosition;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sticky Section Title
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _StickyTitleDelegate extends SliverPersistentHeaderDelegate {
+  final String title;
+  const _StickyTitleDelegate({required this.title});
+
+  @override
+  double get minExtent => 50;
+  @override
+  double get maxExtent => 50;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(
+      width: double.infinity,
+      color: Colors.grey[50],
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      alignment: Alignment.centerLeft,
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: Colors.black87,
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _StickyTitleDelegate old) => title != old.title;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Location Picker Bottom Sheet
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _LocationPickerSheet extends StatelessWidget {
+  final List<Map<String, dynamic>> locationFilters;
+  final String selectedFilter;
+  final void Function(String) onSelected;
+
+  const _LocationPickerSheet({
+    required this.locationFilters,
+    required this.selectedFilter,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.95),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border.all(
+              color: Colors.black.withOpacity(0.06),
+              width: 0.6,
+            ),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Choose Location',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: locationFilters.map((filter) {
+                  final name = filter['name'] as String;
+                  final isSelected = selectedFilter == name;
+                  return GestureDetector(
+                    onTap: () {
+                      onSelected(name);
+                      Navigator.pop(context);
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 220),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? const Color(0xFF184A4C)
+                            : Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isSelected
+                              ? const Color(0xFF184A4C)
+                              : Colors.grey.shade200,
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            filter['icon'] as IconData? ?? Icons.location_city,
+                            size: 15,
+                            color: isSelected ? Colors.white : Colors.black54,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            name,
+                            style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Wishlisted Card Wrapper
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _WishlistableCard extends StatelessWidget {
   final HostelModel hostel;
@@ -749,39 +1427,35 @@ class _WishlistableCard extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 4,
+                  color: Colors.black.withOpacity(0.25),
+                  blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: AnimatedScale(
-              scale: isWishlisted ? 1.2 : 1.0,
+              scale: isWishlisted ? 1.18 : 1.0,
               duration: const Duration(milliseconds: 400),
               curve: Curves.elasticOut,
               child: IconButton(
                 padding: const EdgeInsets.all(8),
                 constraints: const BoxConstraints(),
                 icon: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
-                        return ScaleTransition(scale: animation, child: child);
-                      },
+                  duration: const Duration(milliseconds: 280),
+                  transitionBuilder: (child, anim) =>
+                      ScaleTransition(scale: anim, child: child),
                   child: Icon(
                     isWishlisted ? Icons.favorite : Icons.favorite_border,
                     key: ValueKey<bool>(isWishlisted),
-                    color: isWishlisted ? Colors.red : Colors.grey,
+                    color: isWishlisted ? AppTheme.primaryTeal : Colors.grey,
                     size: 20,
                   ),
                 ),
                 onPressed: () {
                   if (uid.isEmpty) return;
-                  if (isWishlisted) {
-                    wishlistService.removeFromWishlist(uid, hostel.id);
-                  } else {
-                    wishlistService.addToWishlist(uid, hostel.id);
-                  }
+                  isWishlisted
+                      ? wishlistService.removeFromWishlist(uid, hostel.id)
+                      : wishlistService.addToWishlist(uid, hostel.id);
                 },
               ),
             ),
@@ -789,215 +1463,5 @@ class _WishlistableCard extends StatelessWidget {
         ),
       ],
     );
-  }
-}
-
-class _LocationFilterDelegate extends SliverPersistentHeaderDelegate {
-  final List<Map<String, dynamic>> locationFilters;
-  final String selectedFilter;
-  final Function(String) onFilterSelected;
-  final Position? currentPosition;
-
-  _LocationFilterDelegate({
-    required this.locationFilters,
-    required this.selectedFilter,
-    required this.onFilterSelected,
-    required this.currentPosition,
-  });
-
-  @override
-  double get minExtent => 0;
-
-  @override
-  double get maxExtent => 120; // Increased to prevent overflow on larger fonts
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    // Faster fade and scale to meet the user's "shrink as scrolls up" request
-    final double shrinkPercentage = (shrinkOffset / maxExtent).clamp(0.0, 1.0);
-    final double opacity = (1.0 - (shrinkPercentage * 1.5)).clamp(0.0, 1.0);
-    final double scale = (1.0 - (shrinkPercentage * 0.5)).clamp(0.0, 1.0);
-
-    // Move up slightly faster than the scroll to feel like it's "shrinking into" the header above
-    final double translationY = -shrinkOffset * 0.4;
-
-    return Container(
-      height: maxExtent,
-      // We use a transparent container to ensure the glow from the selected circle
-      // can "override" or bleed into the portion above without being cut off
-      color: Colors.grey[50]?.withOpacity(1.0 - shrinkPercentage),
-      child: Stack(
-        clipBehavior:
-            Clip.none, // CRITICAL: Fixes the "flattened at the top" glow issue
-        children: [
-          Positioned(
-            top: 0, // Really tight top space
-            left: 0,
-            right: 0,
-            child: Opacity(
-              opacity: opacity,
-              child: Transform.translate(
-                offset: Offset(0, translationY),
-                child: Transform.scale(
-                  scale: scale,
-                  alignment: Alignment.topCenter,
-                  child: SizedBox(
-                    height:
-                        110, // Increased to accommodate text + padding safely
-                    child: ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(
-                        16,
-                        4, // Extremely tight top padding
-                        16,
-                        0,
-                      ), // Removed bottom padding
-                      scrollDirection: Axis.horizontal,
-                      clipBehavior:
-                          Clip.none, // Allow glow to overflow list bounds
-                      itemCount: locationFilters.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 16),
-                      itemBuilder: (context, index) {
-                        final filter = locationFilters[index];
-                        final name = filter['name'] as String;
-                        final isSelected = selectedFilter == name;
-
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            GestureDetector(
-                              onTap: () => onFilterSelected(name),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                width: 68,
-                                height: 68,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? Colors.amber.withOpacity(0.5)
-                                        : Colors.grey.shade200,
-                                    width: 2,
-                                  ),
-                                  color: Colors.white,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: isSelected
-                                          ? const Color(
-                                              0xFFFFF176,
-                                            ).withOpacity(0.5)
-                                          : Colors.black.withOpacity(0.04),
-                                      blurRadius: isSelected ? 10 : 6,
-                                      spreadRadius: isSelected ? 2 : 0,
-                                      offset: isSelected
-                                          ? Offset.zero
-                                          : const Offset(0, 2),
-                                    ),
-                                    BoxShadow(
-                                      color: isSelected
-                                          ? const Color(
-                                              0xFFFFF59D,
-                                            ).withOpacity(0.3)
-                                          : Colors.transparent,
-                                      blurRadius: isSelected ? 15 : 0,
-                                      spreadRadius: isSelected ? 4 : 0,
-                                    ),
-                                  ],
-                                ),
-                                child: ClipOval(
-                                  child: filter['image'] != null
-                                      ? Image.asset(
-                                          filter['image'],
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (ctx, _, _) => Icon(
-                                            Icons.location_city,
-                                            color: isSelected
-                                                ? AppTheme.primaryRed
-                                                : Colors.black54,
-                                            size: 30,
-                                          ),
-                                        )
-                                      : Icon(
-                                          filter['icon'] ?? Icons.location_city,
-                                          color: isSelected
-                                              ? AppTheme.primaryRed
-                                              : Colors.black87,
-                                          size: 30,
-                                        ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              name,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.w500,
-                                color: isSelected
-                                    ? Colors.black87
-                                    : Colors.black54,
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant _LocationFilterDelegate oldDelegate) {
-    return selectedFilter != oldDelegate.selectedFilter ||
-        currentPosition != oldDelegate.currentPosition;
-  }
-}
-
-class _StickyTitleDelegate extends SliverPersistentHeaderDelegate {
-  final String title;
-
-  _StickyTitleDelegate({required this.title});
-
-  @override
-  double get minExtent => 50;
-
-  @override
-  double get maxExtent => 50;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return Container(
-      width: double.infinity,
-      color: Colors.grey[50], // Match page background
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      alignment: Alignment.centerLeft,
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-        ),
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant _StickyTitleDelegate oldDelegate) {
-    return title != oldDelegate.title;
   }
 }

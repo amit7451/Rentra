@@ -84,10 +84,10 @@ class HelpSupportScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryRed.withValues(alpha: 0.1),
+                  color: AppTheme.primaryTeal.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: AppTheme.primaryRed),
+                child: Icon(icon, color: AppTheme.primaryTeal),
               ),
               const SizedBox(width: 16),
               Column(

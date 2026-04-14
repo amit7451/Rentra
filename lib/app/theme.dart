@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Red color palette
-  static const Color primaryRed = Color(0xFFE53935);
-  static const Color darkRed = Color(0xFFB71C1C);
-  static const Color lightRed = Color(0xFFFF6F60);
-  static const Color accentRed = Color(0xFFFF5252);
+  // Teal color palette
+  static const Color primaryTeal = Color(0xFF1A4345);
+  static const Color darkTeal = Color(0xFF102B2C);
+  static const Color lightTeal = Color(0xFF266265);
+  static const Color accentTeal = Color(0xFF2D767A);
 
   // Neutral colors
   static const Color white = Color(0xFFFFFFFF);
@@ -18,11 +18,11 @@ class AppTheme {
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: primaryRed,
-      primary: primaryRed,
-      secondary: accentRed,
+      seedColor: primaryTeal,
+      primary: primaryTeal,
+      secondary: accentTeal,
       surface: white,
-      error: darkRed,
+      error: darkTeal,
     ),
     scaffoldBackgroundColor: const Color(0xFFF9F9F9), // Match Home's clean feel
 
@@ -36,7 +36,7 @@ class AppTheme {
 
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: primaryRed,
+        backgroundColor: primaryTeal,
         foregroundColor: white,
         elevation: 2,
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
@@ -47,7 +47,7 @@ class AppTheme {
 
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: primaryRed,
+        foregroundColor: primaryTeal,
         textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
       ),
     ),
@@ -65,11 +65,11 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: primaryRed, width: 2),
+        borderSide: const BorderSide(color: primaryTeal, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: darkRed),
+        borderSide: const BorderSide(color: darkTeal),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     ),
@@ -82,7 +82,7 @@ class AppTheme {
 
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: white,
-      selectedItemColor: primaryRed,
+      selectedItemColor: primaryTeal,
       unselectedItemColor: grey,
       type: BottomNavigationBarType.fixed,
       elevation: 8,
@@ -93,7 +93,7 @@ class AppTheme {
 
     chipTheme: ChipThemeData(
       backgroundColor: lightGrey,
-      selectedColor: primaryRed,
+      selectedColor: primaryTeal,
       labelStyle: const TextStyle(color: black),
       secondaryLabelStyle: const TextStyle(color: white),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

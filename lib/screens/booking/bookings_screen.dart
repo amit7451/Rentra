@@ -38,7 +38,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
       case BookingStatus.confirmed:
         return Colors.green;
       case BookingStatus.cancelled:
-        return AppTheme.darkRed;
+        return AppTheme.darkTeal;
       case BookingStatus.completed:
         return Colors.blue;
     }
@@ -216,7 +216,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                     decoration: BoxDecoration(
                       color:
                           (booking.paymentStatus == 'failed'
-                                  ? Colors.red
+                                  ? AppTheme.primaryTeal
                                   : _getStatusColor(booking.status))
                               .withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -227,7 +227,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                           : _getStatusText(booking.status),
                       style: TextStyle(
                         color: booking.paymentStatus == 'failed'
-                            ? Colors.red
+                            ? AppTheme.primaryTeal
                             : _getStatusColor(booking.status),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -256,7 +256,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                             const Icon(
                               Icons.calendar_today,
                               size: 16,
-                              color: AppTheme.primaryRed,
+                              color: AppTheme.primaryTeal,
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -283,7 +283,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                             const Icon(
                               Icons.calendar_today,
                               size: 16,
-                              color: AppTheme.primaryRed,
+                              color: AppTheme.primaryTeal,
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -356,7 +356,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                   Text(
                     '₹${booking.totalPrice.toStringAsFixed(0)}',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: AppTheme.primaryRed,
+                      color: AppTheme.primaryTeal,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -374,8 +374,8 @@ class _BookingsScreenState extends State<BookingsScreen> {
                       _showCancelDialog(context, booking, firestoreService);
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.darkRed,
-                      side: const BorderSide(color: AppTheme.darkRed),
+                      foregroundColor: AppTheme.darkTeal,
+                      side: const BorderSide(color: AppTheme.darkTeal),
                     ),
                     child: const Text('Cancel Booking'),
                   ),
@@ -388,10 +388,10 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.05),
+                    color: AppTheme.primaryTeal.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: Colors.red.withValues(alpha: 0.1),
+                      color: AppTheme.primaryTeal.withValues(alpha: 0.1),
                     ),
                   ),
                   child: Column(
@@ -405,7 +405,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
-                              color: Colors.red,
+                              color: AppTheme.primaryTeal,
                             ),
                           ),
                           GestureDetector(
@@ -427,7 +427,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                                       onPressed: () => Navigator.pop(ctx, true),
                                       child: const Text(
                                         'Delete',
-                                        style: TextStyle(color: Colors.red),
+                                        style: TextStyle(color: AppTheme.primaryTeal),
                                       ),
                                     ),
                                   ],
@@ -441,7 +441,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                             },
                             child: const Icon(
                               Icons.delete_outline,
-                              color: Colors.red,
+                              color: AppTheme.primaryTeal,
                               size: 18,
                             ),
                           ),
@@ -454,7 +454,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                           'Reason: ${booking.cancellationReason}',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
-                                color: Colors.red[800],
+                                color: AppTheme.darkTeal,
                                 fontStyle: FontStyle.italic,
                               ),
                         ),
@@ -573,7 +573,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Failed to cancel booking: $e'),
-                      backgroundColor: AppTheme.darkRed,
+                      backgroundColor: AppTheme.darkTeal,
                     ),
                   );
                 }
