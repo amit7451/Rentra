@@ -244,3 +244,5 @@ class NotificationService {
 final GlobalKey<NavigatorState> _globalNavigatorKey =
     GlobalKey<NavigatorState>();
 GlobalKey<NavigatorState> get navigatorKey => _globalNavigatorKey;
+
+

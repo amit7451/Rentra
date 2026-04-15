@@ -257,24 +257,38 @@ class _SearchScreenState extends State<SearchScreen> {
     // Determine how many items to show based on pagination
     final visibleHostels = _allFoundHostels.take(_displayedCount).toList();
     final hasMore = _allFoundHostels.length > _displayedCount;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
       appBar: AppBar(
-        title: const Text(
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+            ),
+          ),
+        ),
+        title: Text(
           "Search for Hostels/Flats",
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: Colors.white,
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: Navigator.canPop(context)
             ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                icon: Icon(
+                  Icons.arrow_back,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
                 onPressed: () => Navigator.maybePop(context),
               )
             : null,
@@ -284,30 +298,48 @@ class _SearchScreenState extends State<SearchScreen> {
           children: [
             // 1. SEARCH BAR
             Container(
-              color: Colors.white,
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFF184A4C),
+                    Color(0xFF184A4C),
+                  ], // keep teal background
+                ),
+              ),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: Row(
                 children: [
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.grey[300]!),
                       ),
                       child: TextField(
                         controller: _searchController,
                         focusNode: _searchFocus,
+                        style: const TextStyle(color: Colors.black87),
                         decoration: InputDecoration(
+                          filled:
+                              false, // Ensures no overlapping theme background
                           hintText: "Search places, landmarks...",
+                          hintStyle: TextStyle(color: Colors.grey[500]),
                           border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
                           prefixIcon: const Icon(
                             Icons.search,
                             color: Colors.grey,
                           ),
                           suffixIcon: _searchController.text.isNotEmpty
                               ? IconButton(
-                                  icon: const Icon(Icons.close, size: 20),
+                                  icon: const Icon(
+                                    Icons.close,
+                                    size: 20,
+                                    color: Colors.grey,
+                                  ),
                                   onPressed: () {
                                     _searchController.clear();
                                     _searchFocus.requestFocus();
@@ -414,7 +446,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         top: 16,
                         left: 16,
                         right: 16,
-                        bottom: 80,
+                        bottom: 120,
                       ),
                       itemCount: visibleHostels.length + (hasMore ? 1 : 0),
                       itemBuilder: (context, index) {
@@ -426,7 +458,9 @@ class _SearchScreenState extends State<SearchScreen> {
                               child: ElevatedButton(
                                 onPressed: _loadMore,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).scaffoldBackgroundColor,
                                   foregroundColor: AppTheme.primaryTeal,
                                   side: const BorderSide(
                                     color: AppTheme.primaryTeal,
@@ -459,7 +493,10 @@ class _SearchScreenState extends State<SearchScreen> {
 
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 16),
-                          child: HotelCard(hostel: hostel, distance: distance),
+                          child: PremiumHostelCard(
+                            hostel: hostel,
+                            distance: distance,
+                          ),
                         );
                       },
                     ),
@@ -468,15 +505,19 @@ class _SearchScreenState extends State<SearchScreen> {
                   if (_showSuggestions)
                     Positioned.fill(
                       child: Container(
-                        color: Colors.white.withOpacity(
-                          0.95,
-                        ), // Slight transparency
+                        color: isDark
+                            ? const Color(0xFF1A1A1A).withOpacity(0.95)
+                            : Colors.white.withOpacity(0.95), // Adapt to theme
                         child: _isLoadingSuggestions
                             ? const Center(child: CircularProgressIndicator())
                             : ListView.separated(
                                 itemCount: _placeSuggestions.length,
-                                separatorBuilder: (ctx, i) =>
-                                    const Divider(height: 1),
+                                separatorBuilder: (ctx, i) => Divider(
+                                  height: 1,
+                                  color: isDark
+                                      ? Colors.grey[800]
+                                      : Colors.grey[300],
+                                ),
                                 itemBuilder: (context, index) {
                                   final suggestion = _placeSuggestions[index];
                                   final mainText =
@@ -486,20 +527,30 @@ class _SearchScreenState extends State<SearchScreen> {
                                       "";
 
                                   return ListTile(
-                                    leading: const Icon(
+                                    leading: Icon(
                                       Icons.location_on_outlined,
-                                      color: Colors.grey,
+                                      color: isDark
+                                          ? Colors.grey[400]
+                                          : Colors.grey,
                                     ),
                                     title: Text(
                                       mainText,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black87,
                                       ),
                                     ),
                                     subtitle: Text(
                                       secondaryText,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.grey[400]
+                                            : Colors.grey[600],
+                                      ),
                                     ),
                                     onTap: () => _onSuggestionSelected(
                                       suggestion['place_id'],
@@ -526,7 +577,7 @@ class _SearchScreenState extends State<SearchScreen> {
   void _showFilterDialog() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

@@ -109,7 +109,7 @@ class _VerificationDialogState extends State<VerificationDialog>
       child: Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         elevation: 16,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -264,3 +264,5 @@ Future<void> showVerificationDialog(BuildContext context) {
     barrierColor: Colors.black54,
   );
 }
+
+

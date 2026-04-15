@@ -15,6 +15,8 @@ class MyApp extends StatelessWidget {
       title: 'Book Hostel or Flat',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
       initialRoute: '/',
       routes: {'/': (context) => const SplashScreen(), ...AppRoutes.routes},
       onGenerateRoute: AppRoutes.onGenerateRoute,

@@ -15,7 +15,8 @@ class AdminStatsScreen extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
       body: RefreshIndicator(
         color: AppTheme.primaryTeal,
         onRefresh: () async => await Future.delayed(const Duration(seconds: 1)),
@@ -23,21 +24,30 @@ class AdminStatsScreen extends StatelessWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverAppBar(
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              scrolledUnderElevation: 4,
+              pinned: true,
+              centerTitle: true,
+              iconTheme: const IconThemeData(color: Colors.white),
+              flexibleSpace: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+                  ),
+                ),
+              ),
               title: const Text(
                 'Analytics',
                 style: TextStyle(
-                  color: Colors.black,
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                 ),
               ),
-              centerTitle: true,
-              backgroundColor: Colors.grey[50],
-              foregroundColor: Colors.black,
-              pinned: true,
-              elevation: 0,
-              surfaceTintColor: Colors.transparent,
-              scrolledUnderElevation: 4,
             ),
             StreamBuilder<List<HostelModel>>(
               stream: firestoreService.getHostelsByOwner(uid),

@@ -56,17 +56,33 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverAppBar(
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              scrolledUnderElevation: 4,
+              pinned: true,
+              floating: true,
+              forceElevated: innerBoxIsScrolled,
+              centerTitle: true,
+              iconTheme: const IconThemeData(color: Colors.white),
+              flexibleSpace: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+                  ),
+                ),
+              ),
               title: const Text(
                 'Manage Bookings',
                 style: TextStyle(
-                  color: Colors.black,
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  fontSize: 18,
                 ),
               ),
               actions: [
@@ -74,20 +90,11 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
                   tooltip: 'Clear cancelled bookings',
                   icon: const Icon(
                     Icons.delete_sweep_outlined,
-                    color: Colors.black,
+                    color: Colors.white,
                   ),
                   onPressed: () => _confirmAndClearCancelled(context),
                 ),
               ],
-              centerTitle: true,
-              backgroundColor: Colors.grey[50],
-              foregroundColor: Colors.black,
-              elevation: 0,
-              surfaceTintColor: Colors.transparent,
-              scrolledUnderElevation: 4,
-              pinned: true,
-              floating: true,
-              forceElevated: innerBoxIsScrolled,
               bottom: TabBar(
                 controller: _tabs,
                 indicatorColor: AppTheme.primaryTeal,
@@ -195,7 +202,9 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryTeal),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryTeal,
+            ),
             child: const Text('Delete'),
           ),
         ],
@@ -533,7 +542,9 @@ class _BookingCard extends StatelessWidget {
                                   onPressed: () => Navigator.pop(ctx, true),
                                   child: const Text(
                                     'Delete',
-                                    style: TextStyle(color: AppTheme.primaryTeal),
+                                    style: TextStyle(
+                                      color: AppTheme.primaryTeal,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -728,11 +739,18 @@ class _BookingCard extends StatelessWidget {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.warning_outlined, size: 16, color: AppTheme.primaryTeal),
+                    Icon(
+                      Icons.warning_outlined,
+                      size: 16,
+                      color: AppTheme.primaryTeal,
+                    ),
                     SizedBox(width: 8),
                     Text(
                       'No rooms available!',
-                      style: TextStyle(fontSize: 13, color: AppTheme.primaryTeal),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.primaryTeal,
+                      ),
                     ),
                   ],
                 ),

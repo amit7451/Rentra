@@ -16,8 +16,27 @@ class PaymentsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Payments & Transactions'),
+        title: const Text(
+          'Payments & Transactions',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
         elevation: 0,
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.white),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+            ),
+          ),
+        ),
       ),
       body: user == null
           ? const Center(child: Text('Please sign in to view history'))

@@ -429,7 +429,23 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Book Hostel')),
+      appBar: AppBar(
+        title: const Text(
+          'Book Hostel',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+            ),
+          ),
+        ),
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           await FirebaseAuth.instance.currentUser?.reload();
@@ -581,9 +597,8 @@ class _BookingScreenState extends State<BookingScreen> {
                                               );
                                             }
                                             if (rooms <= 3) {
-                                              return AppTheme.primaryTeal.withOpacity(
-                                                0.08,
-                                              );
+                                              return AppTheme.primaryTeal
+                                                  .withOpacity(0.08);
                                             }
                                             if (rooms <= 5) {
                                               return Colors.amber.withOpacity(
@@ -656,8 +671,8 @@ class _BookingScreenState extends State<BookingScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppTheme.white,
-                      border: Border.all(color: AppTheme.lightGrey),
+                      color: Theme.of(context).cardColor,
+                      border: Border.all(color: Theme.of(context).dividerColor),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -688,8 +703,8 @@ class _BookingScreenState extends State<BookingScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppTheme.white,
-                      border: Border.all(color: AppTheme.lightGrey),
+                      color: Theme.of(context).cardColor,
+                      border: Border.all(color: Theme.of(context).dividerColor),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -724,8 +739,8 @@ class _BookingScreenState extends State<BookingScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppTheme.white,
-                      border: Border.all(color: AppTheme.lightGrey),
+                      color: Theme.of(context).cardColor,
+                      border: Border.all(color: Theme.of(context).dividerColor),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -845,8 +860,8 @@ class _BookingScreenState extends State<BookingScreen> {
                                 margin: const EdgeInsets.only(right: 12),
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.white,
-                                  border: Border.all(color: AppTheme.lightGrey),
+                                  color: Theme.of(context).cardColor,
+                                  border: Border.all(color: Theme.of(context).dividerColor),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Column(
@@ -990,10 +1005,10 @@ class _BookingScreenState extends State<BookingScreen> {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.white,
+          color: Theme.of(context).scaffoldBackgroundColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.5) : Colors.black.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),

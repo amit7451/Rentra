@@ -100,11 +100,34 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
       return Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              size: 20,
+              color: Colors.white,
+            ),
             onPressed: () => Navigator.maybePop(context),
           ),
-          title: const Text('Payment Status'),
+          title: const Text(
+            'Payment Status',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+          centerTitle: true,
           automaticallyImplyLeading: false,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+              ),
+            ),
+          ),
         ),
         body: const Center(
           child: CircularProgressIndicator(color: AppTheme.primaryTeal),
@@ -126,16 +149,39 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50], // Modern background
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      // Modern background
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            size: 20,
+            color: Colors.white,
+          ),
           onPressed: () => Navigator.maybePop(context),
         ),
-        title: const Text('Payment Status'),
+        title: const Text(
+          'Payment Status',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        centerTitle: true,
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+            ),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -175,7 +221,9 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: isSuccess ? Colors.green : AppTheme.primaryTeal,
+                            color: isSuccess
+                                ? Colors.green
+                                : AppTheme.primaryTeal,
                           ),
                       textAlign: TextAlign.center,
                     ),
@@ -555,7 +603,9 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
                               'https://www.google.com/maps/search/?api=1&query=${_hostel!.latitude},${_hostel!.longitude}',
                             );
                           },
-                          backgroundColor: Colors.white,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).scaffoldBackgroundColor,
                           icon: const Icon(
                             Icons.directions,
                             color: Colors.blue,

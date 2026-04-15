@@ -89,13 +89,14 @@ class _NotificationSettingsScreenState
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
       appBar: AppBar(
         title: const Text(
           'Notification Settings',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         foregroundColor: Colors.black,
         elevation: 0,
         centerTitle: true,
@@ -198,3 +199,5 @@ class _NotificationSettingsScreenState
     );
   }
 }
+
+

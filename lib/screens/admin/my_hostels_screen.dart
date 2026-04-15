@@ -18,7 +18,8 @@ class MyHostelsScreen extends StatelessWidget {
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
       body: RefreshIndicator(
         color: AppTheme.primaryTeal,
         onRefresh: () async => await Future.delayed(const Duration(seconds: 1)),
@@ -26,21 +27,30 @@ class MyHostelsScreen extends StatelessWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverAppBar(
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              scrolledUnderElevation: 4,
+              pinned: true,
+              centerTitle: true,
+              iconTheme: const IconThemeData(color: Colors.white),
+              flexibleSpace: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+                  ),
+                ),
+              ),
               title: const Text(
                 'My Hostels',
                 style: TextStyle(
-                  color: Colors.black,
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                 ),
               ),
-              centerTitle: true,
-              backgroundColor: Colors.grey[50],
-              foregroundColor: Colors.black,
-              pinned: true,
-              elevation: 0,
-              surfaceTintColor: Colors.transparent,
-              scrolledUnderElevation: 4,
             ),
             StreamBuilder<List<HostelModel>>(
               stream: firestoreService.getHostelsByOwner(uid),
@@ -505,7 +515,9 @@ class _HostelCard extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryTeal),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryTeal,
+            ),
             child: const Text('Delete', style: TextStyle(color: Colors.white)),
           ),
         ],

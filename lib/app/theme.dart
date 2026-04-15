@@ -23,11 +23,13 @@ class AppTheme {
       secondary: accentTeal,
       surface: white,
       error: darkTeal,
+      brightness: Brightness.light,
     ),
-    scaffoldBackgroundColor: const Color(0xFFF9F9F9), // Match Home's clean feel
+    scaffoldBackgroundColor: const Color(0xFFF0FBFB), // Light theme background
+    canvasColor: const Color(0xFFF0FBFB), // For drawer and other surfaces
 
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFFF9F9F9),
+      backgroundColor: Color(0xFFF0FBFB),
       foregroundColor: Colors.black87,
       elevation: 0,
       centerTitle: true,
@@ -141,10 +143,141 @@ class AppTheme {
         fontWeight: FontWeight.normal,
         color: grey,
       ),
+    ),
+  );
+
+  static ThemeData darkTheme = ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: primaryTeal,
+      primary: primaryTeal,
+      secondary: accentTeal,
+      surface: const Color(0xFF0F1E1E), // Slightly lighter than background
+      error: const Color(0xFFCF6679),
+      brightness: Brightness.dark,
+    ),
+    scaffoldBackgroundColor: const Color(0xFF021314),
+    canvasColor: const Color(0xFF021314),
+
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Color(0xFF021314),
+      foregroundColor: Colors.white,
+      elevation: 0,
+      centerTitle: true,
+      iconTheme: IconThemeData(color: Colors.white),
+    ),
+
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: accentTeal,
+        foregroundColor: Colors.white,
+        elevation: 2,
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      ),
+    ),
+
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: accentTeal,
+        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      ),
+    ),
+
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: const Color(0xFF0F1E1E),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.white24),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.white24),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: accentTeal, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFFCF6679)),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    ),
+
+    cardTheme: CardThemeData(
+      color: const Color(0xFF0B1919),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    ),
+
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Color(0xFF021314),
+      selectedItemColor: accentTeal,
+      unselectedItemColor: Colors.white54,
+      type: BottomNavigationBarType.fixed,
+      elevation: 8,
+      selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
+    ),
+
+    iconTheme: const IconThemeData(color: Colors.white70, size: 24),
+
+    chipTheme: ChipThemeData(
+      backgroundColor: const Color(0xFF0F1E1E),
+      selectedColor: accentTeal,
+      labelStyle: const TextStyle(color: Colors.white),
+      secondaryLabelStyle: const TextStyle(color: Colors.white),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    ),
+
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(
+        fontSize: 32,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+      displayMedium: TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+      displaySmall: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+      headlineMedium: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      ),
+      headlineSmall: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      ),
+      titleLarge: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      ),
+      bodyLarge: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.normal,
+        color: Colors.white,
+      ),
+      bodyMedium: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.normal,
+        color: Colors.white70,
+      ),
       bodySmall: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.normal,
-        color: grey,
+        color: Colors.white70,
       ),
     ),
   );

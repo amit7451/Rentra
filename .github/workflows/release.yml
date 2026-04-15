@@ -1,40 +1,55 @@
-# name: Build & Release APK
+# This workflow is currently disabled.
+# To re-enable, uncomment the full workflow below and configure secrets.
+
+name: Build & Release APK (Disabled)
+
+on:
+  workflow_dispatch: # Only runs manually — change to push/pull_request to enable
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Workflow disabled
+        run: echo "This workflow is currently disabled."
+
+# --- Full workflow (uncomment to enable) ---
+#
 # permissions:
 #   contents: write
 # on:
 #   push:
 #     branches:
 #       - main
-
+#
 # jobs:
 #   build:
 #     runs-on: ubuntu-latest
-
 #     steps:
 #       - name: Checkout repo
 #         uses: actions/checkout@v4
-
+#
 #       - name: Set up Java
 #         uses: actions/setup-java@v4
 #         with:
 #           distribution: 'zulu'
 #           java-version: '17'
-
+#
 #       - name: Set up Flutter
 #         uses: subosito/flutter-action@v2
 #         with:
 #           flutter-version: '3.41.0'
 #           channel: 'stable'
-
+#
 #       - name: Disable Flutter analytics
 #         run: flutter config --no-analytics
-
+#
 #       - name: Get Flutter dependencies
 #         run: flutter pub get
-
+#
 #       - name: Build release APK
 #         run: flutter build apk --release
-
+#
 #       - name: Verify APK was created
 #         run: |
 #           if [ ! -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
@@ -42,20 +57,20 @@
 #             exit 1
 #           fi
 #           ls -lh build/app/outputs/flutter-apk/app-release.apk
-
+#
 #       - name: Extract version from pubspec.yaml
 #         id: version
 #         run: |
 #           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //g' | cut -d'+' -f1)
 #           echo "version=$VERSION" >> $GITHUB_OUTPUT
-
+#
 #       - name: Create Git Tag
 #         run: |
 #           git config user.name "GitHub Actions"
 #           git config user.email "actions@github.com"
 #           git tag -a v${{ steps.version.outputs.version }} -m "Release v${{ steps.version.outputs.version }}" || true
 #           git push origin v${{ steps.version.outputs.version }} || true
-
+#
 #       - name: Create GitHub Release
 #         uses: softprops/action-gh-release@v2
 #         with:

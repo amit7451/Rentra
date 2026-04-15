@@ -21,7 +21,8 @@ class AdminDashboard extends StatelessWidget {
     final uid = user?.uid ?? '';
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
       body: RefreshIndicator(
         color: AppTheme.primaryTeal,
         onRefresh: () async {
@@ -32,15 +33,25 @@ class AdminDashboard extends StatelessWidget {
           slivers: [
             SliverAppBar(
               elevation: 0,
-              backgroundColor: Colors.grey[50],
+              backgroundColor: Colors.transparent,
               surfaceTintColor: Colors.transparent,
               scrolledUnderElevation: 4,
               pinned: true,
               centerTitle: true,
+              iconTheme: const IconThemeData(color: Colors.white),
+              flexibleSpace: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+                  ),
+                ),
+              ),
               title: const Text(
                 'Admin Dashboard',
                 style: TextStyle(
-                  color: Colors.black,
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                 ),

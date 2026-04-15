@@ -23,17 +23,24 @@ class WishlistScreen extends StatelessWidget {
               pinned: true,
               scrolledUnderElevation: 4,
               surfaceTintColor: Colors.transparent,
-              backgroundColor: Colors.grey[50],
+              backgroundColor: Colors.transparent,
               centerTitle: true,
               title: const Text(
                 'Wishlist',
                 style: TextStyle(
-                  color: Colors.black,
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
+                  fontSize: 18,
                 ),
               ),
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(color: Colors.grey[50]),
+              flexibleSpace: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+                  ),
+                ),
               ),
             ),
             SliverFillRemaining(
@@ -55,6 +62,7 @@ class WishlistScreen extends StatelessWidget {
                 ),
               ),
             ),
+            const SliverToBoxAdapter(child: SizedBox(height: 120)),
           ],
         ),
       );
@@ -72,17 +80,24 @@ class WishlistScreen extends StatelessWidget {
             scrolledUnderElevation: 4,
             surfaceTintColor: Colors.transparent,
             pinned: true,
-            backgroundColor: Colors.grey[50],
+            backgroundColor: Colors.transparent,
             centerTitle: true,
             title: const Text(
               'Wishlist',
               style: TextStyle(
-                color: Colors.black,
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
+                fontSize: 18,
               ),
             ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(color: Colors.grey[50]),
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+                ),
+              ),
             ),
           ),
           StreamBuilder<List<String>>(
@@ -169,6 +184,7 @@ class WishlistScreen extends StatelessWidget {
               );
             },
           ),
+          const SliverToBoxAdapter(child: SizedBox(height: 120)),
         ],
       ),
     );
@@ -431,7 +447,10 @@ class _WishlistCardState extends State<_WishlistCard> {
                       Expanded(
                         child: Text(
                           '${h.address}, ${h.city}',
-                          style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 13,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),

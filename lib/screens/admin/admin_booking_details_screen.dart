@@ -71,7 +71,23 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
 
     if (_booking == null || _hostel == null || _user == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Booking Details')),
+        appBar: AppBar(
+          title: const Text(
+            'Booking Details',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+              ),
+            ),
+          ),
+        ),
         body: const Center(child: Text('Booking details not found.')),
       );
     }
@@ -94,13 +110,37 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+
       appBar: AppBar(
-        title: const Text('Booking Details'),
-        backgroundColor: Colors.grey[50],
+        title: const Text(
+          'Booking Details',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+            ),
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            size: 20,
+            color: Colors.white,
+          ),
           onPressed: () => Navigator.maybePop(context),
         ),
       ),
@@ -269,7 +309,9 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
                       children: [
                         CircleAvatar(
                           radius: 24,
-                          backgroundColor: AppTheme.primaryTeal.withOpacity(0.1),
+                          backgroundColor: AppTheme.primaryTeal.withOpacity(
+                            0.1,
+                          ),
                           backgroundImage:
                               (_user!.photoUrl?.isNotEmpty ?? false)
                               ? NetworkImage(_user!.photoUrl!)

@@ -63,7 +63,19 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
 
         if (snapshot.hasError) {
           return Scaffold(
-            appBar: AppBar(),
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              iconTheme: const IconThemeData(color: Colors.white),
+              flexibleSpace: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+                  ),
+                ),
+              ),
+            ),
             body: ErrorText(
               message: 'Error loading hostel: ${snapshot.error}',
               onRetry: () {
@@ -75,7 +87,19 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
 
         if (!snapshot.hasData || snapshot.data == null) {
           return Scaffold(
-            appBar: AppBar(),
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              iconTheme: const IconThemeData(color: Colors.white),
+              flexibleSpace: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+                  ),
+                ),
+              ),
+            ),
             body: const ErrorText(message: 'Hostel not found'),
           );
         }
@@ -89,38 +113,48 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
               SliverAppBar(
                 expandedHeight: 300,
                 pinned: true,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: hostel.images.isNotEmpty
-                      ? PageView.builder(
-                          itemCount: hostel.images.length,
-                          itemBuilder: (context, index) {
-                            return Image.network(
-                              hostel.images[index],
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  color: AppTheme.lightGrey,
-                                  child: const Icon(
-                                    Icons.hotel,
-                                    size: 64,
-                                    color: AppTheme.grey,
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        )
-                      : Container(
-                          color: AppTheme.lightGrey,
-                          child: const Icon(
-                            Icons.hotel,
-                            size: 64,
-                            color: AppTheme.grey,
+                backgroundColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                iconTheme: const IconThemeData(color: Colors.white),
+                flexibleSpace: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+                    ),
+                  ),
+                  child: FlexibleSpaceBar(
+                    background: hostel.images.isNotEmpty
+                        ? PageView.builder(
+                            itemCount: hostel.images.length,
+                            itemBuilder: (context, index) {
+                              return Image.network(
+                                hostel.images[index],
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: AppTheme.lightGrey,
+                                    child: const Icon(
+                                      Icons.hotel,
+                                      size: 64,
+                                      color: AppTheme.grey,
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          )
+                        : Container(
+                            color: AppTheme.lightGrey,
+                            child: const Icon(
+                              Icons.hotel,
+                              size: 64,
+                              color: AppTheme.grey,
+                            ),
                           ),
-                        ),
+                  ),
                 ),
-              ),
-
+              ), // Close SliverAppBar
               // Content
               SliverToBoxAdapter(
                 child: Padding(
@@ -152,14 +186,15 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: AppTheme.lightGrey,
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : AppTheme.lightGrey,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
                                     hostel.unitType.toLowerCase() == 'flat'
                                         ? 'Flat'
                                         : 'Hostel / PG',
-                                    style: const TextStyle(
+                                    style: TextStyle(
+                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -182,8 +217,8 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                   const SizedBox(width: 4),
                                   Text(
                                     hostel.rating.toStringAsFixed(1),
-                                    style: const TextStyle(
-                                      color: Colors.black,
+                                    style: TextStyle(
+                                      color: Theme.of(context).textTheme.bodyLarge?.color,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
                                     ),
@@ -202,10 +237,10 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                       vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.grey.shade100,
+                                      color: Theme.of(context).cardColor,
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: Colors.grey.shade300,
+                                        color: Theme.of(context).dividerColor,
                                       ),
                                     ),
                                     child: Row(
@@ -221,8 +256,8 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                           widget.distance != null
                                               ? '${widget.distance!.toStringAsFixed(1)} km'
                                               : '${(Geolocator.distanceBetween(_currentPosition!.latitude, _currentPosition!.longitude, hostel.latitude!, hostel.longitude!) / 1000).toStringAsFixed(1)} km',
-                                          style: const TextStyle(
-                                            color: Colors.black87,
+                                          style: TextStyle(
+                                            color: Theme.of(context).textTheme.bodyLarge?.color,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 15,
                                           ),
@@ -320,12 +355,12 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Theme.of(context).cardColor,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppTheme.lightGrey),
+                            border: Border.all(color: Theme.of(context).dividerColor),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.5) : Colors.black.withOpacity(0.05),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -344,7 +379,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                         'Seater',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.grey[700],
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : Colors.grey[700],
                                         ),
                                       ),
                                     ),
@@ -354,7 +389,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                         'Price',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.grey[700],
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : Colors.grey[700],
                                         ),
                                       ),
                                     ),
@@ -365,7 +400,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                         textAlign: TextAlign.right,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.grey[700],
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : Colors.grey[700],
                                         ),
                                       ),
                                     ),
@@ -424,8 +459,8 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                         runSpacing: 8,
                         children: hostel.amenities.map((amenity) {
                           return Chip(
-                            label: Text(amenity),
-                            backgroundColor: AppTheme.lightGrey,
+                            label: Text(amenity, style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)),
+                            backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : AppTheme.lightGrey,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
                               vertical: 4,
@@ -503,7 +538,9 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                         ),
                                         label: const Text('Navigate'),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.white,
+                                          backgroundColor: Theme.of(
+                                            context,
+                                          ).scaffoldBackgroundColor,
                                           foregroundColor: AppTheme.primaryTeal,
                                           elevation: 2,
                                           padding: const EdgeInsets.symmetric(
@@ -539,10 +576,10 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
               : Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppTheme.white,
+                    color: Theme.of(context).scaffoldBackgroundColor,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.5) : Colors.black.withOpacity(0.1),
                         blurRadius: 10,
                         offset: const Offset(0, -5),
                       ),
@@ -696,14 +733,25 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
 
   Widget _buildSkeletonLoader() {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 300,
-            backgroundColor: Colors.grey[200],
-            flexibleSpace: FlexibleSpaceBar(
-              background: _skeletonBox(height: 300, width: double.infinity),
+            pinned: true,
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            iconTheme: const IconThemeData(color: Colors.white),
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+                ),
+              ),
+              child: FlexibleSpaceBar(
+                background: _skeletonBox(height: 300, width: double.infinity),
+              ),
             ),
           ),
           SliverToBoxAdapter(

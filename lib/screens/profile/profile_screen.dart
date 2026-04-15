@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import '../../services/auth_service.dart';
 import '../../models/user_model.dart';
 import '../../app/theme.dart';
 import '../../app/routes.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/verification_dialog.dart';
 import 'package:rentra/services/user_cache.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'edit_profile_screen.dart';
@@ -23,6 +25,95 @@ class ProfileScreen extends StatelessWidget {
 
   void _changePassword(BuildContext context) {
     Navigator.pushNamed(context, AppRoutes.changePassword);
+  }
+
+  void _openPayments(BuildContext context) {
+    Navigator.pushNamed(context, AppRoutes.payments);
+  }
+
+  Future<void> _handleAddYourProperty(BuildContext context, User user) async {
+    await user.reload();
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return;
+
+    if (!currentUser.emailVerified) {
+      if (context.mounted) {
+        showVerificationDialog(context);
+      }
+      return;
+    }
+
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUser.uid)
+        .get();
+
+    final isAdmin = userDoc.data()?['isAdmin'] == true;
+    if (!context.mounted) return;
+
+    if (isAdmin) {
+      Navigator.pushNamed(context, AppRoutes.addHostel);
+      return;
+    }
+
+    final shouldRequest = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Request Access'),
+        content: const Text(
+          'To list your property and become an admin, you need special permissions. Would you like to send a request?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Request'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldRequest != true || !context.mounted) return;
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Sending request...')));
+
+    try {
+      final currentName =
+          userDoc.data()?['name'] ?? currentUser.displayName ?? 'Unknown Name';
+      final currentEmail = currentUser.email ?? 'Unknown Email';
+
+      await FirebaseFunctions.instance.httpsCallable('requestAdminAccess').call(
+        {'name': currentName, 'email': currentEmail},
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Request sent! Wait for approval to list your property.',
+            ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send request: $e'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppTheme.primaryTeal,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -57,19 +148,28 @@ class ProfileScreen extends StatelessWidget {
                 surfaceTintColor: Colors.transparent,
                 pinned: true,
                 floating: false,
-                backgroundColor: Colors.grey[50],
+                backgroundColor: Colors.transparent,
+                flexibleSpace: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+                    ),
+                  ),
+                ),
                 centerTitle: true,
                 title: const Text(
                   'Profile',
                   style: TextStyle(
-                    color: Colors.black,
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
                   ),
                 ),
                 actions: [
                   IconButton(
-                    icon: const Icon(Icons.logout, color: Colors.black),
+                    icon: const Icon(Icons.logout, color: Colors.white),
                     onPressed: () {
                       _showLogoutDialog(context, authService);
                     },
@@ -96,11 +196,13 @@ class ProfileScreen extends StatelessWidget {
                                     width: 120,
                                     height: 120,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (_, _, _) => const Icon(
-                                      Icons.person,
-                                      size: 60,
-                                      color: AppTheme.white,
-                                    ),
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Icon(
+                                              Icons.person,
+                                              size: 60,
+                                              color: AppTheme.white,
+                                            ),
                                   ),
                                 )
                               : const Icon(
@@ -173,6 +275,27 @@ class ProfileScreen extends StatelessWidget {
                                     AppRoutes.paymentMethods,
                                   );
                                 },
+                              ),
+                              const Divider(height: 1),
+                              ListTile(
+                                leading: const Icon(
+                                  Icons.receipt_long_outlined,
+                                  color: AppTheme.primaryTeal,
+                                ),
+                                title: const Text('Payments & Transactions'),
+                                trailing: const Icon(Icons.chevron_right),
+                                onTap: () => _openPayments(context),
+                              ),
+                              const Divider(height: 1),
+                              ListTile(
+                                leading: const Icon(
+                                  Icons.add_business_rounded,
+                                  color: AppTheme.primaryTeal,
+                                ),
+                                title: const Text('Add your property'),
+                                trailing: const Icon(Icons.chevron_right),
+                                onTap: () =>
+                                    _handleAddYourProperty(context, user),
                               ),
                             ],
                           ),
@@ -304,7 +427,7 @@ class ProfileScreen extends StatelessWidget {
                             );
                           },
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 140),
                       ],
                     ),
                   ),

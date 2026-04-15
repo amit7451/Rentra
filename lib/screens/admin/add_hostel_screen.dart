@@ -313,7 +313,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           _buildSliverAppBar(),
@@ -419,18 +419,25 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
       elevation: 0,
       scrolledUnderElevation: 4,
       surfaceTintColor: Colors.transparent,
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.transparent,
+      centerTitle: true,
+      iconTheme: const IconThemeData(color: Colors.white),
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+          ),
+        ),
+      ),
       title: const Text(
         'Add Hostel',
         style: TextStyle(
-          color: Colors.black,
+          color: Colors.white,
           fontWeight: FontWeight.bold,
           fontSize: 18,
         ),
-      ),
-      centerTitle: true,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(color: Colors.grey[50]),
       ),
     );
   }
@@ -596,7 +603,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
                 right: 8,
                 child: FloatingActionButton.small(
                   heroTag: 'map_toggle',
-                  backgroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                   onPressed: () =>
                       setState(() => _isMapFullScreen = !_isMapFullScreen),
                   child: Icon(
@@ -737,7 +744,9 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
             Text(
               '${_selectedImages.length}/10',
               style: TextStyle(
-                color: _selectedImages.length >= 10 ? AppTheme.primaryTeal : Colors.grey,
+                color: _selectedImages.length >= 10
+                    ? AppTheme.primaryTeal
+                    : Colors.grey,
                 fontSize: 12,
               ),
             ),

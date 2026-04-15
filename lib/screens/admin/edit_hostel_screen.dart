@@ -343,7 +343,7 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           _buildSliverAppBar(),
@@ -457,13 +457,23 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
       pinned: true,
       elevation: 0,
       centerTitle: true,
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       scrolledUnderElevation: 4,
+      iconTheme: const IconThemeData(color: Colors.white),
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+          ),
+        ),
+      ),
       title: const Text(
         'Edit Hostel',
         style: TextStyle(
-          color: Colors.black,
+          color: Colors.white,
           fontWeight: FontWeight.bold,
           fontSize: 18,
         ),
@@ -471,7 +481,7 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
       leading: IconButton(
         icon: const Icon(
           Icons.arrow_back_ios_new,
-          color: Colors.black,
+          color: Colors.white,
           size: 20,
         ),
         onPressed: () => Navigator.pop(context),
@@ -689,7 +699,7 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
                 child: FloatingActionButton.small(
                   onPressed: () =>
                       setState(() => _isMapFullScreen = !_isMapFullScreen),
-                  backgroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                   child: Icon(
                     _isMapFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
                     color: Colors.black87,
@@ -856,7 +866,9 @@ class _EditHostelScreenState extends State<EditHostelScreen> {
                               setState(() => _newSelectedImages.removeAt(i)),
                           child: CircleAvatar(
                             radius: 12,
-                            backgroundColor: AppTheme.primaryTeal.withAlpha(200),
+                            backgroundColor: AppTheme.primaryTeal.withAlpha(
+                              200,
+                            ),
                             child: const Icon(
                               Icons.close,
                               size: 14,

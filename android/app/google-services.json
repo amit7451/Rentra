@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "360291447254-t9iqalmnr47eost41d14mi85p4pvt243.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rentra.app.rentra",
+            "certificate_hash": "90ac82373888c376f601d00376722bea088b15ac"
+          }
+        },
+        {
           "client_id": "360291447254-88beq1qn1vf7a9me7e3718hpghqimfmq.apps.googleusercontent.com",
           "client_type": 3
         }

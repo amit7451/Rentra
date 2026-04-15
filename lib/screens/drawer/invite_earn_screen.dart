@@ -68,45 +68,56 @@ class _InviteEarnScreenState extends State<InviteEarnScreen> {
                   surfaceTintColor: Colors.transparent,
                   pinned: true,
                   floating: false,
-                  backgroundColor: Colors.grey[50],
+                  backgroundColor: Colors.transparent,
                   centerTitle: true,
+                  iconTheme: const IconThemeData(color: Colors.white),
                   title: const Text(
                     'Invite & Earn',
                     style: TextStyle(
-                      color: Colors.black,
+                      color: Colors.white,
                       fontWeight: FontWeight.bold,
+                      fontSize: 18,
                     ),
                   ),
                   expandedHeight: 80,
                   flexibleSpace: FlexibleSpaceBar(
-                    background: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Container(
-                          height: 1,
-                          width: double.infinity,
-                          clipBehavior: Clip.none,
-                          decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 15,
-                                offset: const Offset(0, 8),
-                              ),
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Divider(
-                            height: 1,
-                            thickness: 1,
-                            color: Colors.black.withOpacity(0.06),
-                          ),
+                    background: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
                         ),
-                      ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Container(
+                            height: 1,
+                            width: double.infinity,
+                            clipBehavior: Clip.none,
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 8),
+                                ),
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Divider(
+                              height: 1,
+                              thickness: 1,
+                              color: Colors.black.withOpacity(0.06),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

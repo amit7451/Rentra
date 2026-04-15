@@ -76,12 +76,21 @@ class _BookingsScreenState extends State<BookingsScreen> {
             scrolledUnderElevation: 4,
             surfaceTintColor: Colors.transparent,
             pinned: true,
-            backgroundColor: Colors.grey[50],
+            backgroundColor: Colors.transparent,
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+                ),
+              ),
+            ),
             centerTitle: true,
             title: const Text(
               'My Bookings',
               style: TextStyle(
-                color: Colors.black,
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),
@@ -150,6 +159,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
               );
             },
           ),
+          const SliverToBoxAdapter(child: SizedBox(height: 120)),
         ],
       ),
     );
@@ -427,7 +437,9 @@ class _BookingsScreenState extends State<BookingsScreen> {
                                       onPressed: () => Navigator.pop(ctx, true),
                                       child: const Text(
                                         'Delete',
-                                        style: TextStyle(color: AppTheme.primaryTeal),
+                                        style: TextStyle(
+                                          color: AppTheme.primaryTeal,
+                                        ),
                                       ),
                                     ),
                                   ],
