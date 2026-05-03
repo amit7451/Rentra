@@ -12,6 +12,7 @@ import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
 import '../../widgets/loading_indicator.dart';
 import '../home/hotel_card.dart';
+import '../../widgets/glass_card.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -260,7 +261,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
 
       appBar: AppBar(
         flexibleSpace: Container(
@@ -506,8 +507,10 @@ class _SearchScreenState extends State<SearchScreen> {
                     Positioned.fill(
                       child: Container(
                         color: isDark
-                            ? const Color(0xFF1A1A1A).withOpacity(0.95)
-                            : Colors.white.withOpacity(0.95), // Adapt to theme
+                            ? const Color(0xFF1A1A1A).withValues(alpha: 0.95)
+                            : Colors.white.withValues(
+                                alpha: 0.95,
+                              ), // Adapt to theme
                         child: _isLoadingSuggestions
                             ? const Center(child: CircularProgressIndicator())
                             : ListView.separated(
@@ -577,16 +580,21 @@ class _SearchScreenState extends State<SearchScreen> {
   void _showFilterDialog() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Container(
-              padding: const EdgeInsets.all(24),
+            return GlassCard(
+              customBorderRadius: const BorderRadius.vertical(
+                top: Radius.circular(30),
+              ),
+              padding: EdgeInsets.fromLTRB(
+                24,
+                24,
+                24,
+                MediaQuery.of(context).padding.bottom + 24,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -596,17 +604,20 @@ class _SearchScreenState extends State<SearchScreen> {
                     children: [
                       Text(
                         'Filters',
-                        style: Theme.of(context).textTheme.headlineMedium,
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close),
+                        icon: const Icon(Icons.close, color: Colors.white70),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
                   const SizedBox(height: 24),
 
-                  // Radius Slider (No Location Input here)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -615,12 +626,13 @@ class _SearchScreenState extends State<SearchScreen> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
+                          color: Colors.white,
                         ),
                       ),
                       Text(
                         '${_filterRadius.round()} km',
                         style: const TextStyle(
-                          color: AppTheme.primaryTeal,
+                          color: Color.fromARGB(255, 34, 224, 234),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -631,7 +643,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     min: 1.0,
                     max: 10.0,
                     divisions: 9,
-                    activeColor: AppTheme.primaryTeal,
+                    activeColor: const Color.fromARGB(255, 34, 224, 234),
+                    inactiveColor: Colors.white24,
                     onChanged: (val) {
                       setModalState(() => _filterRadius = val);
                     },
@@ -640,7 +653,11 @@ class _SearchScreenState extends State<SearchScreen> {
                   const SizedBox(height: 24),
                   const Text(
                     'Unit Type',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Wrap(
@@ -667,26 +684,38 @@ class _SearchScreenState extends State<SearchScreen> {
                     ],
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryTeal,
-                        foregroundColor: Colors.white,
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          34,
+                          224,
+                          234,
+                        ),
+                        foregroundColor: Colors.black87,
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 4,
                       ),
                       onPressed: () {
-                        // Apply changes and re-run search if location is selected
-                        setState(() {
-                          /* triggers rebuild with new radius */
-                        });
+                        setState(() {});
                         Navigator.pop(context);
                         if (_selectedLocation != null) {
                           _executeSearch();
                         }
                       },
-                      child: const Text('Apply Filters'),
+                      child: const Text(
+                        'Apply Filters',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -720,14 +749,25 @@ class _FilterChip extends StatelessWidget {
       label: Text(label),
       selected: isSelected,
       onSelected: onSelected,
-      selectedColor: AppTheme.primaryTeal.withOpacity(0.1),
-      checkmarkColor: AppTheme.primaryTeal,
+      selectedColor: const Color.fromARGB(
+        255,
+        34,
+        224,
+        234,
+      ).withValues(alpha: 0.2),
+      checkmarkColor: const Color.fromARGB(255, 34, 224, 234),
       labelStyle: TextStyle(
-        color: isSelected ? AppTheme.primaryTeal : Colors.black,
+        color: isSelected
+            ? const Color.fromARGB(255, 34, 224, 234)
+            : Colors.white70,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
       ),
-      backgroundColor: Colors.grey[100],
-      side: BorderSide.none,
+      backgroundColor: Colors.white.withValues(alpha: 0.05),
+      side: BorderSide(
+        color: isSelected
+            ? const Color.fromARGB(255, 34, 224, 234)
+            : Colors.white12,
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     );
   }

@@ -8,6 +8,7 @@ import '../../app/theme.dart';
 import '../../app/routes.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/highlight_wrapper.dart';
+import '../../widgets/glass_card.dart';
 
 class AdminBookingsScreen extends StatefulWidget {
   final int initialIndex;
@@ -55,8 +56,7 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    return Scaffold(      backgroundColor: Colors.transparent,
 
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -97,10 +97,10 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
               ],
               bottom: TabBar(
                 controller: _tabs,
-                indicatorColor: AppTheme.primaryTeal,
+                indicatorColor: const Color(0xFF14B8A6),
                 indicatorWeight: 3,
-                labelColor: AppTheme.primaryTeal,
-                unselectedLabelColor: Colors.grey,
+                labelColor: const Color(0xFF14B8A6),
+                unselectedLabelColor: Colors.white70,
                 labelStyle: const TextStyle(fontWeight: FontWeight.bold),
                 tabs: const [
                   Tab(text: 'Pending'),
@@ -264,23 +264,24 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
+          GlassCard(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 52, color: Colors.grey[400]),
+            borderRadius: 50,
+            child: Icon(icon, size: 52, color: AppTheme.grey),
           ),
           const SizedBox(height: 16),
           Text(
             message,
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 17, 
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.titleLarge?.color,
+            ),
           ),
           const SizedBox(height: 6),
           Text(
             subMessage,
-            style: TextStyle(color: Colors.grey[600], fontSize: 13),
+            style: const TextStyle(color: AppTheme.grey, fontSize: 13),
           ),
         ],
       ),
@@ -318,7 +319,7 @@ class _BookingList extends StatelessWidget {
             const SizedBox(height: 14),
             Text(
               emptyMessage,
-              style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+              style: const TextStyle(fontSize: 16, color: AppTheme.grey),
             ),
           ],
         ),
@@ -396,19 +397,9 @@ class _BookingCard extends StatelessWidget {
       durationText = '$displayYears year${displayYears != 1 ? 's' : ''}';
     }
 
-    return Container(
+    return GlassCard(
       margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.07),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      borderRadius: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -442,16 +433,17 @@ class _BookingCard extends StatelessWidget {
                         children: [
                           Text(
                             booking.hostelName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
+                              color: Theme.of(context).textTheme.bodyLarge?.color,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             'ID: ${booking.id.length > 10 ? '${booking.id.substring(0, 10)}…' : booking.id}',
-                            style: TextStyle(
-                              color: Colors.grey[500],
+                            style: const TextStyle(
+                              color: AppTheme.grey,
                               fontSize: 11,
                             ),
                           ),
@@ -465,6 +457,7 @@ class _BookingCard extends StatelessWidget {
 
                 // ── Booking details grid ───────────────────────
                 _row(
+                  context,
                   isFlat
                       ? Icons.people_outline
                       : Icons.airline_seat_individual_suite_outlined,
@@ -473,14 +466,16 @@ class _BookingCard extends StatelessWidget {
                       ? '${booking.flatCapacity ?? hostel.flatCapacity ?? 0} Person'
                       : '${booking.selectedSeater ?? 1} Seater',
                 ),
-                _row(Icons.calendar_today_outlined, 'Check-in', _fmt(checkIn)),
+                _row(context, Icons.calendar_today_outlined, 'Check-in', _fmt(checkIn)),
                 _row(
+                  context,
                   Icons.calendar_today_outlined,
                   'Check-out',
                   _fmt(checkOut),
                 ),
-                _row(Icons.calendar_month_outlined, 'Duration', durationText),
+                _row(context, Icons.calendar_month_outlined, 'Duration', durationText),
                 _row(
+                  context,
                   Icons.currency_rupee,
                   'Total',
                   '₹${booking.totalPrice.toStringAsFixed(0)}',
@@ -488,6 +483,7 @@ class _BookingCard extends StatelessWidget {
                 if (booking.specialRequests != null &&
                     booking.specialRequests!.isNotEmpty)
                   _row(
+                    context,
                     Icons.sticky_note_2_outlined,
                     'Note',
                     booking.specialRequests!,
@@ -516,7 +512,7 @@ class _BookingCard extends StatelessWidget {
                               Text(
                                 'Reason: ${booking.cancellationReason}',
                                 style: TextStyle(
-                                  color: AppTheme.darkTeal,
+                                  color: AppTheme.getPriceColor(context),
                                   fontSize: 12,
                                   fontStyle: FontStyle.italic,
                                 ),
@@ -586,7 +582,7 @@ class _BookingCard extends StatelessWidget {
                           context,
                           label: 'Deny',
                           icon: Icons.cancel_outlined,
-                          color: AppTheme.darkTeal,
+                          color: AppTheme.getPriceColor(context),
                           onTap: () =>
                               _changeStatus(context, BookingStatus.cancelled),
                         ),
@@ -617,20 +613,24 @@ class _BookingCard extends StatelessWidget {
     );
   }
 
-  Widget _row(IconData icon, String label, String value) => Padding(
+  Widget _row(BuildContext context, IconData icon, String label, String value) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
     child: Row(
       children: [
-        Icon(icon, size: 15, color: Colors.grey[500]),
+        Icon(icon, size: 15, color: AppTheme.grey),
         const SizedBox(width: 8),
         Text(
           '$label: ',
-          style: TextStyle(color: Colors.grey[600], fontSize: 13),
+          style: const TextStyle(color: AppTheme.grey, fontSize: 13),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontSize: 13, 
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -705,7 +705,7 @@ class _BookingCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.08),
+                  color: Colors.green.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -734,7 +734,7 @@ class _BookingCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryTeal.withOpacity(0.08),
+                  color: AppTheme.primaryTeal.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Row(
@@ -907,17 +907,17 @@ class _StatusPill extends StatelessWidget {
     switch (status) {
       case BookingStatus.confirmed:
         fg = Colors.green[700]!;
-        bg = Colors.green.withOpacity(0.1);
+        bg = Colors.green.withValues(alpha: 0.1);
         icon = Icons.check_circle;
         break;
       case BookingStatus.cancelled:
         fg = AppTheme.darkTeal;
-        bg = AppTheme.primaryTeal.withOpacity(0.1);
+        bg = AppTheme.primaryTeal.withValues(alpha: 0.1);
         icon = Icons.cancel;
         break;
       default:
         fg = Colors.orange[700]!;
-        bg = Colors.orange.withOpacity(0.1);
+        bg = Colors.orange.withValues(alpha: 0.1);
         icon = Icons.hourglass_empty;
     }
 

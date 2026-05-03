@@ -6,6 +6,7 @@ import '../../app/theme.dart';
 import '../../app/routes.dart';
 import '../../widgets/error_text.dart';
 import '../../widgets/primary_button.dart';
+import '../../widgets/glass_skeleton_block.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
@@ -105,6 +106,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
         }
 
         final hostel = snapshot.data!;
+        final priceColor = AppTheme.getPriceColor(context);
 
         return Scaffold(
           body: CustomScrollView(
@@ -186,7 +188,11 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : AppTheme.lightGrey,
+                                    color:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.grey[800]
+                                        : AppTheme.lightGrey,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
@@ -194,7 +200,11 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                         ? 'Flat'
                                         : 'Hostel / PG',
                                     style: TextStyle(
-                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
+                                      color:
+                                          Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.white
+                                          : Colors.black87,
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -218,7 +228,9 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                   Text(
                                     hostel.rating.toStringAsFixed(1),
                                     style: TextStyle(
-                                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge?.color,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
                                     ),
@@ -257,7 +269,9 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                               ? '${widget.distance!.toStringAsFixed(1)} km'
                                               : '${(Geolocator.distanceBetween(_currentPosition!.latitude, _currentPosition!.longitude, hostel.latitude!, hostel.longitude!) / 1000).toStringAsFixed(1)} km',
                                           style: TextStyle(
-                                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                                            color: Theme.of(
+                                              context,
+                                            ).textTheme.bodyLarge?.color,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 15,
                                           ),
@@ -306,7 +320,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryTeal.withOpacity(0.1),
+                            color: AppTheme.primaryTeal.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -329,7 +343,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                         .textTheme
                                         .displaySmall
                                         ?.copyWith(
-                                          color: AppTheme.primaryTeal,
+                                          color: priceColor,
                                           fontWeight: FontWeight.bold,
                                         ),
                                   ),
@@ -357,10 +371,16 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                           decoration: BoxDecoration(
                             color: Theme.of(context).cardColor,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Theme.of(context).dividerColor),
+                            border: Border.all(
+                              color: Theme.of(context).dividerColor,
+                            ),
                             boxShadow: [
                               BoxShadow(
-                                color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.5) : Colors.black.withOpacity(0.05),
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.black.withValues(alpha: 0.5)
+                                    : Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -379,7 +399,11 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                         'Seater',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : Colors.grey[700],
+                                          color:
+                                              Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? Colors.grey[300]
+                                              : Colors.grey[700],
                                         ),
                                       ),
                                     ),
@@ -389,7 +413,11 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                         'Price',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : Colors.grey[700],
+                                          color:
+                                              Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? Colors.grey[300]
+                                              : Colors.grey[700],
                                         ),
                                       ),
                                     ),
@@ -400,7 +428,11 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                                         textAlign: TextAlign.right,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : Colors.grey[700],
+                                          color:
+                                              Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? Colors.grey[300]
+                                              : Colors.grey[700],
                                         ),
                                       ),
                                     ),
@@ -459,8 +491,20 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                         runSpacing: 8,
                         children: hostel.amenities.map((amenity) {
                           return Chip(
-                            label: Text(amenity, style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)),
-                            backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : AppTheme.lightGrey,
+                            label: Text(
+                              amenity,
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black87,
+                              ),
+                            ),
+                            backgroundColor:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey[800]
+                                : AppTheme.lightGrey,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
                               vertical: 4,
@@ -579,7 +623,9 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                     color: Theme.of(context).scaffoldBackgroundColor,
                     boxShadow: [
                       BoxShadow(
-                        color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.5) : Colors.black.withOpacity(0.1),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.black.withValues(alpha: 0.5)
+                            : Colors.black.withValues(alpha: 0.1),
                         blurRadius: 10,
                         offset: const Offset(0, -5),
                       ),
@@ -643,7 +689,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.08),
+                color: Colors.blue.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -660,11 +706,11 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: (() {
-              if (rooms <= 0) return AppTheme.grey.withOpacity(0.1);
-              if (isFlat) return Colors.green.withOpacity(0.08);
-              if (rooms <= 3) return AppTheme.primaryTeal.withOpacity(0.08);
-              if (rooms <= 5) return Colors.amber.withOpacity(0.08);
-              return Colors.green.withOpacity(0.08);
+              if (rooms <= 0) return AppTheme.grey.withValues(alpha: 0.1);
+              if (isFlat) return Colors.green.withValues(alpha: 0.08);
+              if (rooms <= 3) return AppTheme.getPriceColor(context).withValues(alpha: 0.12);
+              if (rooms <= 5) return Colors.amber.withValues(alpha: 0.08);
+              return Colors.green.withValues(alpha: 0.08);
             })(),
             borderRadius: BorderRadius.circular(20),
           ),
@@ -674,11 +720,12 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                 : (rooms > 0 ? '$rooms rooms' : 'No rooms'),
             style: TextStyle(
               color: (() {
-                if (rooms <= 0) return AppTheme.grey;
-                if (isFlat) return Colors.green;
-                if (rooms <= 3) return AppTheme.primaryTeal;
-                if (rooms <= 5) return Colors.orange;
-                return Colors.green;
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+                if (rooms <= 0) return Colors.redAccent;
+                if (isFlat) return isDark ? Colors.greenAccent : Colors.green;
+                if (rooms <= 3) return AppTheme.getPriceColor(context);
+                if (rooms <= 5) return isDark ? Colors.orangeAccent : Colors.orange;
+                return isDark ? Colors.greenAccent : Colors.green;
               })(),
               fontSize: 13,
               fontWeight: FontWeight.bold,
@@ -698,6 +745,8 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
   ) {
     if (price == null || price == 0) return const SizedBox.shrink();
 
+    final priceColor = AppTheme.getPriceColor(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -713,10 +762,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
             flex: 2,
             child: Text(
               '₹${price.toStringAsFixed(0)}',
-              style: const TextStyle(
-                color: AppTheme.primaryTeal,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: priceColor, fontWeight: FontWeight.bold),
             ),
           ),
           Expanded(
@@ -733,7 +779,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
 
   Widget _buildSkeletonLoader() {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -760,27 +806,10 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                 // Container preview type searching bar
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: GlassSkeletonBlock(
                     height: 56,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.search, color: Colors.grey[300]),
-                        const SizedBox(width: 12),
-                        Container(
-                          width: 150,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      ],
-                    ),
+                    width: double.infinity,
+                    borderRadius: 30,
                   ),
                 ),
                 Padding(
@@ -839,68 +868,10 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
     required double width,
     double borderRadius = 8,
   }) {
-    return Container(
+    return GlassSkeletonBlock(
       height: height,
       width: width,
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(borderRadius),
-      ),
-      child: const _ShimmerOverlay(),
-    );
-  }
-}
-
-class _ShimmerOverlay extends StatefulWidget {
-  const _ShimmerOverlay();
-
-  @override
-  State<_ShimmerOverlay> createState() => _ShimmerOverlayState();
-}
-
-class _ShimmerOverlayState extends State<_ShimmerOverlay>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return FractionallySizedBox(
-          widthFactor: 1.0,
-          heightFactor: 1.0,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment(-1.0 + (_controller.value * 2), -0.3),
-                end: Alignment(0.0 + (_controller.value * 2), 0.3),
-                colors: [
-                  Colors.grey[200]!,
-                  Colors.grey[100]!,
-                  Colors.grey[200]!,
-                ],
-                stops: const [0.3, 0.5, 0.7],
-              ),
-            ),
-          ),
-        );
-      },
+      borderRadius: borderRadius,
     );
   }
 }

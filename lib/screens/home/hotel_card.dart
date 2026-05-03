@@ -66,20 +66,20 @@ class PremiumHostelCard extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: isDark
                         ? [
-                            Colors.white.withOpacity(0.08),
-                            Colors.white.withOpacity(0.02),
+                            const Color(0xFF224E58).withValues(alpha: 0.75),
+                            const Color(0xFF14363F).withValues(alpha: 0.75),
                           ]
                         : [
-                            const Color(0xFF14B8A6).withOpacity(0.12),
-                            Colors.white.withOpacity(0.6),
+                            const Color(0xFF14B8A6).withValues(alpha: 0.12),
+                            Colors.white.withValues(alpha: 0.6),
                           ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   border: Border.all(
                     color: isDark
-                        ? Colors.white.withOpacity(0.12)
-                        : Colors.white.withOpacity(0.7),
+                        ? Colors.white.withValues(alpha: 0.25)
+                        : Colors.white.withValues(alpha: 0.7),
                   ),
                 ),
               ),
@@ -125,7 +125,7 @@ class PremiumHostelCard extends StatelessWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(18),
-                                  color: Colors.black.withOpacity(0.35),
+                                  color: Colors.black.withValues(alpha: 0.35),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -204,7 +204,7 @@ class PremiumHostelCard extends StatelessWidget {
                                   style: TextStyle(
                                     fontSize: priceFontSize,
                                     fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF14B8A6),
+                                    color: AppTheme.getPriceColor(context),
                                   ),
                                 ),
                               ),
@@ -247,7 +247,7 @@ class PremiumHostelCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Colors.white.withOpacity(isDark ? 0.06 : 0.25),
+                        Colors.white.withValues(alpha: isDark ? 0.06 : 0.25),
                         Colors.transparent,
                       ],
                       begin: Alignment.topCenter,
@@ -281,11 +281,11 @@ class PremiumHostelCard extends StatelessWidget {
 
                             /// 🌊 clean frosted glass (no heavy layers)
                             color: isDark
-                                ? Colors.white.withOpacity(0.12)
-                                : Colors.white.withOpacity(0.35),
+                                ? Colors.white.withValues(alpha: 0.12)
+                                : Colors.white.withValues(alpha: 0.35),
 
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.white.withValues(alpha: 0.5),
                               width: 0.6,
                             ),
                           ),

@@ -3,8 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/firestore_service.dart';
 import '../../services/notification_service.dart';
-import '../../app/theme.dart';
 import '../../widgets/loading_indicator.dart';
+
+import '../../widgets/glass_card.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
@@ -25,7 +26,7 @@ class NotificationsScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
 
       appBar: AppBar(
         title: const Text(
@@ -62,18 +63,33 @@ class NotificationsScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.notifications_none_outlined,
-                    size: 64,
-                    color: Colors.grey[300],
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF14B8A6).withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.notifications_none_rounded,
+                      size: 64,
+                      color: Color(0xFF14B8A6),
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   Text(
-                    'No new notifications',
+                    'No notifications yet',
                     style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.titleLarge?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'We\'ll notify you when something important happens',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -106,10 +122,14 @@ class NotificationsScreen extends StatelessWidget {
               return Dismissible(
                 key: Key(notification['id']),
                 background: Container(
-                  color: AppTheme.primaryTeal,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.only(right: 20),
-                  child: const Icon(Icons.delete, color: Colors.white),
+                  child: const Icon(Icons.delete_outline, color: Colors.white),
                 ),
                 direction: DismissDirection.endToStart,
                 onDismissed: (direction) async {
@@ -133,90 +153,90 @@ class NotificationsScreen extends StatelessWidget {
                       );
                     }
                   },
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isRead
-                          ? Colors.white
-                          : AppTheme.primaryTeal.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isRead
-                            ? Colors.grey.withOpacity(0.2)
-                            : AppTheme.primaryTeal.withOpacity(0.3),
-                      ),
-                      boxShadow: [
-                        if (!isRead)
-                          BoxShadow(
-                            color: AppTheme.primaryTeal.withOpacity(0.05),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                      ],
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: isRead
-                                ? Colors.grey[100]
-                                : AppTheme.primaryTeal.withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            _getIconForType(notification['type']),
-                            color: isRead ? Colors.grey : AppTheme.primaryTeal,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                  child: Stack(
+                    children: [
+                      GlassCard(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(16),
+                        borderRadius: 16,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF14B8A6).withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                _getIconForType(notification['type']),
+                                color: const Color(0xFF14B8A6),
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(
-                                    child: Text(
-                                      notification['title'] ?? 'Notification',
-                                      style: TextStyle(
-                                        fontWeight: isRead
-                                            ? FontWeight.w600
-                                            : FontWeight.bold,
-                                        fontSize: 16,
-                                        color: isRead
-                                            ? Colors.black87
-                                            : Colors.black,
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          notification['title'] ?? 'Notification',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                            color: Theme.of(context).textTheme.titleLarge?.color,
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                      Text(
+                                        timeText,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                  const SizedBox(height: 6),
                                   Text(
-                                    timeText,
+                                    notification['body'] ?? '',
                                     style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[500],
+                                      fontSize: 13,
+                                      color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                                      height: 1.4,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 6),
-                              Text(
-                                notification['body'] ?? '',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[700],
-                                  height: 1.4,
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (!isRead)
+                        Positioned(
+                          top: 12,
+                          right: 12,
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.redAccent,
+                                  blurRadius: 4,
+                                  spreadRadius: 1,
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
               );

@@ -5,6 +5,7 @@ import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
 import '../../app/routes.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/glass_card.dart';
 import 'edit_hostel_screen.dart';
 
 import '../../services/firestore_service_additions.dart';
@@ -17,8 +18,7 @@ class MyHostelsScreen extends StatelessWidget {
     final firestoreService = FirestoreService();
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    return Scaffold(      backgroundColor: Colors.transparent,
 
       body: RefreshIndicator(
         color: AppTheme.primaryTeal,
@@ -94,9 +94,7 @@ class MyHostelsScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(24),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryTeal.withValues(
-                                alpha: 0.08,
-                              ),
+                              color: AppTheme.primaryTeal.withValues(alpha: 0.08),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -106,17 +104,18 @@ class MyHostelsScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          const Text(
+                          Text(
                             'No hostels listed yet',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: Theme.of(context).textTheme.titleLarge?.color,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Add your first property to get started',
-                            style: TextStyle(color: Colors.grey[600]),
+                            style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color),
                           ),
                         ],
                       ),
@@ -153,19 +152,9 @@ class _HostelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassCard(
       margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.07),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      borderRadius: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -194,9 +183,9 @@ class _HostelCard extends StatelessWidget {
                               height: 170,
                               width: double.infinity,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => _placeholder(),
+                              errorBuilder: (_, _, _) => _placeholder(context),
                             )
-                          : _placeholder(),
+                          : _placeholder(context),
                       // Status badge overlay
                       Positioned(
                         top: 12,
@@ -247,25 +236,26 @@ class _HostelCard extends StatelessWidget {
                     children: [
                       Text(
                         hostel.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                         ),
                       ),
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          Icon(
-                            Icons.location_on_outlined,
-                            size: 15,
-                            color: Colors.grey[600],
-                          ),
+                            Icon(
+                              Icons.location_on_outlined,
+                              size: 15,
+                              color: Theme.of(context).textTheme.bodySmall?.color,
+                            ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               '${hostel.address}, ${hostel.city}',
                               style: TextStyle(
-                                color: Colors.grey[600],
+                                color: Theme.of(context).textTheme.bodySmall?.color,
                                 fontSize: 13,
                               ),
                               maxLines: 1,
@@ -303,16 +293,20 @@ class _HostelCard extends StatelessWidget {
                               return _infoChip(
                                 '₹${displayPrice.toStringAsFixed(0)}/${hostel.rentPeriod == 'monthly' ? 'mo' : 'yr'}',
                                 Icons.payments_outlined,
-                                AppTheme.primaryTeal.withValues(alpha: 0.1),
-                                AppTheme.primaryTeal,
+                                AppTheme.getPriceColor(context).withValues(alpha: 0.1),
+                                AppTheme.getPriceColor(context),
                               );
                             },
                           ),
                           _infoChip(
                             '${hostel.availableRooms} rooms',
                             Icons.bed_outlined,
-                            Colors.blue.withValues(alpha: 0.1),
-                            Colors.blue[700]!,
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.blue.withValues(alpha: 0.2)
+                                : Colors.blue.withValues(alpha: 0.1),
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.blue[300]!
+                                : Colors.blue[700]!,
                           ),
                           // Rating box fixed as per hotel_card.dart
                           Row(
@@ -326,8 +320,8 @@ class _HostelCard extends StatelessWidget {
                               const SizedBox(width: 4),
                               Text(
                                 hostel.rating.toStringAsFixed(1),
-                                style: const TextStyle(
-                                  color: Colors.black,
+                                style: TextStyle(
+                                  color: Theme.of(context).textTheme.bodyLarge?.color,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
                                 ),
@@ -350,15 +344,15 @@ class _HostelCard extends StatelessWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.grey[100],
+                                color: Colors.white.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                a,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey[700],
-                                ),
+                                  a,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Theme.of(context).textTheme.bodySmall?.color,
+                                  ),
                               ),
                             );
                           }).toList(),
@@ -379,7 +373,7 @@ class _HostelCard extends StatelessWidget {
                   child: _actionButton(
                     label: 'Edit',
                     icon: Icons.edit_outlined,
-                    color: AppTheme.primaryTeal,
+                    color: AppTheme.getPriceColor(context),
                     outlined: true,
                     onTap: () => Navigator.push(
                       context,
@@ -396,7 +390,11 @@ class _HostelCard extends StatelessWidget {
                     icon: hostel.isActive
                         ? Icons.pause_circle_outline
                         : Icons.play_circle_outline,
-                    color: hostel.isActive ? Colors.orange[700]! : Colors.green,
+                    color: hostel.isActive
+                        ? (Theme.of(context).brightness == Brightness.dark
+                            ? Colors.orange[300]!
+                            : Colors.orange[700]!)
+                        : Colors.green,
                     outlined: true,
                     onTap: () async {
                       await firestoreService.toggleHostelActive(
@@ -416,11 +414,11 @@ class _HostelCard extends StatelessWidget {
     );
   }
 
-  Widget _placeholder() => Container(
+  Widget _placeholder(BuildContext context) => Container(
     height: 170,
     width: double.infinity,
-    color: Colors.grey[200],
-    child: const Icon(Icons.image_outlined, size: 48, color: Colors.grey),
+    color: Colors.white.withValues(alpha: 0.05),
+    child: Icon(Icons.image_outlined, size: 48, color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.5) ?? AppTheme.grey),
   );
 
   Widget _infoChip(String label, IconData icon, Color bgColor, Color fgColor) {
@@ -491,10 +489,10 @@ class _HostelCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          border: Border.all(color: AppTheme.lightTeal),
+          border: Border.all(color: AppTheme.getPriceColor(context).withValues(alpha: 0.3)),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(Icons.delete_outline, color: AppTheme.darkTeal, size: 20),
+        child: Icon(Icons.delete_outline, color: AppTheme.getPriceColor(context), size: 20),
       ),
     );
   }

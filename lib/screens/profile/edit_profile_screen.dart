@@ -10,6 +10,7 @@ import '../../services/auth_service.dart';
 import '../../app/theme.dart';
 import '../../app/routes.dart';
 import '../../widgets/primary_button.dart';
+import '../../widgets/glass_card.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserModel userModel;
@@ -256,11 +257,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: const Text(
+          'Edit Profile',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.white),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+            ),
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete_forever, color: Colors.black),
+            icon: const Icon(Icons.delete_forever, color: Colors.white),
             tooltip: 'Delete Account',
             onPressed: () => _showDeleteAccountDialog(context),
           ),
@@ -276,7 +293,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   CircleAvatar(
                     radius: 60,
-                    backgroundColor: AppTheme.primaryTeal.withOpacity(0.1),
+                    backgroundColor: AppTheme.primaryTeal.withValues(alpha: 0.1),
                     backgroundImage: _imageFile != null
                         ? FileImage(_imageFile!)
                         : (widget.userModel.photoUrl != null
@@ -312,81 +329,109 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ],
               ),
               const SizedBox(height: 32),
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Full Name',
-                  prefixIcon: Icon(Icons.person_outlined),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter your name' : null,
-              ),
-              const SizedBox(height: 16),
-              IgnorePointer(
-                child: TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
-                    filled: true,
-                    fillColor: AppTheme.lightGrey,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _phoneNumberController,
-                decoration: const InputDecoration(
-                  labelText: 'Phone Number',
-                  prefixIcon: Icon(Icons.phone_outlined),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? 'Please enter your phone number' : null,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedGender,
-                decoration: const InputDecoration(
-                  labelText: 'Gender',
-                  prefixIcon: Icon(Icons.person_outline),
-                ),
-                items: ['Male', 'Female', 'Prefer not to say', 'Other']
-                    .map(
-                      (String value) => DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
+              GlassCard(
+                borderRadius: 16,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _nameController,
+                      cursorColor: AppTheme.getPriceColor(context),
+                      style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+                      decoration: InputDecoration(
+                        labelText: 'Full Name',
+                        labelStyle: const TextStyle(color: AppTheme.grey),
+                        floatingLabelStyle: TextStyle(color: AppTheme.getPriceColor(context)),
+                        prefixIcon: const Icon(Icons.person_outlined),
+                        filled: false,
                       ),
-                    )
-                    .toList(),
-                onChanged: (newValue) =>
-                    setState(() => _selectedGender = newValue),
-              ),
-              const SizedBox(height: 16),
-              InkWell(
-                onTap: () async {
-                  final DateTime? picked = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedDateOfBirth ?? DateTime.now(),
-                    firstDate: DateTime(1900),
-                    lastDate: DateTime.now(),
-                  );
-                  if (picked != null) {
-                    setState(() => _selectedDateOfBirth = picked);
-                  }
-                },
-                child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'Date of Birth',
-                    prefixIcon: Icon(Icons.calendar_today_outlined),
-                  ),
-                  child: Text(
-                    _selectedDateOfBirth == null
-                        ? 'Select Date'
-                        : DateFormat(
-                            'dd/MM/yyyy',
-                          ).format(_selectedDateOfBirth!),
-                    style: const TextStyle(color: AppTheme.black),
-                  ),
+                      validator: (value) =>
+                          value!.isEmpty ? 'Please enter your name' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    IgnorePointer(
+                      child: TextFormField(
+                        controller: _emailController,
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+                        decoration: InputDecoration(
+                          labelText: 'Email',
+                          labelStyle: const TextStyle(color: AppTheme.grey),
+                          floatingLabelStyle: TextStyle(color: AppTheme.getPriceColor(context)),
+                          prefixIcon: const Icon(Icons.email_outlined),
+                          filled: false,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _phoneNumberController,
+                      cursorColor: AppTheme.getPriceColor(context),
+                      style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+                      decoration: InputDecoration(
+                        labelText: 'Phone Number',
+                        labelStyle: const TextStyle(color: AppTheme.grey),
+                        floatingLabelStyle: TextStyle(color: AppTheme.getPriceColor(context)),
+                        prefixIcon: const Icon(Icons.phone_outlined),
+                        filled: false,
+                      ),
+                      validator: (value) =>
+                          value!.isEmpty ? 'Please enter your phone number' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedGender,
+                      dropdownColor: Theme.of(context).scaffoldBackgroundColor,
+                      style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+                      decoration: InputDecoration(
+                        labelText: 'Gender',
+                        labelStyle: const TextStyle(color: AppTheme.grey),
+                        floatingLabelStyle: TextStyle(color: AppTheme.getPriceColor(context)),
+                        prefixIcon: const Icon(Icons.person_outline),
+                        filled: false,
+                      ),
+                      items: ['Male', 'Female', 'Prefer not to say', 'Other']
+                          .map(
+                            (String value) => DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (newValue) =>
+                          setState(() => _selectedGender = newValue),
+                    ),
+                    const SizedBox(height: 16),
+                    InkWell(
+                      onTap: () async {
+                        final DateTime? picked = await showDatePicker(
+                          context: context,
+                          initialDate: _selectedDateOfBirth ?? DateTime.now(),
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime.now(),
+                        );
+                        if (picked != null) {
+                          setState(() => _selectedDateOfBirth = picked);
+                        }
+                      },
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: 'Date of Birth',
+                          labelStyle: const TextStyle(color: AppTheme.grey),
+                          floatingLabelStyle: TextStyle(color: AppTheme.getPriceColor(context)),
+                          prefixIcon: const Icon(Icons.calendar_today_outlined),
+                          filled: false,
+                        ),
+                        child: Text(
+                          _selectedDateOfBirth == null
+                              ? 'Select Date'
+                              : DateFormat(
+                                  'dd/MM/yyyy',
+                                ).format(_selectedDateOfBirth!),
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 32),

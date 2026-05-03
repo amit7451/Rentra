@@ -15,6 +15,13 @@ class AppTheme {
   static const Color backgroundColor = Color(0xFFF5F5F5);
   static const Color ratingYellow = Color(0xFFFFB400);
 
+  // Helper for text colors on dark glass backgrounds (e.g. pricing)
+  static Color getPriceColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF14B8A6)
+        : primaryTeal;
+  }
+
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
@@ -27,6 +34,13 @@ class AppTheme {
     ),
     scaffoldBackgroundColor: const Color(0xFFF0FBFB), // Light theme background
     canvasColor: const Color(0xFFF0FBFB), // For drawer and other surfaces
+
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+      },
+    ),
 
     appBarTheme: const AppBarTheme(
       backgroundColor: Color(0xFFF0FBFB),
@@ -77,8 +91,8 @@ class AppTheme {
     ),
 
     cardTheme: CardThemeData(
-      color: white,
-      elevation: 2,
+      color: Colors.transparent,
+      elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     ),
 
@@ -156,11 +170,20 @@ class AppTheme {
       error: const Color(0xFFCF6679),
       brightness: Brightness.dark,
     ),
-    scaffoldBackgroundColor: const Color(0xFF021314),
+    scaffoldBackgroundColor:
+        Colors.transparent, // Letting the AppBackground shine through
     canvasColor: const Color(0xFF021314),
 
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+      },
+    ),
+
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF021314),
+      backgroundColor: Colors
+          .transparent, // Making AppBar transparent too so it blends with background
       foregroundColor: Colors.white,
       elevation: 0,
       centerTitle: true,
@@ -185,7 +208,15 @@ class AppTheme {
       ),
     ),
 
+    textSelectionTheme: const TextSelectionThemeData(
+      cursorColor: Color(0xFF14B8A6),
+      selectionColor: Color(0x4014B8A6),
+      selectionHandleColor: Color(0xFF14B8A6),
+    ),
+
     inputDecorationTheme: InputDecorationTheme(
+      labelStyle: const TextStyle(color: Colors.white70),
+      floatingLabelStyle: const TextStyle(color: Color(0xFF14B8A6)),
       filled: true,
       fillColor: const Color(0xFF0F1E1E),
       border: OutlineInputBorder(
@@ -208,8 +239,8 @@ class AppTheme {
     ),
 
     cardTheme: CardThemeData(
-      color: const Color(0xFF0B1919),
-      elevation: 2,
+      color: Colors.transparent, // Replaced by GlassCard
+      elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     ),
 

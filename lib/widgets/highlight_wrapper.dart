@@ -31,7 +31,7 @@ class _HighlightWrapperState extends State<HighlightWrapper>
     _colorAnimation =
         ColorTween(
           begin: Colors.transparent,
-          end: Colors.grey.withOpacity(0.4),
+          end: Colors.grey.withValues(alpha: 0.4),
         ).animate(
           CurvedAnimation(
             parent: _controller,

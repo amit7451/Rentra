@@ -5,6 +5,7 @@ import '../../models/hostel_model.dart';
 import '../../models/user_model.dart';
 import '../../services/firestore_service.dart';
 import '../../app/theme.dart';
+import '../../widgets/glass_card.dart';
 
 class AdminBookingDetailsScreen extends StatefulWidget {
   final String bookingId;
@@ -70,7 +71,7 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
     }
 
     if (_booking == null || _hostel == null || _user == null) {
-      return Scaffold(
+      return Scaffold(backgroundColor: Colors.transparent, 
         appBar: AppBar(
           title: const Text(
             'Booking Details',
@@ -109,9 +110,7 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
       durationText = '$displayYears year${displayYears != 1 ? 's' : ''}';
     }
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-
+    return Scaffold(      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text(
           'Booking Details',
@@ -150,13 +149,9 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Status Header
-            Container(
-              width: double.infinity,
+            GlassCard(
               padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-              decoration: BoxDecoration(
-                color: _getStatusColor(_booking!.status).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
-              ),
+              borderRadius: 16,
               child: Column(
                 children: [
                   Icon(
@@ -176,7 +171,7 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Booking ID: ${_booking!.id}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: const TextStyle(fontSize: 12, color: AppTheme.grey),
                   ),
                 ],
               ),
@@ -186,45 +181,41 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
             // Property Info
             Text(
               'Property Information',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).textTheme.titleLarge?.color,
+              ),
             ),
             const SizedBox(height: 12),
-            Card(
-              color: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Colors.grey.shade200),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _hostel!.name,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+            GlassCard(
+              padding: const EdgeInsets.all(16),
+              borderRadius: 16,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _hostel!.name,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.titleLarge?.color,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _hostel!.address,
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                    const Divider(height: 24),
-                    _detailRow('Unit Type', isFlat ? 'Flat' : 'Hostel / PG'),
-                    _detailRow(
-                      isFlat ? 'Capacity' : 'Selected Seater',
-                      isFlat
-                          ? '${_booking!.flatCapacity ?? _hostel!.flatCapacity ?? 0} Person'
-                          : '${_booking!.selectedSeater ?? 1} Seater',
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _hostel!.address,
+                    style: const TextStyle(color: AppTheme.grey),
+                  ),
+                  const Divider(height: 24),
+                  _detailRow(context, 'Unit Type', isFlat ? 'Flat' : 'Hostel / PG'),
+                  _detailRow(
+                    context,
+                    isFlat ? 'Capacity' : 'Selected Seater',
+                    isFlat
+                        ? '${_booking!.flatCapacity ?? _hostel!.flatCapacity ?? 0} Person'
+                        : '${_booking!.selectedSeater ?? 1} Seater',
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 24),
@@ -232,252 +223,212 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
             // Booking Breakdown
             Text(
               'Booking Breakdown',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).textTheme.titleLarge?.color,
+              ),
             ),
             const SizedBox(height: 12),
-            Card(
-              color: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Colors.grey.shade200),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _detailRow('Check-in Date', _fmt(_booking!.checkInDate)),
-                    _detailRow('Check-out Date', _fmt(_booking!.checkOutDate)),
-                    _detailRow('Duration', durationText),
-                    _detailRow(
-                      'Payment Processed',
-                      _fmt(_booking!.bookingDate),
-                    ),
-                    _detailRow(
-                      'Booking Fee Paid',
-                      '₹${_booking!.bookingFee?.toStringAsFixed(0) ?? '0'}',
-                    ),
-                    const Divider(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Total Rent',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+            GlassCard(
+              padding: const EdgeInsets.all(16),
+              borderRadius: 16,
+              child: Column(
+                children: [
+                  _detailRow(context, 'Check-in Date', _fmt(_booking!.checkInDate)),
+                  _detailRow(context, 'Check-out Date', _fmt(_booking!.checkOutDate)),
+                  _detailRow(context, 'Duration', durationText),
+                  _detailRow(
+                    context,
+                    'Payment Processed',
+                    _fmt(_booking!.bookingDate),
+                  ),
+                  _detailRow(
+                    context,
+                    'Booking Fee Paid',
+                    '₹${_booking!.bookingFee?.toStringAsFixed(0) ?? '0'}',
+                  ),
+                  const Divider(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Total Rent',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                         ),
-                        Text(
-                          '₹${_booking!.totalPrice.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryTeal,
-                          ),
+                      ),
+                      Text(
+                        '₹${_booking!.totalPrice.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryTeal,
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 24),
 
-            // Guest Info (Only show if confirmed, or just basic name otherwise)
+            // Guest Info
             Text(
               'Guest Information',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).textTheme.titleLarge?.color,
+              ),
             ),
             const SizedBox(height: 12),
-            Card(
-              color: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Colors.grey.shade200),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 24,
-                          backgroundColor: AppTheme.primaryTeal.withOpacity(
-                            0.1,
-                          ),
-                          backgroundImage:
-                              (_user!.photoUrl?.isNotEmpty ?? false)
-                              ? NetworkImage(_user!.photoUrl!)
-                              : null,
-                          child: (_user!.photoUrl?.isEmpty ?? true)
-                              ? const Icon(
-                                  Icons.person,
-                                  color: AppTheme.primaryTeal,
-                                  size: 24,
-                                )
-                              : null,
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _user!.name.isNotEmpty
-                                    ? _user!.name
-                                    : 'Guest User',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              if (_booking!.specialRequests?.isNotEmpty ??
-                                  false)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4.0),
-                                  child: Text(
-                                    'Note: "${_booking!.specialRequests}"',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontStyle: FontStyle.italic,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    if (_booking!.status == BookingStatus.confirmed) ...[
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: InkWell(
-                              onTap: () {
-                                if (_user!.phoneNumber?.isNotEmpty ?? false) {
-                                  _launchUrl('tel:${_user!.phoneNumber}');
-                                }
-                              },
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Colors.grey.shade300,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(
-                                      Icons.phone,
-                                      size: 18,
-                                      color: AppTheme.primaryTeal,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      (_user!.phoneNumber?.isNotEmpty ?? false)
-                                          ? 'Call'
-                                          : 'No Phone',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: InkWell(
-                              onTap: () {
-                                if (_user!.email.isNotEmpty) {
-                                  _launchUrl('mailto:${_user!.email}');
-                                }
-                              },
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Colors.grey.shade300,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.email,
-                                      size: 18,
-                                      color: AppTheme.primaryTeal,
-                                    ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Email',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+            GlassCard(
+              padding: const EdgeInsets.all(16),
+              borderRadius: 16,
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: AppTheme.primaryTeal.withValues(alpha: 0.1),
+                        backgroundImage: (_user!.photoUrl?.isNotEmpty ?? false)
+                            ? NetworkImage(_user!.photoUrl!)
+                            : null,
+                        child: (_user!.photoUrl?.isEmpty ?? true)
+                            ? const Icon(
+                                Icons.person,
+                                color: AppTheme.primaryTeal,
+                                size: 24,
+                              )
+                            : null,
                       ),
-                    ] else ...[
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Row(
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.lock_outline,
-                              size: 16,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Contact details will be visible after confirming the booking.',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
+                            Text(
+                              _user!.name.isNotEmpty ? _user!.name : 'Guest User',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).textTheme.bodyLarge?.color,
                               ),
                             ),
+                            if (_booking!.specialRequests?.isNotEmpty ?? false)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4.0),
+                                child: Text(
+                                  'Note: "${_booking!.specialRequests}"',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic,
+                                    color: AppTheme.grey,
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
                     ],
+                  ),
+                  if (_booking!.status == BookingStatus.confirmed) ...[
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () {
+                              if (_user!.phoneNumber?.isNotEmpty ?? false) {
+                                _launchUrl('tel:${_user!.phoneNumber}');
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: AppTheme.primaryTeal.withValues(alpha: 0.3),
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.phone, size: 18, color: AppTheme.primaryTeal),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    (_user!.phoneNumber?.isNotEmpty ?? false) ? 'Call' : 'No Phone',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () {
+                              if (_user!.email.isNotEmpty) {
+                                _launchUrl('mailto:${_user!.email}');
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: AppTheme.primaryTeal.withValues(alpha: 0.3),
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.email, size: 18, color: AppTheme.primaryTeal),
+                                  SizedBox(width: 8),
+                                  Text('Email', style: TextStyle(fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.lock_outline, size: 16, color: AppTheme.grey),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Contact details will be visible after confirming the booking.',
+                              style: TextStyle(fontSize: 12, color: AppTheme.grey),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
-                ),
+                ],
               ),
             ),
             const SizedBox(height: 32),
 
-            // ACTION BUTTONS (Only if pending)
+            // ACTION BUTTONS
             if (_booking!.status == BookingStatus.pending)
               Row(
                 children: [
@@ -487,16 +438,10 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
                         foregroundColor: AppTheme.primaryTeal,
                         side: const BorderSide(color: AppTheme.primaryTeal),
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      onPressed: () =>
-                          _updateBookingStatus(BookingStatus.cancelled),
-                      child: const Text(
-                        'Deny',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      onPressed: () => _updateBookingStatus(BookingStatus.cancelled),
+                      child: const Text('Deny', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -506,21 +451,14 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      onPressed: () =>
-                          _updateBookingStatus(BookingStatus.confirmed),
-                      child: const Text(
-                        'Confirm',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      onPressed: () => _updateBookingStatus(BookingStatus.confirmed),
+                      child: const Text('Confirm', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
               ),
-
             const SizedBox(height: 40),
           ],
         ),
@@ -531,13 +469,9 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
   Future<void> _updateBookingStatus(BookingStatus newStatus) async {
     try {
       await _firestoreService.updateBookingStatus(_booking!.id, newStatus);
-
-      // Send notification to user
       await _firestoreService.sendAppNotification(
         recipientId: _booking!.userId,
-        title: newStatus == BookingStatus.confirmed
-            ? 'Booking Confirmed! 🎉'
-            : 'Booking Cancelled ❌',
+        title: newStatus == BookingStatus.confirmed ? 'Booking Confirmed! 🎉' : 'Booking Cancelled ❌',
         body: newStatus == BookingStatus.confirmed
             ? 'Your booking at ${_booking!.hostelName} has been confirmed securely.'
             : 'Your booking at ${_booking!.hostelName} was cancelled by the owner.',
@@ -547,109 +481,69 @@ class _AdminBookingDetailsScreenState extends State<AdminBookingDetailsScreen> {
 
       if (mounted) {
         setState(() {
-          _booking = BookingModel(
-            id: _booking!.id,
-            userId: _booking!.userId,
-            hostelId: _booking!.hostelId,
-            hostelName: _booking!.hostelName,
-            adminId: _booking!.adminId,
-            checkInDate: _booking!.checkInDate,
-            checkOutDate: _booking!.checkOutDate,
-            numberOfGuests: _booking!.numberOfGuests,
-            totalPrice: _booking!.totalPrice,
-            status: newStatus,
-            bookingDate: _booking!.bookingDate,
-            specialRequests: _booking!.specialRequests,
-            cancellationReason: _booking!.cancellationReason,
-            cancelledBy: _booking!.cancelledBy,
-            selectedSeater: _booking!.selectedSeater,
-            flatCapacity: _booking!.flatCapacity,
-            paymentStatus: _booking!.paymentStatus,
-            bookingFee: _booking!.bookingFee,
-            razorpayOrderId: _booking!.razorpayOrderId,
-            razorpayPaymentId: _booking!.razorpayPaymentId,
-          );
+          _booking = _booking!.copyWith(status: newStatus);
         });
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              newStatus == BookingStatus.confirmed
-                  ? 'Booking Confirmed'
-                  : 'Booking Cancelled',
-            ),
-            backgroundColor: newStatus == BookingStatus.confirmed
-                ? Colors.green
-                : AppTheme.primaryTeal,
+            content: Text(newStatus == BookingStatus.confirmed ? 'Booking Confirmed' : 'Booking Cancelled'),
+            backgroundColor: newStatus == BookingStatus.confirmed ? Colors.green : AppTheme.primaryTeal,
           ),
         );
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to update status: $e'),
-          backgroundColor: AppTheme.primaryTeal,
-        ),
+        SnackBar(content: Text('Failed to update status: $e'), backgroundColor: AppTheme.primaryTeal),
       );
     }
   }
 
-  Widget _detailRow(String label, String value) {
+  Widget _detailRow(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+          Text(label, style: const TextStyle(color: AppTheme.grey, fontSize: 14)),
           Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
+            ),
           ),
         ],
       ),
     );
   }
 
-  String _fmt(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+  String _fmt(DateTime d) => '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 
   Color _getStatusColor(BookingStatus status) {
     switch (status) {
-      case BookingStatus.pending:
-        return Colors.orange;
-      case BookingStatus.confirmed:
-        return Colors.green;
-      case BookingStatus.cancelled:
-        return AppTheme.primaryTeal;
-      case BookingStatus.completed:
-        return Colors.blue;
+      case BookingStatus.pending: return Colors.orange;
+      case BookingStatus.confirmed: return Colors.green;
+      case BookingStatus.cancelled: return AppTheme.primaryTeal;
+      case BookingStatus.completed: return Colors.blue;
     }
   }
 
   IconData _getStatusIcon(BookingStatus status) {
     switch (status) {
-      case BookingStatus.pending:
-        return Icons.hourglass_top;
-      case BookingStatus.confirmed:
-        return Icons.check_circle_outline;
-      case BookingStatus.cancelled:
-        return Icons.cancel_outlined;
-      case BookingStatus.completed:
-        return Icons.task_alt;
+      case BookingStatus.pending: return Icons.hourglass_top;
+      case BookingStatus.confirmed: return Icons.check_circle_outline;
+      case BookingStatus.cancelled: return Icons.cancel_outlined;
+      case BookingStatus.completed: return Icons.task_alt;
     }
   }
 
   String _getStatusText(BookingStatus status) {
     switch (status) {
-      case BookingStatus.pending:
-        return 'Pending Confirmation';
-      case BookingStatus.confirmed:
-        return 'Booking Confirmed';
-      case BookingStatus.cancelled:
-        return 'Booking Cancelled';
-      case BookingStatus.completed:
-        return 'Booking Completed';
+      case BookingStatus.pending: return 'Pending Confirmation';
+      case BookingStatus.confirmed: return 'Booking Confirmed';
+      case BookingStatus.cancelled: return 'Booking Cancelled';
+      case BookingStatus.completed: return 'Booking Completed';
     }
   }
 }

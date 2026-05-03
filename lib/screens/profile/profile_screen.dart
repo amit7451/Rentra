@@ -11,6 +11,7 @@ import '../../widgets/verification_dialog.dart';
 import 'package:rentra/services/user_cache.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'edit_profile_screen.dart';
+import '../../widgets/glass_card.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -128,6 +129,7 @@ class ProfileScreen extends StatelessWidget {
     }
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance
             .collection('users')
@@ -224,13 +226,14 @@ class ProfileScreen extends StatelessWidget {
                           ).textTheme.bodyLarge?.copyWith(color: AppTheme.grey),
                         ),
                         const SizedBox(height: 32),
-                        Card(
+                        GlassCard(
+                          borderRadius: 12,
                           child: Column(
                             children: [
                               ListTile(
-                                leading: const Icon(
+                                leading: Icon(
                                   Icons.person_outline,
-                                  color: AppTheme.primaryTeal,
+                                  color: AppTheme.getPriceColor(context),
                                 ),
                                 title: const Text('Edit Profile'),
                                 trailing: const Icon(Icons.chevron_right),
@@ -238,9 +241,9 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               const Divider(height: 1),
                               ListTile(
-                                leading: const Icon(
+                                leading: Icon(
                                   Icons.lock_outline,
-                                  color: AppTheme.primaryTeal,
+                                  color: AppTheme.getPriceColor(context),
                                 ),
                                 title: const Text('Change Password'),
                                 trailing: const Icon(Icons.chevron_right),
@@ -248,9 +251,9 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               const Divider(height: 1),
                               ListTile(
-                                leading: const Icon(
+                                leading: Icon(
                                   Icons.notifications_outlined,
-                                  color: AppTheme.primaryTeal,
+                                  color: AppTheme.getPriceColor(context),
                                 ),
                                 title: const Text('Notifications'),
                                 trailing: const Icon(Icons.chevron_right),
@@ -263,9 +266,9 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               const Divider(height: 1),
                               ListTile(
-                                leading: const Icon(
+                                leading: Icon(
                                   Icons.payment_outlined,
-                                  color: AppTheme.primaryTeal,
+                                  color: AppTheme.getPriceColor(context),
                                 ),
                                 title: const Text('Payment Methods'),
                                 trailing: const Icon(Icons.chevron_right),
@@ -278,9 +281,9 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               const Divider(height: 1),
                               ListTile(
-                                leading: const Icon(
+                                leading: Icon(
                                   Icons.receipt_long_outlined,
-                                  color: AppTheme.primaryTeal,
+                                  color: AppTheme.getPriceColor(context),
                                 ),
                                 title: const Text('Payments & Transactions'),
                                 trailing: const Icon(Icons.chevron_right),
@@ -288,9 +291,9 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               const Divider(height: 1),
                               ListTile(
-                                leading: const Icon(
+                                leading: Icon(
                                   Icons.add_business_rounded,
-                                  color: AppTheme.primaryTeal,
+                                  color: AppTheme.getPriceColor(context),
                                 ),
                                 title: const Text('Add your property'),
                                 trailing: const Icon(Icons.chevron_right),
@@ -301,13 +304,14 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Card(
+                        GlassCard(
+                          borderRadius: 12,
                           child: Column(
                             children: [
                               ListTile(
-                                leading: const Icon(
+                                leading: Icon(
                                   Icons.language_outlined,
-                                  color: AppTheme.primaryTeal,
+                                  color: AppTheme.getPriceColor(context),
                                 ),
                                 title: const Text('Language'),
                                 trailing: Row(
@@ -334,9 +338,9 @@ class ProfileScreen extends StatelessWidget {
                                         children: [
                                           ListTile(
                                             title: const Text('English'),
-                                            trailing: const Icon(
+                                            trailing: Icon(
                                               Icons.check,
-                                              color: AppTheme.primaryTeal,
+                                              color: AppTheme.getPriceColor(context),
                                             ),
                                             onTap: () => Navigator.pop(ctx),
                                           ),
@@ -348,9 +352,9 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               const Divider(height: 1),
                               ListTile(
-                                leading: const Icon(
+                                leading: Icon(
                                   Icons.help_outline,
-                                  color: AppTheme.primaryTeal,
+                                  color: AppTheme.getPriceColor(context),
                                 ),
                                 title: const Text('Help & Support'),
                                 trailing: const Icon(Icons.chevron_right),
@@ -363,9 +367,9 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               const Divider(height: 1),
                               ListTile(
-                                leading: const Icon(
+                                leading: Icon(
                                   Icons.privacy_tip_outlined,
-                                  color: AppTheme.primaryTeal,
+                                  color: AppTheme.getPriceColor(context),
                                 ),
                                 title: const Text('Privacy Policy'),
                                 trailing: const Icon(Icons.chevron_right),
@@ -378,9 +382,9 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               const Divider(height: 1),
                               ListTile(
-                                leading: const Icon(
+                                leading: Icon(
                                   Icons.info_outline,
-                                  color: AppTheme.primaryTeal,
+                                  color: AppTheme.getPriceColor(context),
                                 ),
                                 title: const Text('About'),
                                 trailing: const Icon(Icons.chevron_right),
@@ -401,8 +405,8 @@ class ProfileScreen extends StatelessWidget {
                             icon: const Icon(Icons.logout),
                             label: const Text('Logout'),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: AppTheme.darkTeal,
-                              side: const BorderSide(color: AppTheme.darkTeal),
+                              foregroundColor: AppTheme.getPriceColor(context),
+                              side: BorderSide(color: AppTheme.getPriceColor(context)),
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
                           ),

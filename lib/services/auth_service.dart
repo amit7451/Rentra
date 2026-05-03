@@ -6,7 +6,9 @@ import 'notification_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    serverClientId: '360291447254-88beq1qn1vf7a9me7e3718hpghqimfmq.apps.googleusercontent.com',
+  );
   final FirestoreService _firestoreService = FirestoreService();
   final NotificationService _notificationService = NotificationService();
 

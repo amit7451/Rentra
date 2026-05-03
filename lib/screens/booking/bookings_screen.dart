@@ -7,6 +7,7 @@ import '../../app/routes.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/error_text.dart';
 import '../../widgets/highlight_wrapper.dart';
+import '../../widgets/glass_card.dart';
 
 class BookingsScreen extends StatefulWidget {
   final String? highlightBookingId;
@@ -38,7 +39,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
       case BookingStatus.confirmed:
         return Colors.green;
       case BookingStatus.cancelled:
-        return AppTheme.darkTeal;
+        return Colors.redAccent;
       case BookingStatus.completed:
         return Colors.blue;
     }
@@ -69,6 +70,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
     }
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -77,20 +79,10 @@ class _BookingsScreenState extends State<BookingsScreen> {
             surfaceTintColor: Colors.transparent,
             pinned: true,
             backgroundColor: Colors.transparent,
-            flexibleSpace: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
-                ),
-              ),
-            ),
             centerTitle: true,
             title: const Text(
               'My Bookings',
               style: TextStyle(
-                color: Colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),
@@ -120,15 +112,17 @@ class _BookingsScreenState extends State<BookingsScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.book_outlined,
                           size: 64,
-                          color: AppTheme.grey,
+                          color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.5),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'No bookings yet',
-                          style: Theme.of(context).textTheme.bodyLarge,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -197,9 +191,10 @@ class _BookingsScreenState extends State<BookingsScreen> {
           },
         );
       },
-      borderRadius: BorderRadius.circular(12),
-      child: Card(
+      borderRadius: BorderRadius.circular(16),
+      child: GlassCard(
         margin: const EdgeInsets.only(bottom: 16),
+        borderRadius: 16,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -212,7 +207,9 @@ class _BookingsScreenState extends State<BookingsScreen> {
                   Expanded(
                     child: Text(
                       booking.hostelName,
-                      style: Theme.of(context).textTheme.titleLarge,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -224,12 +221,17 @@ class _BookingsScreenState extends State<BookingsScreen> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color:
-                          (booking.paymentStatus == 'failed'
-                                  ? AppTheme.primaryTeal
-                                  : _getStatusColor(booking.status))
-                              .withValues(alpha: 0.1),
+                      color: (booking.paymentStatus == 'failed'
+                              ? AppTheme.getPriceColor(context)
+                              : _getStatusColor(booking.status))
+                          .withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: (booking.paymentStatus == 'failed'
+                                ? AppTheme.getPriceColor(context)
+                                : _getStatusColor(booking.status))
+                            .withValues(alpha: 0.5),
+                      ),
                     ),
                     child: Text(
                       booking.paymentStatus == 'failed'
@@ -237,10 +239,10 @@ class _BookingsScreenState extends State<BookingsScreen> {
                           : _getStatusText(booking.status),
                       style: TextStyle(
                         color: booking.paymentStatus == 'failed'
-                            ? AppTheme.primaryTeal
+                            ? AppTheme.getPriceColor(context)
                             : _getStatusColor(booking.status),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -263,16 +265,17 @@ class _BookingsScreenState extends State<BookingsScreen> {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.calendar_today,
-                              size: 16,
-                              color: AppTheme.primaryTeal,
+                              size: 14,
+                              color: AppTheme.getPriceColor(context),
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 6),
                             Text(
                               '${booking.checkInDate.day}/${booking.checkInDate.month}/${booking.checkInDate.year}',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(fontWeight: FontWeight.w600),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ],
                         ),
@@ -290,16 +293,17 @@ class _BookingsScreenState extends State<BookingsScreen> {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.calendar_today,
-                              size: 16,
-                              color: AppTheme.primaryTeal,
+                              size: 14,
+                              color: AppTheme.getPriceColor(context),
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 6),
                             Text(
                               '${booking.checkOutDate.day}/${booking.checkOutDate.month}/${booking.checkOutDate.year}',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(fontWeight: FontWeight.w600),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ],
                         ),
@@ -319,21 +323,21 @@ class _BookingsScreenState extends State<BookingsScreen> {
                         ? Icons.home_work_outlined
                         : Icons.airline_seat_individual_suite_outlined,
                     size: 16,
-                    color: AppTheme.grey,
+                    color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.7),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 6),
                   Text(
                     booking.selectedSeater == 0
                         ? (booking.flatCapacity != null
-                              ? 'Flat (Capacity: ${booking.flatCapacity})'
-                              : 'Flat')
+                            ? 'Flat (Capacity: ${booking.flatCapacity})'
+                            : 'Flat')
                         : '${booking.selectedSeater} Seater',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
               ),
 
-              const Divider(height: 24),
+              Divider(height: 24, color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
 
               // Registration fee and Total price
               Row(
@@ -341,15 +345,14 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 children: [
                   Text(
                     'Registration Paid',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Text(
                     '₹${booking.bookingFee?.toStringAsFixed(0) ?? '0'}',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.getPriceColor(context),
+                        ),
                   ),
                 ],
               ),
@@ -358,17 +361,17 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Total Rent', // Changed from Booking Price to be clearer
-                    style: Theme.of(
-                      context,
-                    ).textTheme.headlineSmall?.copyWith(fontSize: 16),
+                    'Total Rent',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   Text(
                     '₹${booking.totalPrice.toStringAsFixed(0)}',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: AppTheme.primaryTeal,
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.getPriceColor(context),
+                        ),
                   ),
                 ],
               ),
@@ -376,7 +379,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
               // Cancel button (only for pending/confirmed bookings)
               if (booking.status == BookingStatus.pending ||
                   booking.status == BookingStatus.confirmed) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(
@@ -384,8 +387,11 @@ class _BookingsScreenState extends State<BookingsScreen> {
                       _showCancelDialog(context, booking, firestoreService);
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.darkTeal,
-                      side: const BorderSide(color: AppTheme.darkTeal),
+                      foregroundColor: Theme.of(context).textTheme.bodyMedium?.color,
+                      side: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: const Text('Cancel Booking'),
                   ),
@@ -398,10 +404,10 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryTeal.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.red.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppTheme.primaryTeal.withValues(alpha: 0.1),
+                      color: Colors.red.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Column(
@@ -410,14 +416,14 @@ class _BookingsScreenState extends State<BookingsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Cancelled by ${booking.cancelledBy == 'admin' ? 'Owner' : 'You'}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              color: AppTheme.primaryTeal,
+                            Text(
+                              'Cancelled by ${booking.cancelledBy == 'admin' ? 'Owner' : 'You'}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Colors.redAccent,
+                              ),
                             ),
-                          ),
                           GestureDetector(
                             onTap: () async {
                               final ok = await showDialog<bool>(
@@ -453,7 +459,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                             },
                             child: const Icon(
                               Icons.delete_outline,
-                              color: AppTheme.primaryTeal,
+                              color: Colors.redAccent,
                               size: 18,
                             ),
                           ),
@@ -466,7 +472,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                           'Reason: ${booking.cancellationReason}',
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
-                                color: AppTheme.darkTeal,
+                                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7),
                                 fontStyle: FontStyle.italic,
                               ),
                         ),

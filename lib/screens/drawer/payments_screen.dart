@@ -4,6 +4,7 @@ import '../../app/theme.dart';
 import '../../services/firestore_service.dart';
 import '../../models/booking_model.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/glass_card.dart';
 import 'package:intl/intl.dart';
 
 class PaymentsScreen extends StatelessWidget {
@@ -15,6 +16,7 @@ class PaymentsScreen extends StatelessWidget {
     final FirestoreService firestoreService = FirestoreService();
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text(
           'Payments & Transactions',
@@ -78,11 +80,9 @@ class PaymentsScreen extends StatelessWidget {
                     final isCancelled =
                         booking.status == BookingStatus.cancelled;
 
-                    return Card(
+                    return GlassCard(
                       margin: const EdgeInsets.only(bottom: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      borderRadius: 12,
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -107,8 +107,8 @@ class PaymentsScreen extends StatelessWidget {
                                   ),
                                   decoration: BoxDecoration(
                                     color: isCancelled
-                                        ? Colors.orange.withOpacity(0.1)
-                                        : AppTheme.primaryTeal.withOpacity(0.1),
+                                        ? Colors.orange.withValues(alpha: 0.1)
+                                        : AppTheme.primaryTeal.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -145,18 +145,18 @@ class PaymentsScreen extends StatelessWidget {
                                   DateFormat(
                                     'dd MMM yyyy, hh:mm a',
                                   ).format(booking.bookingDate),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 13,
-                                    color: Colors.black87,
+                                    color: Theme.of(context).textTheme.bodyLarge?.color,
                                   ),
                                 ),
                                 const Spacer(),
                                 Text(
                                   '₹${booking.totalPrice.toStringAsFixed(0)}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
-                                    color: Colors.black,
+                                    color: Theme.of(context).textTheme.bodyLarge?.color,
                                   ),
                                 ),
                               ],
@@ -167,7 +167,7 @@ class PaymentsScreen extends StatelessWidget {
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey[100],
+                                  color: AppTheme.grey.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(

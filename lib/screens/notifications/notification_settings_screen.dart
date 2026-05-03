@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../app/theme.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/glass_card.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -89,16 +90,25 @@ class _NotificationSettingsScreenState
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
 
       appBar: AppBar(
         title: const Text(
           'Notification Settings',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        foregroundColor: Colors.black,
         elevation: 0,
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.white),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+            ),
+          ),
+        ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -110,16 +120,13 @@ class _NotificationSettingsScreenState
               'Manage your preferences',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: AppTheme.grey,
                 fontWeight: FontWeight.w500,
               ),
             ),
             const SizedBox(height: 16),
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 0,
+            GlassCard(
+              borderRadius: 16,
               child: Column(
                 children: [
                   _buildToggleTile(
@@ -182,10 +189,10 @@ class _NotificationSettingsScreenState
       secondary: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppTheme.primaryTeal.withOpacity(0.1),
+          color: AppTheme.primaryTeal.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: AppTheme.primaryTeal, size: 20),
+        child: Icon(icon, color: AppTheme.getPriceColor(context), size: 20),
       ),
       title: Text(
         title,
@@ -193,7 +200,7 @@ class _NotificationSettingsScreenState
       ),
       subtitle: Text(
         subtitle,
-        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+        style: const TextStyle(fontSize: 13, color: AppTheme.grey),
       ),
       activeColor: AppTheme.primaryTeal,
     );

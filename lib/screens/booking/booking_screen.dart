@@ -11,6 +11,7 @@ import '../../app/theme.dart';
 import '../../app/routes.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/verification_dialog.dart';
+import '../../widgets/glass_card.dart';
 
 class BookingScreen extends StatefulWidget {
   final String hostelId;
@@ -428,7 +429,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold(backgroundColor: Colors.transparent, 
       appBar: AppBar(
         title: const Text(
           'Book Hostel',
@@ -459,201 +460,156 @@ class _BookingScreenState extends State<BookingScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    widget.hostelName,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.headlineMedium,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Builder(
-                                    builder: (context) {
-                                      double perUnit = widget.baseFee;
-                                      if (!_loadingHostel && _hostel != null) {
-                                        final h = _hostel!;
-                                        if (h.unitType == 'flat') {
-                                          perUnit = h.rentPrice;
-                                        } else {
-                                          // Dynamic price based on selected seater
-                                          double seaterPrice = 0;
-                                          if (_selectedSeater == 1) {
-                                            seaterPrice = h.price1Seater ?? 0;
-                                          } else if (_selectedSeater == 2)
-                                            seaterPrice = h.price2Seater ?? 0;
-                                          else if (_selectedSeater == 3)
-                                            seaterPrice = h.price3Seater ?? 0;
+                GlassCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.hostelName,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                const SizedBox(height: 8),
+                                Builder(
+                                  builder: (context) {
+                                    double perUnit = widget.baseFee;
+                                    if (!_loadingHostel && _hostel != null) {
+                                      final h = _hostel!;
+                                      if (h.unitType == 'flat') {
+                                        perUnit = h.rentPrice;
+                                      } else {
+                                        double seaterPrice = 0;
+                                        if (_selectedSeater == 1) {
+                                          seaterPrice = h.price1Seater ?? 0;
+                                        } else if (_selectedSeater == 2)
+                                          seaterPrice = h.price2Seater ?? 0;
+                                        else if (_selectedSeater == 3)
+                                          seaterPrice = h.price3Seater ?? 0;
 
-                                          if (seaterPrice > 0) {
-                                            perUnit = seaterPrice;
-                                          } else {
-                                            // Fallback to minimum valid price
-                                            final prices =
-                                                [
-                                                      h.price1Seater,
-                                                      h.price2Seater,
-                                                      h.price3Seater,
-                                                    ]
-                                                    .where(
-                                                      (p) => p != null && p > 0,
-                                                    )
-                                                    .map((p) => p!)
-                                                    .toList();
-                                            if (prices.isNotEmpty) {
-                                              perUnit = prices.reduce(
-                                                (a, b) => a < b ? a : b,
-                                              );
-                                            }
+                                        if (seaterPrice > 0) {
+                                          perUnit = seaterPrice;
+                                        } else {
+                                          final prices =
+                                              [
+                                                    h.price1Seater,
+                                                    h.price2Seater,
+                                                    h.price3Seater,
+                                                  ]
+                                                  .where(
+                                                    (p) => p != null && p > 0,
+                                                  )
+                                                  .map((p) => p!)
+                                                  .toList();
+                                          if (prices.isNotEmpty) {
+                                            perUnit = prices.reduce(
+                                              (a, b) => a < b ? a : b,
+                                            );
                                           }
                                         }
                                       }
-
-                                      return Text(
-                                        '${perUnit.toStringAsFixed(0)} per ${widget.rentPeriod == 'monthly' ? 'Month' : 'Year'}',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyLarge
-                                            ?.copyWith(
-                                              color: AppTheme.primaryTeal,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            // Unit type & availability
-                            if (_loadingHostel)
-                              const SizedBox.shrink()
-                            else ...[
-                              Builder(
-                                builder: (context) {
-                                  int rooms = 0;
-                                  if (_hostel != null) {
-                                    if (_hostel!.unitType == 'flat') {
-                                      rooms = _hostel!.availableRooms;
-                                    } else {
-                                      if (_selectedSeater == 1) {
-                                        rooms = _hostel!.rooms1Seater;
-                                      } else if (_selectedSeater == 2)
-                                        rooms = _hostel!.rooms2Seater;
-                                      else if (_selectedSeater == 3)
-                                        rooms = _hostel!.rooms3Seater;
                                     }
-                                  }
 
-                                  return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      // Unit type chip
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: AppTheme.lightGrey,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          (_hostel?.unitType.toLowerCase() ==
-                                                  'flat')
-                                              ? 'Flat'
-                                              : 'Hostel / PG',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                          ),
+                                    return Text(
+                                      '₹${perUnit.toStringAsFixed(0)} per ${widget.rentPeriod == 'monthly' ? 'Month' : 'Year'}',
+                                      style: TextStyle(
+                                        color: AppTheme.getPriceColor(context),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (!_loadingHostel)
+                            Builder(
+                              builder: (context) {
+                                int rooms = 0;
+                                if (_hostel != null) {
+                                  if (_hostel!.unitType == 'flat') {
+                                    rooms = _hostel!.availableRooms;
+                                  } else {
+                                    if (_selectedSeater == 1) {
+                                      rooms = _hostel!.rooms1Seater;
+                                    } else if (_selectedSeater == 2)
+                                      rooms = _hostel!.rooms2Seater;
+                                    else if (_selectedSeater == 3)
+                                      rooms = _hostel!.rooms3Seater;
+                                  }
+                                }
+
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(alpha: 0.3),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        (_hostel?.unitType.toLowerCase() ==
+                                                'flat')
+                                            ? 'Flat'
+                                            : 'Hostel / PG',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Theme.of(context).textTheme.bodySmall?.color,
                                         ),
                                       ),
-                                      const SizedBox(height: 8),
-                                      // Availability badge
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 6,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: (() {
-                                            if (rooms <= 0) {
-                                              return AppTheme.grey.withOpacity(
-                                                0.1,
-                                              );
-                                            }
-                                            if (rooms <= 3) {
-                                              return AppTheme.primaryTeal
-                                                  .withOpacity(0.08);
-                                            }
-                                            if (rooms <= 5) {
-                                              return Colors.amber.withOpacity(
-                                                0.08,
-                                              );
-                                            }
-                                            return Colors.green.withOpacity(
-                                              0.08,
-                                            );
-                                          })(),
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          (_hostel?.unitType.toLowerCase() ==
-                                                  'flat')
-                                              ? (rooms > 0
-                                                    ? 'Available'
-                                                    : 'Not Available')
-                                              : (rooms > 0
-                                                    ? '$rooms rooms available'
-                                                    : 'No rooms'),
-                                          style: TextStyle(
-                                            color: (() {
-                                              if (rooms <= 0) {
-                                                return AppTheme.grey;
-                                              }
-                                              if (_hostel?.unitType
-                                                      .toLowerCase() ==
-                                                  'flat') {
-                                                return Colors.green;
-                                              }
-                                              if (rooms <= 3) {
-                                                return AppTheme.primaryTeal;
-                                              }
-                                              if (rooms <= 5) {
-                                                return Colors.orange;
-                                              }
-                                              return Colors.green;
-                                            })(),
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                          ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        (_hostel?.unitType.toLowerCase() ==
+                                                'flat')
+                                            ? (rooms > 0
+                                                  ? 'Available'
+                                                  : 'Not Available')
+                                            : (rooms > 0
+                                                  ? '$rooms rooms'
+                                                  : 'No rooms'),
+                                        style: TextStyle(
+                                          color: (rooms > 0)
+                                              ? AppTheme.getPriceColor(context)
+                                              : Colors.redAccent,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
 
@@ -666,30 +622,23 @@ class _BookingScreenState extends State<BookingScreen> {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
-                InkWell(
+                GlassCard(
                   onTap: _selectCheckInDate,
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      border: Border.all(color: Theme.of(context).dividerColor),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.calendar_today,
-                          color: AppTheme.primaryTeal,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          _checkInDate != null
-                              ? '${_checkInDate!.day}/${_checkInDate!.month}/${_checkInDate!.year}'
-                              : 'Starting date',
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ],
-                    ),
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        color: AppTheme.getPriceColor(context),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        _checkInDate != null
+                            ? '${_checkInDate!.day}/${_checkInDate!.month}/${_checkInDate!.year}'
+                            : 'Starting date',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ],
                   ),
                 ),
 
@@ -698,30 +647,23 @@ class _BookingScreenState extends State<BookingScreen> {
                 // Check-out date
                 Text('Till', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 8),
-                InkWell(
+                GlassCard(
                   onTap: _selectCheckOutDate,
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      border: Border.all(color: Theme.of(context).dividerColor),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.calendar_today,
-                          color: AppTheme.primaryTeal,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          _checkOutDate != null
-                              ? '${_checkOutDate!.day}/${_checkOutDate!.month}/${_checkOutDate!.year}'
-                              : 'Till',
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ],
-                    ),
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        color: AppTheme.getPriceColor(context),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        _checkOutDate != null
+                            ? '${_checkOutDate!.day}/${_checkOutDate!.month}/${_checkOutDate!.year}'
+                            : 'Till',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ],
                   ),
                 ),
 
@@ -736,13 +678,8 @@ class _BookingScreenState extends State<BookingScreen> {
                 if (_loadingHostel)
                   const SizedBox.shrink()
                 else if (_hostel != null && _hostel!.unitType == 'flat')
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      border: Border.all(color: Theme.of(context).dividerColor),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                  GlassCard(
+                    padding: const EdgeInsets.all(16),
                     child: Text(
                       _hostel!.flatCapacity != null
                           ? 'Capacity: ${_hostel!.flatCapacity} person'
@@ -751,54 +688,59 @@ class _BookingScreenState extends State<BookingScreen> {
                     ),
                   )
                 else
-                  DropdownButtonFormField<int>(
-                    initialValue: (() {
-                      // Filter available seaters based on rooms and price
-                      final available = [
-                        if ((_hostel?.rooms1Seater ?? 0) > 0 &&
-                            (_hostel?.price1Seater ?? 0) > 0)
-                          1,
-                        if ((_hostel?.rooms2Seater ?? 0) > 0 &&
-                            (_hostel?.price2Seater ?? 0) > 0)
-                          2,
-                        if ((_hostel?.rooms3Seater ?? 0) > 0 &&
-                            (_hostel?.price3Seater ?? 0) > 0)
-                          3,
-                      ];
-                      if (available.contains(_selectedSeater)) {
-                        return _selectedSeater;
-                      }
-                      return available.isNotEmpty ? available.first : null;
-                    })(),
-                    items:
-                        [
-                              if ((_hostel?.rooms1Seater ?? 0) > 0 &&
-                                  (_hostel?.price1Seater ?? 0) > 0)
-                                1,
-                              if ((_hostel?.rooms2Seater ?? 0) > 0 &&
-                                  (_hostel?.price2Seater ?? 0) > 0)
-                                2,
-                              if ((_hostel?.rooms3Seater ?? 0) > 0 &&
-                                  (_hostel?.price3Seater ?? 0) > 0)
-                                3,
-                            ]
-                            .map(
-                              (s) => DropdownMenuItem(
-                                value: s,
-                                child: Text('$s seater'),
-                              ),
-                            )
-                            .toList(),
-                    onChanged: (v) {
-                      if (v != null) setState(() => _selectedSeater = v);
-                    },
-                    decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 14,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  GlassCard(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: DropdownButtonFormField<int>(
+                      dropdownColor: Theme.of(context).cardColor,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      initialValue: (() {
+                        final available = [
+                          if ((_hostel?.rooms1Seater ?? 0) > 0 &&
+                              (_hostel?.price1Seater ?? 0) > 0)
+                            1,
+                          if ((_hostel?.rooms2Seater ?? 0) > 0 &&
+                              (_hostel?.price2Seater ?? 0) > 0)
+                            2,
+                          if ((_hostel?.rooms3Seater ?? 0) > 0 &&
+                              (_hostel?.price3Seater ?? 0) > 0)
+                            3,
+                        ];
+                        if (available.contains(_selectedSeater)) {
+                          return _selectedSeater;
+                        }
+                        return available.isNotEmpty ? available.first : null;
+                      })(),
+                      items:
+                          [
+                                if ((_hostel?.rooms1Seater ?? 0) > 0 &&
+                                    (_hostel?.price1Seater ?? 0) > 0)
+                                  1,
+                                if ((_hostel?.rooms2Seater ?? 0) > 0 &&
+                                    (_hostel?.price2Seater ?? 0) > 0)
+                                  2,
+                                if ((_hostel?.rooms3Seater ?? 0) > 0 &&
+                                    (_hostel?.price3Seater ?? 0) > 0)
+                                  3,
+                              ]
+                              .map(
+                                (s) => DropdownMenuItem(
+                                  value: s,
+                                  child: Text(
+                                    '$s seater',
+                                    style: Theme.of(context).textTheme.bodyLarge,
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                      onChanged: (v) {
+                        if (v != null) setState(() => _selectedSeater = v);
+                      },
+                      decoration: const InputDecoration(
+                        filled: false,
+                        contentPadding: EdgeInsets.symmetric(vertical: 14),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
                       ),
                     ),
                   ),
@@ -810,11 +752,26 @@ class _BookingScreenState extends State<BookingScreen> {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
-                TextFormField(
-                  controller: _specialRequestsController,
-                  maxLines: 4,
-                  decoration: const InputDecoration(
-                    hintText: 'Any special requirements',
+                GlassCard(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: TextFormField(
+                    controller: _specialRequestsController,
+                    maxLines: 4,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                    decoration: InputDecoration(
+                      filled: false,
+                      hintText: 'Any special requirements',
+                      hintStyle: TextStyle(
+                        color: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.color
+                            ?.withValues(alpha: 0.5),
+                      ),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                    ),
                   ),
                 ),
 
@@ -855,15 +812,10 @@ class _BookingScreenState extends State<BookingScreen> {
                               final method = savedMethods[index];
                               final isCard = method['type'] == 'card';
 
-                              return Container(
+                              return GlassCard(
                                 width: 150,
                                 margin: const EdgeInsets.only(right: 12),
                                 padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).cardColor,
-                                  border: Border.all(color: Theme.of(context).dividerColor),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -872,7 +824,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                       isCard
                                           ? Icons.credit_card
                                           : Icons.account_balance_wallet,
-                                      color: AppTheme.primaryTeal,
+                                      color: AppTheme.getPriceColor(context),
                                       size: 20,
                                     ),
                                     const SizedBox(height: 8),
@@ -880,9 +832,10 @@ class _BookingScreenState extends State<BookingScreen> {
                                       method['nickname'] ?? '',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 12,
+                                        color: Theme.of(context).textTheme.bodyLarge?.color,
                                       ),
                                     ),
                                     Text(
@@ -891,8 +844,8 @@ class _BookingScreenState extends State<BookingScreen> {
                                           : method['upiId'] ?? '',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: AppTheme.grey,
+                                      style: TextStyle(
+                                        color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7),
                                         fontSize: 10,
                                       ),
                                     ),
@@ -909,86 +862,83 @@ class _BookingScreenState extends State<BookingScreen> {
                 ),
 
                 if (_rentalUnits > 0)
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Price Summary',
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                            ],
-                          ),
-                          const Divider(height: 24),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Builder(
-                                builder: (context) {
-                                  double perUnit = widget.baseFee;
-                                  if (_hostel != null) {
-                                    final h = _hostel!;
-                                    if (h.unitType == 'flat') {
-                                      perUnit = h.rentPrice;
-                                    } else {
-                                      if (_selectedSeater == 1 &&
-                                          h.price1Seater != null) {
-                                        perUnit = h.price1Seater!;
-                                      }
-                                      if (_selectedSeater == 2 &&
-                                          h.price2Seater != null) {
-                                        perUnit = h.price2Seater!;
-                                      }
-                                      if (_selectedSeater == 3 &&
-                                          h.price3Seater != null) {
-                                        perUnit = h.price3Seater!;
-                                      }
+                  GlassCard(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Price Summary',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                          ],
+                        ),
+                        Divider(height: 24, color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Builder(
+                              builder: (context) {
+                                double perUnit = widget.baseFee;
+                                if (_hostel != null) {
+                                  final h = _hostel!;
+                                  if (h.unitType == 'flat') {
+                                    perUnit = h.rentPrice;
+                                  } else {
+                                    if (_selectedSeater == 1 &&
+                                        h.price1Seater != null) {
+                                      perUnit = h.price1Seater!;
+                                    }
+                                    if (_selectedSeater == 2 &&
+                                        h.price2Seater != null) {
+                                      perUnit = h.price2Seater!;
+                                    }
+                                    if (_selectedSeater == 3 &&
+                                        h.price3Seater != null) {
+                                      perUnit = h.price3Seater!;
                                     }
                                   }
+                                }
 
-                                  return Text(
-                                    '${perUnit.toStringAsFixed(0)} x $_rentalUnits ${widget.rentPeriod == 'monthly' ? 'months' : 'years'}',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyLarge,
-                                  );
-                                },
+                                return Text(
+                                  '₹${perUnit.toStringAsFixed(0)} x $_rentalUnits ${widget.rentPeriod == 'monthly' ? 'months' : 'years'}',
+                                  style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7)),
+                                );
+                              },
+                            ),
+                            Text(
+                              '₹${_totalPrice.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                                fontWeight: FontWeight.bold,
                               ),
-                              Text(
-                                _totalPrice.toStringAsFixed(2),
-                                style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          ],
+                        ),
+                        Divider(height: 24, color: Theme.of(context).dividerColor.withValues(alpha: 0.2)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Total',
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
                               ),
-                            ],
-                          ),
-                          const Divider(height: 24),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Total',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineMedium
-                                    ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              '₹${_totalPrice.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                color: AppTheme.getPriceColor(context),
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
                               ),
-                              Text(
-                                _totalPrice.toStringAsFixed(2),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineMedium
-                                    ?.copyWith(
-                                      color: AppTheme.primaryTeal,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
 
@@ -1008,7 +958,9 @@ class _BookingScreenState extends State<BookingScreen> {
           color: Theme.of(context).scaffoldBackgroundColor,
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(0.5) : Colors.black.withOpacity(0.1),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.black.withValues(alpha: 0.5)
+                  : Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
@@ -1019,19 +971,12 @@ class _BookingScreenState extends State<BookingScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Price chip
-              Container(
+              GlassCard(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryTeal.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: AppTheme.primaryTeal.withOpacity(0.2),
-                  ),
-                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Column(
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -1039,13 +984,14 @@ class _BookingScreenState extends State<BookingScreen> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
+                            color: Theme.of(context).textTheme.titleLarge?.color,
                           ),
                         ),
                         SizedBox(height: 2),
                         Text(
                           'Limited time offer!',
                           style: TextStyle(
-                            color: Colors.green,
+                            color: Colors.greenAccent,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -1056,19 +1002,19 @@ class _BookingScreenState extends State<BookingScreen> {
                       children: [
                         Text(
                           '₹${_originalAmount.toStringAsFixed(0)}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             decoration: TextDecoration.lineThrough,
-                            color: Colors.grey,
+                            color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.5),
                             fontSize: 14,
                           ),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           '₹${(_payableAmount < 1.0 ? 1.0 : _payableAmount).toStringAsFixed(0)}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
-                            color: AppTheme.primaryTeal,
+                            color: AppTheme.getPriceColor(context),
                           ),
                         ),
                       ],

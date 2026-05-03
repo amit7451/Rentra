@@ -6,6 +6,7 @@ import '../../models/user_model.dart';
 import '../../models/payment_method_model.dart';
 import '../../services/firestore_service.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/glass_card.dart';
 
 class SavedPaymentMethodsScreen extends StatefulWidget {
   const SavedPaymentMethodsScreen({super.key});
@@ -162,6 +163,7 @@ class _SavedPaymentMethodsScreenState extends State<SavedPaymentMethodsScreen> {
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(title: const Text('Payment Methods'), elevation: 0),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
@@ -184,10 +186,10 @@ class _SavedPaymentMethodsScreenState extends State<SavedPaymentMethodsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.payment_outlined,
                     size: 80,
-                    color: Colors.grey[300],
+                    color: AppTheme.grey,
                   ),
                   const SizedBox(height: 16),
                   const Text(
@@ -214,19 +216,17 @@ class _SavedPaymentMethodsScreenState extends State<SavedPaymentMethodsScreen> {
             itemCount: methods.length,
             itemBuilder: (context, index) {
               final method = methods[index];
-              return Card(
+              return GlassCard(
                 margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                borderRadius: 12,
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: AppTheme.primaryTeal.withOpacity(0.1),
+                    backgroundColor: AppTheme.primaryTeal.withValues(alpha: 0.1),
                     child: Icon(
                       method.type == 'card'
                           ? Icons.credit_card
                           : Icons.account_balance_wallet,
-                      color: AppTheme.primaryTeal,
+                      color: AppTheme.getPriceColor(context),
                     ),
                   ),
                   title: Text(

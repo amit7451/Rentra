@@ -262,7 +262,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 Text(
                   'Sign up to get started',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppTheme.grey.withOpacity(0.8),
+                    color: AppTheme.grey.withValues(alpha: 0.8),
                     letterSpacing: 0.2,
                   ),
                 ),
@@ -275,7 +275,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     children: [
                       CircleAvatar(
                         radius: 50,
-                        backgroundColor: AppTheme.primaryTeal.withOpacity(0.1),
+                        backgroundColor: AppTheme.primaryTeal.withValues(alpha: 0.1),
                         backgroundImage: _profileImage != null
                             ? FileImage(_profileImage!)
                             : null,

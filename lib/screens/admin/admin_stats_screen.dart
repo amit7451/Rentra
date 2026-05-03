@@ -5,6 +5,7 @@ import '../../models/booking_model.dart';
 import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/glass_card.dart';
 
 class AdminStatsScreen extends StatelessWidget {
   const AdminStatsScreen({super.key});
@@ -14,8 +15,7 @@ class AdminStatsScreen extends StatelessWidget {
     final firestoreService = FirestoreService();
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    return Scaffold(      backgroundColor: Colors.transparent,
 
       body: RefreshIndicator(
         color: AppTheme.primaryTeal,
@@ -136,39 +136,33 @@ class _StatsBody extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Period selector ───────────────────────────────
-          Container(
+          GlassCard(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
+            borderRadius: 12,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'All Time',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
                 ),
-                Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
+                Icon(Icons.keyboard_arrow_down, color: AppTheme.grey),
               ],
             ),
           ),
           const SizedBox(height: 20),
 
           // ── Header ────────────────────────────────────────
-          const Text(
+          Text(
             'Overview',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
               letterSpacing: -0.3,
+              color: Theme.of(context).textTheme.titleLarge?.color,
             ),
           ),
           const SizedBox(height: 16),
@@ -227,24 +221,18 @@ class _StatsBody extends StatelessWidget {
           const SizedBox(height: 24),
 
           // ── Occupancy bar ─────────────────────────────────
-          const Text(
+          Text(
             'Occupancy Rate',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18, 
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.titleLarge?.color,
+            ),
           ),
           const SizedBox(height: 12),
-          Container(
+          GlassCard(
             padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
+            borderRadius: 16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -253,14 +241,15 @@ class _StatsBody extends StatelessWidget {
                   children: [
                     Text(
                       '${(occupancyRate * 100).toStringAsFixed(1)}%',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
+                        color: Theme.of(context).textTheme.titleLarge?.color,
                       ),
                     ),
                     Text(
                       '${confirmed.length} / ${hostels.length * 10}',
-                      style: TextStyle(color: Colors.grey[600]),
+                      style: const TextStyle(color: AppTheme.grey),
                     ),
                   ],
                 ),
@@ -270,7 +259,7 @@ class _StatsBody extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: occupancyRate,
                     minHeight: 10,
-                    backgroundColor: Colors.grey[200],
+                    backgroundColor: Colors.white.withValues(alpha: 0.05),
                     valueColor: AlwaysStoppedAnimation<Color>(
                       occupancyRate > 0.7
                           ? Colors.green
@@ -283,7 +272,7 @@ class _StatsBody extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   'Based on confirmed bookings vs estimated capacity',
-                  style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                  style: TextStyle(color: AppTheme.grey.withValues(alpha: 0.7), fontSize: 12),
                 ),
               ],
             ),
@@ -291,9 +280,13 @@ class _StatsBody extends StatelessWidget {
           const SizedBox(height: 24),
 
           // ── Booking breakdown ─────────────────────────────
-          const Text(
+          Text(
             'Booking Breakdown',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.titleLarge?.color,
+            ),
           ),
           const SizedBox(height: 12),
           _BookingBreakdown(
@@ -304,9 +297,13 @@ class _StatsBody extends StatelessWidget {
           const SizedBox(height: 24),
 
           // ── Per-hostel performance ────────────────────────
-          const Text(
+          Text(
             'Hostel Performance',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.titleLarge?.color,
+            ),
           ),
           const SizedBox(height: 12),
           ...hostels.map((h) {
@@ -356,19 +353,9 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      borderRadius: 18,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -397,18 +384,19 @@ class _StatCard extends StatelessWidget {
           Text(
             '$prefix$value',
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w800,
               letterSpacing: -0.5,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
           ),
           const SizedBox(height: 3),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
-              color: Colors.grey[600],
+              color: AppTheme.grey,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -418,7 +406,7 @@ class _StatCard extends StatelessWidget {
               trendLabel,
               style: TextStyle(
                 fontSize: 11,
-                color: trendUp == true ? Colors.green : Colors.grey[500],
+                color: trendUp == true ? Colors.green : AppTheme.grey.withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -442,42 +430,29 @@ class _BookingBreakdown extends StatelessWidget {
   Widget build(BuildContext context) {
     final total = confirmed + pending + cancelled;
     if (total == 0) {
-      return Container(
+      return GlassCard(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-        ),
+        borderRadius: 14,
         child: const Center(child: Text('No bookings yet')),
       );
     }
 
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      borderRadius: 16,
       child: Column(
         children: [
-          _bar('Confirmed', confirmed, total, Colors.green),
+          _bar(context, 'Confirmed', confirmed, total, Colors.green),
           const SizedBox(height: 12),
-          _bar('Pending', pending, total, Colors.orange),
+          _bar(context, 'Pending', pending, total, Colors.orange),
           const SizedBox(height: 12),
-          _bar('Cancelled', cancelled, total, AppTheme.primaryTeal),
+          _bar(context, 'Cancelled', cancelled, total, AppTheme.getPriceColor(context)),
         ],
       ),
     );
   }
 
-  Widget _bar(String label, int count, int total, Color color) {
+  Widget _bar(BuildContext context, String label, int count, int total, Color color) {
     final pct = total > 0 ? count / total : 0.0;
     return Row(
       children: [
@@ -485,7 +460,11 @@ class _BookingBreakdown extends StatelessWidget {
           width: 80,
           child: Text(
             label,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontSize: 13, 
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+            ),
           ),
         ),
         Expanded(
@@ -494,7 +473,7 @@ class _BookingBreakdown extends StatelessWidget {
             child: LinearProgressIndicator(
               value: pct,
               minHeight: 8,
-              backgroundColor: Colors.grey[200],
+              backgroundColor: Colors.white.withValues(alpha: 0.05),
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
@@ -528,20 +507,10 @@ class _HostelPerfCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassCard(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+      borderRadius: 14,
       child: Row(
         children: [
           ClipRRect(
@@ -564,15 +533,16 @@ class _HostelPerfCard extends StatelessWidget {
                 Text(
                   hostel.name,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 Text(
                   '${hostel.city} · ${hostel.availableRooms} rooms left',
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  style: const TextStyle(color: AppTheme.grey, fontSize: 12),
                 ),
               ],
             ),
@@ -592,7 +562,7 @@ class _HostelPerfCard extends StatelessWidget {
               Text(
                 '$bookingCount bookings',
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                style: const TextStyle(color: AppTheme.grey, fontSize: 12),
               ),
             ],
           ),
@@ -604,8 +574,8 @@ class _HostelPerfCard extends StatelessWidget {
   Widget _placeholder() => Container(
     width: 56,
     height: 56,
-    color: Colors.grey[200],
-    child: const Icon(Icons.home, color: Colors.grey),
+    color: Colors.white.withValues(alpha: 0.05),
+    child: const Icon(Icons.home, color: AppTheme.grey),
   );
 
   String _fmt(int n) {

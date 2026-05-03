@@ -165,6 +165,7 @@ class _MainBottomNavState extends State<MainBottomNav> {
 
     return Scaffold(
       extendBody: true,
+      resizeToAvoidBottomInset: false,
       body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -179,10 +180,6 @@ class _MainBottomNavState extends State<MainBottomNav> {
               decoration: BoxDecoration(
                 color: AppTheme.darkTeal.withAlpha(200),
                 borderRadius: BorderRadius.circular(35),
-                border: Border.all(
-                  color: Colors.white.withAlpha(40),
-                  width: 1.5,
-                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -220,17 +217,7 @@ class _MainBottomNavState extends State<MainBottomNav> {
                                   ? AppTheme.accentTeal
                                   : Colors.transparent,
                               shape: BoxShape.circle,
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                        color: AppTheme.accentTeal.withAlpha(
-                                          120,
-                                        ),
-                                        blurRadius: 10,
-                                        spreadRadius: 2,
-                                      ),
-                                    ]
-                                  : [],
+                              boxShadow: const [],
                             ),
                             child: AnimatedScale(
                               scale: isSelected ? 1.1 : 1.0,

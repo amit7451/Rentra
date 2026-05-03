@@ -10,6 +10,7 @@ import 'admin_bookings_screen.dart';
 import 'admin_stats_screen.dart';
 import '../../app/routes.dart';
 import '../../widgets/verification_dialog.dart';
+import '../../widgets/glass_card.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
@@ -20,8 +21,7 @@ class AdminDashboard extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
     final uid = user?.uid ?? '';
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    return Scaffold(      backgroundColor: Colors.transparent,
 
       body: RefreshIndicator(
         color: AppTheme.primaryTeal,
@@ -58,7 +58,7 @@ class AdminDashboard extends StatelessWidget {
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.logout_rounded, color: Colors.black),
+                  icon: const Icon(Icons.logout_rounded, color: Colors.white),
                   tooltip: 'Sign Out',
                   onPressed: () async {
                     final confirm = await showDialog<bool>(
@@ -267,12 +267,12 @@ class AdminDashboard extends StatelessWidget {
                     const SizedBox(height: 28),
 
                     // ── Manage Section Title ────────────────────────────
-                    const Text(
+                     Text(
                       'Manage',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: Theme.of(context).textTheme.titleLarge?.color,
                         letterSpacing: -0.3,
                       ),
                     ),
@@ -332,7 +332,7 @@ class _WelcomeHeader extends StatelessWidget {
                     'WELCOME BACK',
                     style: TextStyle(
                       fontSize: 11,
-                      color: Colors.grey[500],
+                      color: AppTheme.grey,
                       letterSpacing: 1.5,
                       fontWeight: FontWeight.w600,
                     ),
@@ -340,10 +340,10 @@ class _WelcomeHeader extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
-                      color: Colors.black87,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                       letterSpacing: -0.5,
                     ),
                     maxLines: 1,
@@ -397,22 +397,11 @@ class _MetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return GlassCard(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
+      padding: const EdgeInsets.all(18),
+      borderRadius: 18,
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -451,10 +440,10 @@ class _MetricCard extends StatelessWidget {
             const SizedBox(height: 14),
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20, // Reduced font size slightly to prevent overflow
                 fontWeight: FontWeight.w800,
-                color: Colors.black87,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
                 letterSpacing: -0.5,
               ),
               maxLines: 1,
@@ -463,9 +452,9 @@ class _MetricCard extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
-                color: Colors.grey[500],
+                color: AppTheme.grey,
                 fontWeight: FontWeight.w500,
               ),
               maxLines: 1,
@@ -473,8 +462,7 @@ class _MetricCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -582,22 +570,13 @@ class _FeatureCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return GlassCard(
       onTap: feature.onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 14,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
+      borderRadius: 20,
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
               width: 64,
@@ -611,18 +590,18 @@ class _FeatureCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               feature.label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: Colors.black87,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
             const SizedBox(height: 3),
             Text(
               feature.subtitle,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 11,
-                color: Colors.grey[500],
+                color: AppTheme.grey,
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,

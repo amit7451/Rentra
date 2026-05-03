@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../app/theme.dart';
 import '../../widgets/primary_button.dart';
+import '../../widgets/glass_card.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -98,12 +99,24 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     final bool hasPassword = _authService.hasPassword;
 
     return Scaffold(
-      backgroundColor: AppTheme.white,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text(hasPassword ? 'Change Password' : 'Set Password'),
+        title: Text(
+          hasPassword ? 'Change Password' : 'Set Password',
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+        ),
         elevation: 0,
-        backgroundColor: AppTheme.white,
-        foregroundColor: AppTheme.black,
+        backgroundColor: Colors.transparent,
+        iconTheme: const IconThemeData(color: Colors.white),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+            ),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -119,77 +132,100 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 style: const TextStyle(color: AppTheme.grey, fontSize: 15),
               ),
               const SizedBox(height: 32),
-              if (hasPassword) ...[
-                TextFormField(
-                  controller: _oldPasswordController,
-                  obscureText: _obscureOld,
-                  decoration: InputDecoration(
-                    labelText: 'Current Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureOld ? Icons.visibility_off : Icons.visibility,
+              GlassCard(
+                borderRadius: 16,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    if (hasPassword) ...[
+                      TextFormField(
+                        controller: _oldPasswordController,
+                        obscureText: _obscureOld,
+                        cursorColor: AppTheme.getPriceColor(context),
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+                        decoration: InputDecoration(
+                          labelText: 'Current Password',
+                          labelStyle: const TextStyle(color: AppTheme.grey),
+                          floatingLabelStyle: TextStyle(color: AppTheme.getPriceColor(context)),
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          filled: false,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscureOld ? Icons.visibility_off : Icons.visibility,
+                            ),
+                            onPressed: () =>
+                                setState(() => _obscureOld = !_obscureOld),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter current password';
+                          }
+                          return null;
+                        },
                       ),
-                      onPressed: () =>
-                          setState(() => _obscureOld = !_obscureOld),
+                      const SizedBox(height: 16),
+                    ],
+                    TextFormField(
+                      controller: _newPasswordController,
+                      obscureText: _obscureNew,
+                      cursorColor: AppTheme.getPriceColor(context),
+                      style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+                      decoration: InputDecoration(
+                        labelText: hasPassword ? 'New Password' : 'Password',
+                        labelStyle: const TextStyle(color: AppTheme.grey),
+                        floatingLabelStyle: TextStyle(color: AppTheme.getPriceColor(context)),
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        filled: false,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureNew ? Icons.visibility_off : Icons.visibility,
+                          ),
+                          onPressed: () => setState(() => _obscureNew = !_obscureNew),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a new password';
+                        }
+                        if (value.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
+                      },
                     ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter current password';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-              ],
-              TextFormField(
-                controller: _newPasswordController,
-                obscureText: _obscureNew,
-                decoration: InputDecoration(
-                  labelText: hasPassword ? 'New Password' : 'Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureNew ? Icons.visibility_off : Icons.visibility,
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _confirmPasswordController,
+                      obscureText: _obscureConfirm,
+                      cursorColor: AppTheme.getPriceColor(context),
+                      style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+                      decoration: InputDecoration(
+                        labelText: 'Confirm New Password',
+                        labelStyle: const TextStyle(color: AppTheme.grey),
+                        floatingLabelStyle: TextStyle(color: AppTheme.getPriceColor(context)),
+                        prefixIcon: const Icon(Icons.lock_reset),
+                        filled: false,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirm ? Icons.visibility_off : Icons.visibility,
+                          ),
+                          onPressed: () =>
+                              setState(() => _obscureConfirm = !_obscureConfirm),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please confirm your password';
+                        }
+                        if (value != _newPasswordController.text) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
+                      },
                     ),
-                    onPressed: () => setState(() => _obscureNew = !_obscureNew),
-                  ),
+                  ],
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a new password';
-                  }
-                  if (value.length < 6) {
-                    return 'Password must be at least 6 characters';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _confirmPasswordController,
-                obscureText: _obscureConfirm,
-                decoration: InputDecoration(
-                  labelText: 'Confirm New Password',
-                  prefixIcon: const Icon(Icons.lock_reset),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureConfirm ? Icons.visibility_off : Icons.visibility,
-                    ),
-                    onPressed: () =>
-                        setState(() => _obscureConfirm = !_obscureConfirm),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please confirm your password';
-                  }
-                  if (value != _newPasswordController.text) {
-                    return 'Passwords do not match';
-                  }
-                  return null;
-                },
               ),
               const SizedBox(height: 40),
               PrimaryButton(

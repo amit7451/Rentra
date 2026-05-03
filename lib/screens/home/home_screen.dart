@@ -1,4 +1,4 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,14 +9,12 @@ import '../../services/wishlist_service.dart';
 import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
 import '../../app/routes.dart';
-import '../../widgets/loading_indicator.dart';
 import '../../widgets/error_text.dart';
 import '../search/search_screen.dart';
 import 'hotel_card.dart';
 import 'hostels_see_all_screen.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../widgets/verification_dialog.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 
 // -----------------------------------------------------------------------------
 // HomeScreen
@@ -269,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: _buildGlassAppBar(),
       body: RefreshIndicator(
         color: AppTheme.primaryTeal,
@@ -354,13 +352,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            const Color(0xFF123A3C).withOpacity(0.9),
-                            const Color(0xFF184A4C).withOpacity(0.95),
+                            const Color(0xFF123A3C).withValues(alpha: 0.9),
+                            const Color(0xFF184A4C).withValues(alpha: 0.95),
                           ],
-                        ),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.08),
-                          width: 0.6,
                         ),
                       ),
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -568,7 +562,6 @@ class _HomeScreenState extends State<HomeScreen> {
     bool isLoading = false,
   }) {
     if (isLoading) {
-      final isDark = Theme.of(context).brightness == Brightness.dark;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -689,7 +682,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                 style: TextButton.styleFrom(
-                  foregroundColor: AppTheme.primaryTeal,
+                  foregroundColor: const Color.fromARGB(255, 29, 219, 229),
                   padding: EdgeInsets.zero,
                   minimumSize: const Size(48, 30),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -778,13 +771,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        const Color(0xFF123A3C).withOpacity(0.6),
-                        const Color(0xFF184A4C).withOpacity(0.95),
+                        const Color(0xFF123A3C).withValues(alpha: 0.6),
+                        const Color(0xFF184A4C).withValues(alpha: 0.95),
                       ],
-                    ),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.12),
-                      width: 0.8,
                     ),
                   ),
                   child: SizedBox(
@@ -832,7 +821,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       const SizedBox(width: 3),
                                       Icon(
                                         Icons.keyboard_arrow_down_rounded,
-                                        color: Colors.white.withOpacity(0.55),
+                                        color: Colors.white.withValues(alpha: 0.55),
                                         size: 16,
                                       ),
                                     ],
@@ -843,7 +832,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Text(
                                       displaySub,
                                       style: TextStyle(
-                                        color: Colors.white.withOpacity(0.42),
+                                        color: Colors.white.withValues(alpha: 0.42),
                                         fontSize: 11,
                                         fontWeight: FontWeight.w400,
                                       ),
@@ -1012,18 +1001,18 @@ class _GlassSearchBar extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  const Color(0xFF1E3437).withOpacity(0.9),
-                  const Color(0xFF243C40).withOpacity(0.95),
+                  const Color(0xFF1E3437).withValues(alpha: 0.9),
+                  const Color(0xFF243C40).withValues(alpha: 0.95),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withOpacity(0.12),
+                color: Colors.white.withValues(alpha: 0.12),
                 width: 0.7,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 14,
                   offset: const Offset(0, 6),
                 ),
@@ -1034,7 +1023,7 @@ class _GlassSearchBar extends StatelessWidget {
                 Text(
                   hint,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.45),
+                    color: Colors.white.withValues(alpha: 0.45),
                     fontSize: 15,
                     fontWeight: FontWeight.w400,
                   ),
@@ -1088,10 +1077,10 @@ class _GlassSearchBar extends StatelessWidget {
 //     return Container(
 //       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
 //       decoration: BoxDecoration(
-//         color: const Color(0xFF34C759).withOpacity(0.16),
+//         color: const Color(0xFF34C759).withValues(alpha: 0.16),
 //         borderRadius: BorderRadius.circular(20),
 //         border: Border.all(
-//           color: const Color(0xFF34C759).withOpacity(0.35),
+//           color: const Color(0xFF34C759).withValues(alpha: 0.35),
 //           width: 0.6,
 //         ),
 //       ),
@@ -1198,14 +1187,14 @@ class _PremiumBannerSectionState extends State<PremiumBannerSection> {
                   gradient: LinearGradient(
                     colors: isDark
                         ? [
-                            Colors.white.withOpacity(0.10),
-                            Colors.white.withOpacity(0.03),
+                            const Color(0xFF224E58).withValues(alpha: 0.75),
+                            const Color(0xFF14363F).withValues(alpha: 0.75),
                           ]
                         : [
                             const Color(
                               0xFF14B8A6,
-                            ).withOpacity(0.18), // 👈 teal tint
-                            Colors.white.withOpacity(0.25), // 👈 softness
+                            ).withValues(alpha: 0.18), // 👈 teal tint
+                            Colors.white.withValues(alpha: 0.25), // 👈 softness
                           ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -1214,8 +1203,8 @@ class _PremiumBannerSectionState extends State<PremiumBannerSection> {
                   /// subtle border
                   border: Border.all(
                     color: isDark
-                        ? Colors.white.withOpacity(0.18)
-                        : const Color(0xFF14B8A6).withOpacity(0.35),
+                        ? Colors.white.withValues(alpha: 0.25)
+                        : const Color(0xFF14B8A6).withValues(alpha: 0.35),
                     width: 1,
                   ),
 
@@ -1223,8 +1212,8 @@ class _PremiumBannerSectionState extends State<PremiumBannerSection> {
                   boxShadow: [
                     BoxShadow(
                       color: isDark
-                          ? Colors.black.withOpacity(0.4)
-                          : const Color(0xFF14B8A6).withOpacity(0.15),
+                          ? Colors.black.withValues(alpha: 0.4)
+                          : const Color(0xFF14B8A6).withValues(alpha: 0.15),
                       blurRadius: 25,
                       offset: const Offset(0, 10),
                     ),
@@ -1238,7 +1227,7 @@ class _PremiumBannerSectionState extends State<PremiumBannerSection> {
                       colors: [
                         const Color(
                           0xFF14B8A6,
-                        ).withOpacity(isDark ? 0.05 : 0.12),
+                        ).withValues(alpha: isDark ? 0.05 : 0.12),
                         Colors.transparent,
                       ],
                       begin: Alignment.topRight,
@@ -1256,9 +1245,9 @@ class _PremiumBannerSectionState extends State<PremiumBannerSection> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: isDark
-                          ? [Colors.white.withOpacity(0.06), Colors.transparent]
+                          ? [Colors.white.withValues(alpha: 0.06), Colors.transparent]
                           : [
-                              Colors.white.withOpacity(0.18),
+                              Colors.white.withValues(alpha: 0.18),
                               Colors.transparent,
                             ],
                       begin: Alignment.topCenter,
@@ -1307,7 +1296,7 @@ class _PremiumBannerSectionState extends State<PremiumBannerSection> {
                         borderRadius: BorderRadius.circular(10),
                         color: _currentIndex == index
                             ? (isDark ? Colors.white : Colors.black87)
-                            : Colors.grey.withOpacity(0.4),
+                            : Colors.grey.withValues(alpha: 0.4),
                       ),
                     ),
                   ),
@@ -1356,12 +1345,12 @@ class _BannerContent extends StatelessWidget {
             gradient: LinearGradient(
               colors: isDark
                   ? [
-                      Colors.white.withOpacity(0.15),
-                      Colors.white.withOpacity(0.05),
+                      Colors.white.withValues(alpha: 0.15),
+                      Colors.white.withValues(alpha: 0.05),
                     ]
                   : [
-                      Colors.white.withOpacity(0.7),
-                      Colors.white.withOpacity(0.2),
+                      Colors.white.withValues(alpha: 0.7),
+                      Colors.white.withValues(alpha: 0.2),
                     ],
             ),
           ),
@@ -1390,9 +1379,9 @@ class _GlassChip extends StatelessWidget {
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.10),
+        color: Colors.white.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.16), width: 0.6),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.16), width: 0.6),
       ),
       child: Center(child: child),
     );
@@ -1425,10 +1414,10 @@ class _AppBarButton extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.10),
+              color: Colors.white.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: Colors.white.withOpacity(0.16),
+                color: Colors.white.withValues(alpha: 0.16),
                 width: 0.6,
               ),
             ),
@@ -1487,14 +1476,14 @@ class _AvatarButton extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.10),
+          color: Colors.white.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withOpacity(0.16), width: 0.6),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.16), width: 0.6),
         ),
         child: Center(
           child: CircleAvatar(
             radius: 13,
-            backgroundColor: Colors.white.withOpacity(0.88),
+            backgroundColor: Colors.white.withValues(alpha: 0.88),
             child: hasPhoto
                 ? ClipOval(
                     child: Image.network(
@@ -1522,303 +1511,8 @@ class _AvatarButton extends StatelessWidget {
 }
 
 // -----------------------------------------------------------------------------
-// Category Toggle (Hostels / Flats)
-// -----------------------------------------------------------------------------
 
-class _CategoryToggle extends StatelessWidget {
-  final String selected;
-  final void Function(String) onChanged;
 
-  const _CategoryToggle({required this.selected, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withOpacity(0.06)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _ToggleOption(
-              id: 'hostel',
-              label: 'Hostels',
-              selected: selected,
-              onChanged: onChanged,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: _ToggleOption(
-              id: 'flat',
-              label: 'Flats',
-              selected: selected,
-              onChanged: onChanged,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ToggleOption extends StatelessWidget {
-  final String id;
-  final String label;
-  final String selected;
-  final void Function(String) onChanged;
-
-  const _ToggleOption({
-    required this.id,
-    required this.label,
-    required this.selected,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isSelected = selected == id;
-    return GestureDetector(
-      onTap: () => onChanged(id),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOut,
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF184A4C) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF184A4C).withOpacity(0.25),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : [],
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.4,
-            color: isSelected ? Colors.white : const Color(0xFF184A4C),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// -----------------------------------------------------------------------------
-// Location Filter Sliver Header
-// -----------------------------------------------------------------------------
-
-class _LocationFilterDelegate extends SliverPersistentHeaderDelegate {
-  final List<Map<String, dynamic>> locationFilters;
-  final String selectedFilter;
-  final Position? currentPosition;
-  final void Function(String) onFilterSelected;
-
-  _LocationFilterDelegate({
-    required this.locationFilters,
-    required this.selectedFilter,
-    required this.currentPosition,
-    required this.onFilterSelected,
-  });
-
-  @override
-  double get minExtent => 0;
-  @override
-  double get maxExtent => 120;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    final t = (shrinkOffset / maxExtent).clamp(0.0, 1.0);
-    final opacity = (1.0 - t * 1.5).clamp(0.0, 1.0);
-    final scale = (1.0 - t * 0.5).clamp(0.0, 1.0);
-    final translateY = -shrinkOffset * 0.4;
-
-    return Container(
-      height: maxExtent,
-      color: Colors.grey[50]!.withOpacity(1.0 - t),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Opacity(
-              opacity: opacity,
-              child: Transform.translate(
-                offset: Offset(0, translateY),
-                child: Transform.scale(
-                  scale: scale,
-                  alignment: Alignment.topCenter,
-                  child: SizedBox(
-                    height: 110,
-                    child: ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-                      scrollDirection: Axis.horizontal,
-                      clipBehavior: Clip.none,
-                      itemCount: locationFilters.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 16),
-                      itemBuilder: (context, index) {
-                        final filter = locationFilters[index];
-                        final name = filter['name'] as String;
-                        final isSelected = selectedFilter == name;
-
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            GestureDetector(
-                              onTap: () => onFilterSelected(name),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 280),
-                                width: 68,
-                                height: 68,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white,
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? Colors.amber.withOpacity(0.55)
-                                        : Colors.grey.shade200,
-                                    width: 2.0,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: isSelected
-                                          ? const Color(
-                                              0xFFFFF176,
-                                            ).withOpacity(0.55)
-                                          : Colors.black.withOpacity(0.04),
-                                      blurRadius: isSelected ? 12 : 6,
-                                      spreadRadius: isSelected ? 2 : 0,
-                                      offset: isSelected
-                                          ? Offset.zero
-                                          : const Offset(0, 2),
-                                    ),
-                                    if (isSelected)
-                                      BoxShadow(
-                                        color: const Color(
-                                          0xFFFFF59D,
-                                        ).withOpacity(0.3),
-                                        blurRadius: 18,
-                                        spreadRadius: 5,
-                                      ),
-                                  ],
-                                ),
-                                child: ClipOval(
-                                  child: filter['image'] != null
-                                      ? Image.asset(
-                                          filter['image'],
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, _, _) => Icon(
-                                            Icons.location_city,
-                                            color: isSelected
-                                                ? AppTheme.primaryTeal
-                                                : Colors.black54,
-                                            size: 28,
-                                          ),
-                                        )
-                                      : Icon(
-                                          filter['icon'] ?? Icons.location_city,
-                                          color: isSelected
-                                              ? AppTheme.primaryTeal
-                                              : Colors.black87,
-                                          size: 28,
-                                        ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              name,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: isSelected
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                color: isSelected
-                                    ? Colors.black87
-                                    : Colors.black45,
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant _LocationFilterDelegate old) =>
-      selectedFilter != old.selectedFilter ||
-      currentPosition != old.currentPosition;
-}
-
-// -----------------------------------------------------------------------------
-// Sticky Section Title
-// -----------------------------------------------------------------------------
-
-class _StickyTitleDelegate extends SliverPersistentHeaderDelegate {
-  final String title;
-  const _StickyTitleDelegate({required this.title});
-
-  @override
-  double get minExtent => 50;
-  @override
-  double get maxExtent => 50;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return Container(
-      width: double.infinity,
-      color: Colors.grey[50],
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      alignment: Alignment.centerLeft,
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w700,
-          color: Colors.black87,
-        ),
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant _StickyTitleDelegate old) => title != old.title;
-}
 
 // -----------------------------------------------------------------------------
 // Location Picker Bottom Sheet
@@ -1843,10 +1537,10 @@ class _LocationPickerSheet extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.95),
+            color: Colors.white.withValues(alpha: 0.95),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             border: Border.all(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               width: 0.6,
             ),
           ),
@@ -1861,7 +1555,7 @@ class _LocationPickerSheet extends StatelessWidget {
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.12),
+                    color: Colors.black.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -1949,7 +1643,7 @@ class _NearbyHostelEntry {
 
 class _GlassSkeletonCard extends StatefulWidget {
   final double width;
-  const _GlassSkeletonCard({super.key, this.width = 150});
+  const _GlassSkeletonCard({this.width = 150});
 
   @override
   State<_GlassSkeletonCard> createState() => _GlassSkeletonCardState();
@@ -2007,20 +1701,24 @@ class _GlassSkeletonCardState extends State<_GlassSkeletonCard>
                     gradient: LinearGradient(
                       colors: isDark
                           ? [
-                              Colors.white.withOpacity(0.06),
-                              Colors.white.withOpacity(0.02),
+                              const Color(
+                                0xFF224E58,
+                              ).withValues(alpha: 0.75 * opacity),
+                              const Color(
+                                0xFF14363F,
+                              ).withValues(alpha: 0.75 * opacity),
                             ]
                           : [
-                              const Color(0xFF14B8A6).withOpacity(0.08),
-                              Colors.white.withOpacity(0.4),
+                              const Color(0xFF14B8A6).withValues(alpha: 0.08),
+                              Colors.white.withValues(alpha: 0.4),
                             ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     border: Border.all(
                       color: isDark
-                          ? Colors.white.withOpacity(0.1)
-                          : Colors.white.withOpacity(0.6),
+                          ? Colors.white.withValues(alpha: 0.25 * opacity)
+                          : Colors.white.withValues(alpha: 0.6),
                     ),
                   ),
                 ),
@@ -2034,8 +1732,8 @@ class _GlassSkeletonCardState extends State<_GlassSkeletonCard>
                       height: imageHeight,
                       width: double.infinity,
                       color: isDark
-                          ? Colors.white.withOpacity(opacity * 0.2)
-                          : Colors.grey.withOpacity(opacity),
+                          ? Colors.white.withValues(alpha: opacity * 0.2)
+                          : Colors.grey.withValues(alpha: opacity),
                     ),
 
                     Padding(
@@ -2088,8 +1786,8 @@ class _GlassSkeletonCardState extends State<_GlassSkeletonCard>
       width: width,
       decoration: BoxDecoration(
         color: isDark
-            ? Colors.white.withOpacity(opacity * 0.25)
-            : Colors.grey.withOpacity(opacity),
+            ? Colors.white.withValues(alpha: opacity * 0.25)
+            : Colors.grey.withValues(alpha: opacity),
         borderRadius: BorderRadius.circular(4),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../app/theme.dart';
+import '../../widgets/glass_card.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
@@ -7,7 +8,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text(
           'Privacy Policy',
@@ -50,7 +51,6 @@ class PrivacyPolicyScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
                 letterSpacing: -0.5,
               ),
             ),
@@ -68,18 +68,17 @@ class PrivacyPolicyScreen extends StatelessWidget {
               'Rentra respects your privacy and is committed to protecting your personal information. This Privacy Policy explains how we collect, use, store, and protect user data when you use the Rentra mobile application (“App”).',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.black87,
                 height: 1.6,
               ),
             ),
             const SizedBox(height: 32),
 
-            _buildSection(
+            _buildSection(context,
               '1. Information We Collect',
               'We collect only the information necessary to provide our services.',
             ),
 
-            _buildSubSection(
+            _buildSubSection(context,
               '1.1 Personal Information',
               'When you register or use the App, we may collect:\n'
                   '• Name\n'
@@ -88,7 +87,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   '• Phone number (if provided)',
             ),
 
-            _buildSubSection(
+            _buildSubSection(context,
               '1.2 Location Information',
               'Approximate or precise location may be collected to:\n'
                   '• Show nearby flats/hostels\n'
@@ -96,20 +95,20 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   'Location access is optional and can be controlled via device settings.',
             ),
 
-            _buildSubSection(
+            _buildSubSection(context,
               '1.3 User-Generated Content',
               '• Images uploaded by users (e.g., hostel photos)\n'
                   '• Property details and descriptions',
             ),
 
-            _buildSubSection(
+            _buildSubSection(context,
               '1.4 Device & Usage Information',
               '• Device type\n'
                   '• App usage events\n'
                   '• Crash logs and performance data',
             ),
 
-            _buildSection(
+            _buildSection(context,
               '2. How We Use Your Information',
               'We use collected data to:\n'
                   '• Create and manage user accounts\n'
@@ -120,7 +119,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   '• Prevent misuse, fraud, or unauthorized access',
             ),
 
-            _buildSection(
+            _buildSection(context,
               '3. Third-Party Services',
               'Rentra uses trusted third-party services that may collect information as required to function properly.\n\n'
                   'Third-party services include:\n'
@@ -133,7 +132,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   'These services operate under their own privacy policies and comply with applicable data protection laws.',
             ),
 
-            _buildSection(
+            _buildSection(context,
               '4. Data Sharing & Disclosure',
               'We do not sell or rent personal data to third parties. Data may be shared only:\n'
                   '• When required by law or legal request\n'
@@ -141,12 +140,12 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   '• With service providers strictly for app functionality',
             ),
 
-            _buildSection(
+            _buildSection(context,
               '5. Data Storage & Security',
               'All user data is stored securely using industry-standard security practices. Access to data is restricted and role-based. We continuously monitor and improve security measures.',
             ),
 
-            _buildSection(
+            _buildSection(context,
               '6. User Rights & Data Control',
               'Users have the right to:\n'
                   '• Access their personal data\n'
@@ -156,47 +155,43 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   'You can request data deletion by using in-app account deletion (if available), or emailing us at the contact address below. Data deletion requests are processed within a reasonable time.',
             ),
 
-            _buildSection(
+            _buildSection(context,
               '7. Notifications',
               'We may send notifications related to booking updates, property status, or important app information. Users can disable notifications anytime through device settings.',
             ),
 
-            _buildSection(
+            _buildSection(context,
               '8. Children’s Privacy',
               'Rentra is not intended for children under 18 years of age. We do not knowingly collect personal data from minors.',
             ),
 
-            _buildSection(
+            _buildSection(context,
               '9. Changes to This Policy',
               'We may update this Privacy Policy from time to time. Changes will be reflected on this page with an updated revision date.',
             ),
 
-            _buildSection(
+            _buildSection(context,
               '10. Contact Us',
               'If you have any questions or concerns about this Privacy Policy or your data, contact us at:',
             ),
 
-            Container(
+            GlassCard(
+              borderRadius: 12,
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
-              child: const Row(
+              child: Row(
                 children: [
                   Icon(
                     Icons.email_outlined,
-                    color: AppTheme.primaryTeal,
+                    color: AppTheme.getPriceColor(context),
                     size: 20,
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Text(
                     'amitkumarstm1507@gmail.com',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
-                      color: Colors.black87,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
                 ],
@@ -210,7 +205,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSection(String title, String content) {
+  Widget _buildSection(BuildContext context, String title, String content) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Column(
@@ -218,18 +213,18 @@ class PrivacyPolicyScreen extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
           ),
           const SizedBox(height: 12),
           Text(
             content,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
-              color: Colors.black87,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
               height: 1.6,
             ),
           ),
@@ -238,7 +233,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSubSection(String title, String content) {
+  Widget _buildSubSection(BuildContext context, String title, String content) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20, left: 8),
       child: Column(
@@ -246,18 +241,18 @@ class PrivacyPolicyScreen extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             content,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
-              color: Colors.black54,
+              color: AppTheme.grey,
               height: 1.6,
             ),
           ),

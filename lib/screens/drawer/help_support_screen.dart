@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../app/theme.dart';
+import '../../widgets/glass_card.dart';
 
 class HelpSupportScreen extends StatelessWidget {
   const HelpSupportScreen({super.key});
@@ -8,6 +9,7 @@ class HelpSupportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: const Text(
           'Help & Support',
@@ -95,12 +97,9 @@ class HelpSupportScreen extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: Container(
+        child: GlassCard(
+          borderRadius: 12,
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            border: Border.all(color: AppTheme.lightGrey),
-            borderRadius: BorderRadius.circular(12),
-          ),
           child: Row(
             children: [
               Container(
@@ -109,7 +108,7 @@ class HelpSupportScreen extends StatelessWidget {
                   color: AppTheme.primaryTeal.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: AppTheme.primaryTeal),
+                child: Icon(icon, color: AppTheme.getPriceColor(context)),
               ),
               const SizedBox(width: 16),
               Column(

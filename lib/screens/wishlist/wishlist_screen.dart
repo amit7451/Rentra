@@ -3,9 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/firestore_service.dart';
 import '../../services/wishlist_service.dart';
 import '../../models/hostel_model.dart';
-import '../../app/theme.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../app/routes.dart';
+import '../../widgets/glass_card.dart';
 
 class WishlistScreen extends StatelessWidget {
   const WishlistScreen({super.key});
@@ -72,7 +72,7 @@ class WishlistScreen extends StatelessWidget {
     final firestoreService = FirestoreService();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F7),
+      backgroundColor: Colors.transparent,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -146,21 +146,22 @@ class WishlistScreen extends StatelessWidget {
                                 vertical: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryTeal.withOpacity(0.07),
+                                color: const Color(0xFF14B8A6).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: const Color(0xFF14B8A6).withValues(alpha: 0.2)),
                               ),
                               child: Row(
                                 children: [
                                   const Icon(
                                     Icons.favorite,
-                                    color: AppTheme.primaryTeal,
+                                    color: Color(0xFF14B8A6),
                                     size: 18,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
                                     '${wishlisted.length} saved propert${wishlisted.length == 1 ? 'y' : 'ies'}',
                                     style: const TextStyle(
-                                      color: AppTheme.primaryTeal,
+                                      color: Color(0xFF14B8A6),
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -203,22 +204,22 @@ class _EmptyWishlist extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
-              color: AppTheme.primaryTeal.withOpacity(0.07),
+              color: const Color(0xFF14B8A6).withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.favorite_border,
               size: 64,
-              color: AppTheme.primaryTeal,
+              color: Color(0xFF14B8A6),
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             'Your wishlist is empty',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Theme.of(context).textTheme.titleLarge?.color,
             ),
           ),
           const SizedBox(height: 10),
@@ -227,7 +228,7 @@ class _EmptyWishlist extends StatelessWidget {
             child: Text(
               'Save hostels and flats you like by tapping the ♡ icon',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7), fontSize: 14),
             ),
           ),
           const SizedBox(height: 28),
@@ -239,7 +240,7 @@ class _EmptyWishlist extends StatelessWidget {
               style: TextStyle(color: Colors.white),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryTeal,
+              backgroundColor: const Color(0xFF14B8A6),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -296,185 +297,165 @@ class _WishlistCardState extends State<_WishlistCard> {
   Widget build(BuildContext context) {
     final h = widget.hostel;
 
-    return GestureDetector(
+    return GlassCard(
+      margin: const EdgeInsets.only(bottom: 16),
+      borderRadius: 18,
       onTap: () {
         Navigator.pushNamed(context, AppRoutes.hotelDetail, arguments: h.id);
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.07),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Image ─────────────────────────────────────────
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(18),
-              ),
-              child: Stack(
-                children: [
-                  h.images.isNotEmpty
-                      ? Image.network(
-                          h.images.first,
-                          height: 180,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => _placeholder(),
-                        )
-                      : _placeholder(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Image ─────────────────────────────────────────
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+            child: Stack(
+              children: [
+                h.images.isNotEmpty
+                    ? Image.network(
+                        h.images.first,
+                        height: 180,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => _placeholder(),
+                      )
+                    : _placeholder(),
 
-                  // Wishlist remove button
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: GestureDetector(
-                      onTap: _removing ? null : _remove,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(color: Colors.black26, blurRadius: 6),
-                          ],
-                        ),
-                        child: _removing
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppTheme.primaryTeal,
-                                ),
-                              )
-                            : const Icon(
-                                Icons.favorite,
-                                color: AppTheme.primaryTeal,
-                                size: 20,
+                // Wishlist remove button
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: GestureDetector(
+                    onTap: _removing ? null : _remove,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.4),
+                        shape: BoxShape.circle,
+                      ),
+                      child: _removing
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFF14B8A6),
                               ),
+                            )
+                          : const Icon(
+                              Icons.favorite,
+                              color: Color(0xFF14B8A6),
+                              size: 20,
+                            ),
+                    ),
+                  ),
+                ),
+
+                // Price badge
+                Positioned(
+                  bottom: 12,
+                  left: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '₹${h.startingPrice.toStringAsFixed(0)}/${h.rentPeriod == 'monthly' ? 'mo' : 'yr'}',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
                       ),
                     ),
                   ),
+                ),
+              ],
+            ),
+          ),
 
-                  // Price badge
-                  Positioned(
-                    bottom: 12,
-                    left: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+          // ── Info ──────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
                       child: Text(
-                        '₹${h.startingPrice.toStringAsFixed(0)}/${h.rentPeriod == 'monthly' ? 'mo' : 'yr'}',
+                        h.name,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: Colors.white,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          fontSize: 13,
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-
-            // ── Info ──────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          h.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        const Icon(Icons.star, size: 15, color: Colors.amber),
+                        const SizedBox(width: 3),
+                        Text(
+                          h.rating.toString(),
                           style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          const Icon(Icons.star, size: 15, color: Colors.amber),
-                          const SizedBox(width: 3),
-                          Text(
-                            h.rating.toString(),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                          ),
-                          Text(
-                            ' (${h.totalReviews})',
-                            style: TextStyle(
-                              color: Colors.grey[500],
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: 14,
-                        color: Colors.grey[600],
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          '${h.address}, ${h.city}',
-                          style: TextStyle(
-                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w600,
                             fontSize: 13,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
+                        Text(
+                          ' (${h.totalReviews})',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        '${h.address}, ${h.city}',
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6), fontSize: 13),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      _pill(
-                        '${h.availableRooms} rooms',
-                        Icons.bed_outlined,
-                        Colors.blue,
-                      ),
-                      const SizedBox(width: 8),
-                      if (h.amenities.isNotEmpty)
-                        _pill(h.amenities.first, Icons.wifi, Colors.green),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    _pill(
+                      '${h.availableRooms} rooms',
+                      Icons.bed_outlined,
+                      Colors.blue,
+                    ),
+                    const SizedBox(width: 8),
+                    if (h.amenities.isNotEmpty)
+                      _pill(h.amenities.first, Icons.wifi, Colors.green),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -482,14 +463,14 @@ class _WishlistCardState extends State<_WishlistCard> {
   Widget _placeholder() => Container(
     height: 180,
     width: double.infinity,
-    color: Colors.grey[200],
-    child: const Icon(Icons.image_outlined, size: 48, color: Colors.grey),
+    color: Colors.white.withValues(alpha: 0.05),
+    child: const Icon(Icons.image_outlined, size: 48, color: Color(0xFF14B8A6)),
   );
 
   Widget _pill(String label, IconData icon, Color color) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
     decoration: BoxDecoration(
-      color: color.withOpacity(0.1),
+      color: color.withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(20),
     ),
     child: Row(

@@ -8,6 +8,8 @@ import '../../services/firestore_service.dart';
 import '../../app/theme.dart';
 import '../../app/routes.dart';
 import '../../widgets/primary_button.dart';
+import '../../widgets/glass_card.dart';
+import '../../widgets/app_background.dart';
 
 class PaymentStatusScreen extends StatefulWidget {
   final String? bookingId;
@@ -149,39 +151,21 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
     }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       // Modern background
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            size: 20,
-            color: Colors.white,
-          ),
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20),
           onPressed: () => Navigator.maybePop(context),
         ),
         title: const Text(
           'Payment Status',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         centerTitle: true,
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
-            ),
-          ),
-        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -191,43 +175,34 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
             // HUGE STATUS BOX
             ScaleTransition(
               scale: _scaleAnimation,
-              child: Container(
+              child: GlassCard(
                 padding: const EdgeInsets.symmetric(
                   vertical: 40,
                   horizontal: 16,
                 ),
-                decoration: BoxDecoration(
-                  color: isSuccess
-                      ? Colors.green.withOpacity(0.1)
-                      : AppTheme.primaryTeal.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: isSuccess
-                        ? Colors.green.withOpacity(0.5)
-                        : AppTheme.primaryTeal.withOpacity(0.5),
-                    width: 2,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(
+                        isSuccess ? Icons.check_circle : Icons.cancel,
+                        size: 80,
+                        color: isSuccess
+                            ? AppTheme.getPriceColor(context)
+                            : Colors.redAccent,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        isSuccess ? 'Payment Successful' : 'Payment Failed',
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      isSuccess ? Icons.check_circle : Icons.cancel,
-                      size: 80,
-                      color: isSuccess ? Colors.green : AppTheme.primaryTeal,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      isSuccess ? 'Payment Successful' : 'Payment Failed',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isSuccess
-                                ? Colors.green
-                                : AppTheme.primaryTeal,
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
                 ),
               ),
             ),
@@ -235,22 +210,17 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
             // OWNER CONFIRMATION BOX (Only on success)
             if (isSuccess && _booking != null) ...[
               const SizedBox(height: 16),
-              Container(
+              GlassCard(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  color: bookingStatusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: bookingStatusColor.withOpacity(0.5),
-                  ),
-                ),
                 child: Center(
                   child: Text(
                     bookingStatusText,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
-                      color: bookingStatusColor,
+                      color: bookingStatusColor == Colors.green
+                          ? const Color.fromARGB(255, 34, 224, 234)
+                          : bookingStatusColor,
                     ),
                   ),
                 ),
@@ -268,45 +238,36 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              Card(
-                color: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: Colors.grey.shade200),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _hostel!.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+              GlassCard(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _hostel!.name,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.location_on,
+                          color: AppTheme.getPriceColor(context),
+                          size: 18,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(
-                            Icons.location_on,
-                            color: Colors.grey,
-                            size: 18,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _hostel!.address,
+                            style: Theme.of(context).textTheme.bodyMedium,
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _hostel!.address,
-                              style: TextStyle(color: Colors.grey[700]),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
 
@@ -320,61 +281,58 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              Card(
-                color: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: Colors.grey.shade200),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      _detailRow('Booking ID', _booking!.id),
-                      _detailRow(
-                        'Date',
-                        '${_fmt(_booking!.checkInDate)} - ${_fmt(_booking!.checkOutDate)}',
-                      ),
-                      _detailRow(
-                        'Time',
-                        '${_booking!.bookingDate.hour.toString().padLeft(2, '0')}:${_booking!.bookingDate.minute.toString().padLeft(2, '0')}',
-                      ),
-                      _detailRow(
-                        'Seater/Type',
-                        _hostel!.unitType == 'flat'
-                            ? 'Flat'
-                            : '${_booking!.selectedSeater ?? 1} Seater',
-                      ),
-                      _detailRow(
-                        'Total Hostel Fees',
-                        '₹${_booking!.totalPrice.toStringAsFixed(0)}',
-                      ),
-                      const Divider(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Booking Amount Paid',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            isSuccess
-                                ? '₹${_booking!.bookingFee?.toStringAsFixed(0) ?? '0'}'
-                                : 'Failed', // Dynamic registration fee or Failed
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: AppTheme.primaryTeal,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+              GlassCard(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _detailRow('Booking ID', _booking!.id, context),
+                    _detailRow(
+                      'Date',
+                      '${_fmt(_booking!.checkInDate)} - ${_fmt(_booking!.checkOutDate)}',
+                      context,
+                    ),
+                    _detailRow(
+                      'Time',
+                      '${_booking!.bookingDate.hour.toString().padLeft(2, '0')}:${_booking!.bookingDate.minute.toString().padLeft(2, '0')}',
+                      context,
+                    ),
+                    _detailRow(
+                      'Seater/Type',
+                      _hostel!.unitType == 'flat'
+                          ? 'Flat'
+                          : '${_booking!.selectedSeater ?? 1} Seater',
+                      context,
+                    ),
+                    _detailRow(
+                      'Total Hostel Fees',
+                      '₹${_booking!.totalPrice.toStringAsFixed(0)}',
+                      context,
+                    ),
+                    Divider(
+                      height: 24,
+                      color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Booking Amount Paid',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          isSuccess
+                              ? '₹${_booking!.bookingFee?.toStringAsFixed(0) ?? '0'}'
+                              : 'Failed',
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.getPriceColor(context),
+                              ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),
@@ -388,163 +346,171 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
                   ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
-                Card(
-                  color: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: Colors.grey.shade200),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 24,
-                              backgroundColor: AppTheme.primaryTeal.withOpacity(
-                                0.1,
-                              ),
-                              backgroundImage:
-                                  (_owner!.photoUrl?.isNotEmpty ?? false)
-                                  ? NetworkImage(_owner!.photoUrl!)
-                                  : null,
-                              child: (_owner!.photoUrl?.isEmpty ?? true)
-                                  ? const Icon(
-                                      Icons.person,
-                                      color: AppTheme.primaryTeal,
-                                      size: 22,
-                                    )
-                                  : null,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                _owner!.name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (isSuccess) ...[
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              if (_owner!.phoneNumber?.isNotEmpty ?? false)
-                                Expanded(
-                                  child: InkWell(
-                                    onTap: () => _launchUrl(
-                                      'tel:${_owner!.phoneNumber}',
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.phone,
-                                            size: 18,
-                                            color: AppTheme.primaryTeal,
-                                          ),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            'Call',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              if ((_owner!.phoneNumber?.isNotEmpty ?? false) &&
-                                  _owner!.email.isNotEmpty)
-                                const SizedBox(width: 12),
-                              if (_owner!.email.isNotEmpty)
-                                Expanded(
-                                  child: InkWell(
-                                    onTap: () =>
-                                        _launchUrl('mailto:${_owner!.email}'),
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.email,
-                                            size: 18,
-                                            color: AppTheme.primaryTeal,
-                                          ),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            'Email',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
+                GlassCard(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 24,
+                            backgroundColor: AppTheme.getPriceColor(
+                              context,
+                            ).withValues(alpha: 0.1),
+                            backgroundImage:
+                                (_owner!.photoUrl?.isNotEmpty ?? false)
+                                ? NetworkImage(_owner!.photoUrl!)
+                                : null,
+                            child: (_owner!.photoUrl?.isEmpty ?? true)
+                                ? Icon(
+                                    Icons.person,
+                                    color: AppTheme.getPriceColor(context),
+                                    size: 22,
+                                  )
+                                : null,
                           ),
-                        ] else ...[
-                          const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Row(
-                              children: [
-                                Icon(
-                                  Icons.lock_outline,
-                                  size: 16,
-                                  color: Colors.grey,
-                                ),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Pay the booking fee to view contact detail.',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _owner!.name,
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                           ),
                         ],
+                      ),
+                      if (isSuccess) ...[
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            if (_owner!.phoneNumber?.isNotEmpty ?? false)
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () =>
+                                      _launchUrl('tel:${_owner!.phoneNumber}'),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Theme.of(
+                                          context,
+                                        ).dividerColor.withValues(alpha: 0.2),
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.phone,
+                                          size: 18,
+                                          color: AppTheme.getPriceColor(
+                                            context,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Call',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            if ((_owner!.phoneNumber?.isNotEmpty ?? false) &&
+                                _owner!.email.isNotEmpty)
+                              const SizedBox(width: 12),
+                            if (_owner!.email.isNotEmpty)
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () =>
+                                      _launchUrl('mailto:${_owner!.email}'),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Theme.of(context)
+                                            .dividerColor
+                                            .withValues(alpha: 0.2),
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.email,
+                                          size: 18,
+                                          color: Color.fromARGB(
+                                            255,
+                                            34,
+                                            224,
+                                            234,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Email',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.color,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ] else ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).iconTheme.color?.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.lock_outline,
+                                size: 16,
+                                color: Theme.of(
+                                  context,
+                                ).iconTheme.color?.withValues(alpha: 0.4),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Pay the booking fee to view contact detail.',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
-                    ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -675,16 +641,18 @@ class _PaymentStatusScreenState extends State<PaymentStatusScreen>
     );
   }
 
-  Widget _detailRow(String label, String value) {
+  Widget _detailRow(String label, String value, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+          Text(label, style: Theme.of(context).textTheme.bodyMedium),
           Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ],
       ),

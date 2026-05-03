@@ -7,6 +7,7 @@ import '../../services/cloudinary_service.dart';
 import '../../models/hostel_model.dart';
 import '../../app/theme.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/glass_card.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_places_flutter/google_places_flutter.dart';
@@ -312,8 +313,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    return Scaffold(      backgroundColor: Colors.transparent,
       body: CustomScrollView(
         slivers: [
           _buildSliverAppBar(),
@@ -325,80 +325,118 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _sectionHeader('Basic Information'),
-                    _field(
-                      _nameController,
-                      'Hostel Name',
-                      'e.g. Royal Residency',
-                      validator: _valReq('name'),
-                    ),
-                    const SizedBox(height: 16),
-                    _field(
-                      _descriptionController,
-                      'Description (Optional)',
-                      'Rules, details, etc.',
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildPropertyTypeSelector(),
-                    const SizedBox(height: 24),
-
-                    _sectionHeader('Location Details'),
-                    _buildLocationPicker(),
-                    const SizedBox(height: 16),
-                    _buildSpecificLocationDetails(),
-                    const SizedBox(height: 16),
-                    _field(
-                      _addressController,
-                      'Full Address',
-                      'Search above or enter manually',
-                      validator: _valReq('address'),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildAddressRow(
-                      _cityController,
-                      'City',
-                      _stateController,
-                      'State',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildAddressRow(
-                      _pincodeController,
-                      'Pincode',
-                      _countryController,
-                      'Country',
-                      isNum: true,
-                    ),
-                    const SizedBox(height: 32),
-
-                    _sectionHeader('Pricing & Capacity'),
-                    if (_unitType == 'flat') ...[
-                      _field(
-                        _priceController,
-                        'Monthly Rent (₹)',
-                        'e.g. 12000',
-                        keyboardType: TextInputType.number,
-                        validator: _valInt('rent'),
+                    GlassCard(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _sectionHeader(context, 'Basic Information'),
+                          _field(
+                            context,
+                            _nameController,
+                            'Hostel Name',
+                            'e.g. Royal Residency',
+                            validator: _valReq('name'),
+                          ),
+                          const SizedBox(height: 16),
+                          _field(
+                            context,
+                            _descriptionController,
+                            'Description (Optional)',
+                            'Rules, details, etc.',
+                            maxLines: 3,
+                          ),
+                          const SizedBox(height: 20),
+                          _buildPropertyTypeSelector(context),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      _field(
-                        _flatCapacityController,
-                        'Total Capacity (Persons)',
-                        'e.g. 3',
-                        keyboardType: TextInputType.number,
-                        validator: _valInt('capacity'),
+                    ),
+                    const SizedBox(height: 24),
+
+                    GlassCard(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _sectionHeader(context, 'Location Details'),
+                          _buildLocationPicker(),
+                          const SizedBox(height: 16),
+                          _buildSpecificLocationDetails(context),
+                          const SizedBox(height: 16),
+                          _field(
+                            context,
+                            _addressController,
+                            'Full Address',
+                            'Search above or enter manually',
+                            validator: _valReq('address'),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildAddressRow(
+                            context,
+                            _cityController,
+                            'City',
+                            _stateController,
+                            'State',
+                          ),
+                          const SizedBox(height: 16),
+                          _buildAddressRow(
+                            context,
+                            _pincodeController,
+                            'Pincode',
+                            _countryController,
+                            'Country',
+                            isNum: true,
+                          ),
+                        ],
                       ),
-                    ] else
-                      _buildHostelPricingGrid(),
+                    ),
                     const SizedBox(height: 24),
 
-                    _buildInitialStatsSection(),
-                    const SizedBox(height: 32),
-
-                    _sectionHeader('Media & Amenities'),
-                    _buildImageGallery(),
+                    GlassCard(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _sectionHeader(context, 'Pricing & Capacity'),
+                          if (_unitType == 'flat') ...[
+                            _field(
+                              context,
+                              _priceController,
+                              'Monthly Rent (₹)',
+                              'e.g. 12000',
+                              keyboardType: TextInputType.number,
+                              validator: _valInt('rent'),
+                            ),
+                            const SizedBox(height: 16),
+                            _field(
+                              context,
+                              _flatCapacityController,
+                              'Total Capacity (Persons)',
+                              'e.g. 3',
+                              keyboardType: TextInputType.number,
+                              validator: _valInt('capacity'),
+                            ),
+                          ] else
+                            _buildHostelPricingGrid(context),
+                          const SizedBox(height: 24),
+                          _buildInitialStatsSection(context),
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: 24),
-                    _buildAmenitiesSection(),
+
+                    GlassCard(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _sectionHeader(context, 'Media & Amenities'),
+                          _buildImageGallery(),
+                          const SizedBox(height: 24),
+                          _buildAmenitiesSection(),
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: 40),
 
                     _buildSubmitButton(),
@@ -442,7 +480,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
     );
   }
 
-  Widget _buildPropertyTypeSelector() {
+  Widget _buildPropertyTypeSelector(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -458,7 +496,9 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
             DropdownMenuItem(value: 'flat', child: Text('Private Flat')),
           ],
           onChanged: (v) => setState(() => _unitType = v!),
-          decoration: _inputDecoration(''),
+          decoration: _inputDecoration(context, ''),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+          dropdownColor: Theme.of(context).cardColor,
         ),
       ],
     );
@@ -619,12 +659,12 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
     );
   }
 
-  Widget _buildSpecificLocationDetails() {
+  Widget _buildSpecificLocationDetails(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.blue.withAlpha(5),
+        color: const Color(0xFF14B8A6).withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.withAlpha(15)),
+        border: Border.all(color: const Color(0xFF14B8A6).withValues(alpha: 0.2)),
       ),
       child: ExpansionTile(
         leading: const Icon(
@@ -632,22 +672,24 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
           color: Colors.blue,
           size: 20,
         ),
-        title: const Text(
+        title: Text(
           "Unit Specifics (House/Street)",
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Colors.blue,
+            color: AppTheme.getPriceColor(context),
           ),
         ),
+        iconColor: AppTheme.getPriceColor(context),
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Column(
               children: [
-                _field(_houseNoController, 'House No / Flat No', 'e.g. 102'),
+                _field(context, _houseNoController, 'House No / Flat No', 'e.g. 102'),
                 const SizedBox(height: 12),
                 _field(
+                  context,
                   _streetController,
                   'Street / Landmark',
                   'e.g. Near Park',
@@ -660,19 +702,20 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
     );
   }
 
-  Widget _buildHostelPricingGrid() {
+  Widget _buildHostelPricingGrid(BuildContext context) {
     return Column(
       children: [
-        _seaterRow('1-Seater', _price1Controller, _rooms1Controller),
+        _seaterRow(context, '1-Seater', _price1Controller, _rooms1Controller),
         const SizedBox(height: 16),
-        _seaterRow('2-Seater', _price2Controller, _rooms2Controller),
+        _seaterRow(context, '2-Seater', _price2Controller, _rooms2Controller),
         const SizedBox(height: 16),
-        _seaterRow('3-Seater', _price3Controller, _rooms3Controller),
+        _seaterRow(context, '3-Seater', _price3Controller, _rooms3Controller),
       ],
     );
   }
 
   Widget _seaterRow(
+    BuildContext context,
     String label,
     TextEditingController price,
     TextEditingController count,
@@ -681,6 +724,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
       children: [
         Expanded(
           child: _field(
+            context,
             price,
             '$label Price',
             '₹ Rent',
@@ -690,6 +734,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: _field(
+            context,
             count,
             '$label Count',
             'How many?',
@@ -700,15 +745,16 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
     );
   }
 
-  Widget _buildInitialStatsSection() {
+  Widget _buildInitialStatsSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionHeader('Trust Signals (Initial)'),
+        _sectionHeader(context, 'Trust Signals (Initial)'),
         Row(
           children: [
             Expanded(
               child: _field(
+                context,
                 _ratingController,
                 'Initial Rating',
                 '0-5',
@@ -718,6 +764,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
             const SizedBox(width: 16),
             Expanded(
               child: _field(
+                context,
                 _totalReviewsController,
                 'Review Count',
                 'Initial reviews',
@@ -756,9 +803,9 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.grey[50],
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
+            border: Border.all(color: const Color(0xFF14B8A6).withValues(alpha: 0.2)),
           ),
           child: Column(
             children: [
@@ -822,6 +869,8 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
                   icon: const Icon(Icons.add_photo_alternate),
                   label: const Text('Add Photos'),
                   style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF14B8A6),
+                    side: const BorderSide(color: Color(0xFF14B8A6)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -886,19 +935,26 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
                 (a) => Chip(
                   label: Text(
                     a,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppTheme.primaryTeal,
+                      color: Theme.of(context).brightness == Brightness.dark 
+                          ? Colors.white 
+                          : AppTheme.primaryTeal,
                     ),
                   ),
-                  deleteIcon: const Icon(
+                  deleteIcon: Icon(
                     Icons.close,
                     size: 14,
-                    color: AppTheme.primaryTeal,
+                    color: Theme.of(context).brightness == Brightness.dark 
+                          ? Colors.white70 
+                          : AppTheme.primaryTeal,
                   ),
                   onDeleted: () => setState(() => _amenities.remove(a)),
-                  backgroundColor: AppTheme.primaryTeal.withAlpha(10),
-                  side: BorderSide.none,
+                  backgroundColor: const Color(0xFF14B8A6).withValues(alpha: 0.15),
+                  side: BorderSide(
+                    color: const Color(0xFF14B8A6).withValues(alpha: 0.3),
+                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 ),
               )
               .toList(),
@@ -909,7 +965,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
             Expanded(
               child: TextFormField(
                 controller: _amenityController,
-                decoration: _inputDecoration('e.g. AC, Lift'),
+                decoration: _inputDecoration(context, 'e.g. AC, Lift'),
                 onFieldSubmitted: (_) => _addAmenity(),
               ),
             ),
@@ -917,7 +973,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
             ElevatedButton(
               onPressed: _addAmenity,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryTeal,
+                backgroundColor: const Color(0xFF14B8A6),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
               child: const Text('Add', style: TextStyle(color: Colors.white)),
@@ -929,20 +985,35 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
   }
 
   Widget _buildSubmitButton() {
-    return SizedBox(
+    return Container(
       width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF14B8A6), Color(0xFF0D9488)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF14B8A6).withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: ElevatedButton(
         onPressed: (_isLoading || _isUploading || _selectedImages.isEmpty)
             ? null
             : _submit,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.primaryTeal,
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          shadowColor: Colors.transparent,
           padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          elevation: 4,
-          shadowColor: AppTheme.primaryTeal.withAlpha(50),
         ),
         child: const Text(
           'Submit Listing',
@@ -950,6 +1021,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
             color: Colors.white,
             fontSize: 16,
             fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
           ),
         ),
       ),
@@ -958,19 +1030,21 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
 
   // ── Helpers ────────────────────────────────────────────────────────
 
-  Widget _sectionHeader(String title) => Padding(
+  Widget _sectionHeader(BuildContext context, String title) => Padding(
     padding: const EdgeInsets.only(bottom: 16),
     child: Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
+        color: Theme.of(context).textTheme.titleLarge?.color,
         letterSpacing: -0.5,
       ),
     ),
   );
 
   Widget _field(
+    BuildContext context,
     TextEditingController ctrl,
     String label,
     String hint, {
@@ -983,10 +1057,10 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 13,
-            color: Colors.black87,
+            color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
           ),
         ),
         const SizedBox(height: 6),
@@ -995,13 +1069,16 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
           maxLines: maxLines,
           keyboardType: keyboardType,
           validator: validator,
-          decoration: _inputDecoration(hint),
+          cursorColor: AppTheme.getPriceColor(context),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+          decoration: _inputDecoration(context, hint),
         ),
       ],
     );
   }
 
   Widget _buildAddressRow(
+    BuildContext context,
     TextEditingController c1,
     String l1,
     TextEditingController c2,
@@ -1012,6 +1089,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
       children: [
         Expanded(
           child: _field(
+            context,
             c1,
             l1,
             l1,
@@ -1020,15 +1098,15 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
           ),
         ),
         const SizedBox(width: 16),
-        Expanded(child: _field(c2, l2, l2, validator: _valReq(l2))),
+        Expanded(child: _field(context, c2, l2, l2, validator: _valReq(l2))),
       ],
     );
   }
 
-  InputDecoration _inputDecoration(String hint, {Widget? prefix}) =>
+  InputDecoration _inputDecoration(BuildContext context, String hint, {Widget? prefix}) =>
       InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+        hintStyle: const TextStyle(color: AppTheme.grey, fontSize: 14),
         prefixIcon: prefix,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -1036,18 +1114,17 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: const Color(0xFF14B8A6).withValues(alpha: 0.3)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: const Color(0xFF14B8A6).withValues(alpha: 0.3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppTheme.primaryTeal, width: 1.5),
+          borderSide: const BorderSide(color: Color(0xFF14B8A6), width: 2.0),
         ),
-        filled: true,
-        fillColor: Colors.white,
+        filled: false,
       );
 
   String? Function(String?) _valReq(String name) =>
