@@ -200,6 +200,60 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  void _showAlertDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        child: GlassCard(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.calendar_month_outlined,
+                color: Colors.orangeAccent,
+                size: 48,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.9),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.getPriceColor(context),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Got it'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _handleExternalWallet(ExternalWalletResponse response) {
     // Optional: handle external wallet selection
   }
@@ -310,9 +364,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please sign in first')));
+      _showAlertDialog('Sign In Required', 'Please sign in to your account to continue with the booking.');
       return;
     }
 
@@ -324,22 +376,12 @@ class _BookingScreenState extends State<BookingScreen> {
     }
 
     if (_checkInDate == null || _checkOutDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select dates'),
-          backgroundColor: AppTheme.darkTeal,
-        ),
-      );
+      _showAlertDialog('Missing Dates', 'Please select both start and end dates to proceed with your booking.');
       return;
     }
 
     if (_totalPrice <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid booking: Price cannot be zero'),
-          backgroundColor: AppTheme.darkTeal,
-        ),
-      );
+      _showAlertDialog('Invalid Price', 'The total price cannot be zero. Please check your selected dates and seater options.');
       return;
     }
 
@@ -401,10 +443,9 @@ class _BookingScreenState extends State<BookingScreen> {
 
       // _isLoading stays true while Razorpay checkout is open
       _razorpay.open(options);
-    } catch (e) {
+    } on FirebaseFunctionsException catch (e) {
       if (_currentBookingId != null) {
         try {
-          // If order creation or something fails before checkout opens, mark as failed/cancelled
           await _firestoreService.updatePaymentStatus(
             bookingId: _currentBookingId!,
             status: 'failed',
@@ -418,12 +459,32 @@ class _BookingScreenState extends State<BookingScreen> {
 
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to initiate payment: $e'),
-          backgroundColor: AppTheme.darkTeal,
-        ),
-      );
+      
+      String message = e.message ?? 'Failed to initiate payment';
+      if (e.code == 'unavailable') {
+        message = 'Could not connect to payment service. Please check your internet.';
+      } else if (e.code == 'not-found') {
+        message = 'Payment service not found. Please check function deployment.';
+      }
+      
+      _showAlertDialog('Payment Error', message);
+    } catch (e) {
+      if (_currentBookingId != null) {
+        try {
+          await _firestoreService.updatePaymentStatus(
+            bookingId: _currentBookingId!,
+            status: 'failed',
+          );
+          await _firestoreService.updateBookingStatus(
+            _currentBookingId!,
+            BookingStatus.cancelled,
+          );
+        } catch (_) {}
+      }
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      _showAlertDialog('Initialization Failed', 'Failed to initiate payment: $e');
     }
   }
 

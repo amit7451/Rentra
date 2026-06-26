@@ -1,7 +1,5 @@
 # Environment variables - ADD THIS SECTION
-.env
 *.env
-.env.*
 !.env.example
 
 # Miscellaneous
@@ -73,5 +71,5 @@ GoogleService-Info.plist
 *.pem
 key.properties
 local.properties
-.env
-.env.*
+config.bat
+node_modules

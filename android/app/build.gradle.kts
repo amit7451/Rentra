@@ -64,18 +64,23 @@ android {
     }
 
     buildTypes {
-        release {
-            // ✅ Use release key if present, otherwise fall back safely
-            if (signingConfigs.getByName("release").storeFile != null) {
-                signingConfig = signingConfigs.getByName("release")
-            } else {
-                signingConfig = signingConfigs.getByName("debug")
-            }
-
-            isMinifyEnabled = true
-            isShrinkResources = true
+    release {
+        // ✅ Use release key if present, otherwise fall back safely
+        if (signingConfigs.getByName("release").storeFile != null) {
+            signingConfig = signingConfigs.getByName("release")
+        } else {
+            signingConfig = signingConfigs.getByName("debug")
         }
+
+        isMinifyEnabled = true
+        isShrinkResources = true
+
+        proguardFiles(
+            getDefaultProguardFile("proguard-android-optimize.txt"),
+            "proguard-rules.pro"
+        )
     }
+}
 }
 
 flutter {

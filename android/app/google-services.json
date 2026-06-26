@@ -22,6 +22,22 @@
           }
         },
         {
+          "client_id": "360291447254-cra5hqb8cca26vantafk6ch313rm567q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rentra.app.rentra",
+            "certificate_hash": "9e0541e068b8ab1a65d4289d4e7aa017d0a63e16"
+          }
+        },
+        {
+          "client_id": "360291447254-f25q1gjkh9lg48k7sap6kfm2uj1ltdbb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rentra.app.rentra",
+            "certificate_hash": "fc1ee8239cd329567f996005f9e59daca419f663"
+          }
+        },
+        {
           "client_id": "360291447254-t9iqalmnr47eost41d14mi85p4pvt243.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
