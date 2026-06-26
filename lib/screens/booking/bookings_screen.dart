@@ -79,10 +79,21 @@ class _BookingsScreenState extends State<BookingsScreen> {
             surfaceTintColor: Colors.transparent,
             pinned: true,
             backgroundColor: Colors.transparent,
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF0F2F31), Color(0xFF184A4C)],
+                ),
+              ),
+            ),
+            iconTheme: const IconThemeData(color: Colors.white),
             centerTitle: true,
             title: const Text(
               'My Bookings',
               style: TextStyle(
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),

@@ -16,6 +16,8 @@ exports.createRazorpayOrder = onCall({ invoker: "public" }, async (request) => {
     if (!amount || amount < 1) {
         throw new HttpsError("invalid-argument", "Amount must be at least INR 1.");
     }
+    console.log("KEY_ID =", process.env.RAZORPAY_KEY_ID);
+console.log("HAS_SECRET =", !!process.env.RAZORPAY_KEY_SECRET);
 
     const instance = new Razorpay({
         key_id: process.env.RAZORPAY_KEY_ID,
@@ -29,12 +31,30 @@ exports.createRazorpayOrder = onCall({ invoker: "public" }, async (request) => {
     };
 
     try {
-        const order = await instance.orders.create(options);
-        return { orderId: order.id, amount: order.amount, currency: order.currency };
-    } catch (error) {
-        console.error("Error creating Razorpay order:", error);
-        throw new HttpsError("internal", "Failed to create Razorpay order.");
+    const order = await instance.orders.create(options);
+
+    console.log("========== ORDER CREATED ==========");
+    console.log(JSON.stringify(order, null, 2));
+    console.log("===================================");
+
+    return {
+        orderId: order.id,
+        amount: order.amount,
+        currency: order.currency
+    };
+
+} catch (error) {
+    console.error("========== RAZORPAY ERROR ==========");
+    console.error(error);
+
+    if (error.response) {
+        console.error("Response:", error.response.data);
     }
+
+    console.error("===================================");
+
+    throw new HttpsError("internal", error.message);
+}
 });
 
 

@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:ui'; // for ImageFilter
 
 import 'package:flutter/material.dart';
@@ -273,5 +273,3 @@ class _NavBarItem {
     required this.label,
   });
 }
-
-
